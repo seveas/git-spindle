@@ -1,0 +1,42 @@
+Github integration for git
+==========================
+
+With this git subcommand, you can perform various github actions, such as
+creating or forking a repository from the command line.
+
+Usage: 
+
+$ git hub add-remote [user]: Add user's fork as a remote by that name
+$ git hub create: Create a repository on github to push to
+$ git hub fork [url or user and repo]: Fork a repo and clone it
+$ git hub forks: List all forks of this repository
+$ git hub gist [files]: Create a new gist from files
+$ git hub issue [issue number ...]: Issue details
+$ git hub issues [filters]: List issues
+$ git hub set-origin: Set the remote 'origin' to github.
+  If this is a fork, set the remote 'upstream' to the parent
+$ git hub whoami: Display github user info
+$ git hub whois [user ...]: Display github user info
+
+Install instructions:
+
+You need to install whelk and github3.py first. whelk can be installed with
+pip, github3.py (as of writing) needs to be cloned from github as the released
+versions are not quite there yet.
+
+With those prerequisites met, place git-hub somewhere on your $PATH or in git's
+libexec dir, and you're done.
+
+Copyright (C) 2012 Dennis Kaarsemaker <dennis@kaarsemaker.net>
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program.  If not, see <http://www.gnu.org/licenses/>.

@@ -1,0 +1,250 @@
+#!/usr/bin/env python
+#
+# Github integration for git.
+# Usage: See README
+#
+# Copyright (C) 2012 Dennis Kaarsemaker <dennis@kaarsemaker.net>
+#
+# This program is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import optparse
+import os
+import github3
+import getpass
+import sys
+from whelk import shell
+
+## ANSI color library from github.com/seveas/hacks
+class Attr(object):
+    def __init__(self, **attr):
+        self.attr = attr
+        self.rev_attr = dict([(v,k) for k,v in attr.items()]) 
+        for k, v in attr.items():
+            setattr(self, k, v)
+
+    def name(self, val):
+        return self.rev_attr[val]
+
+fgcolor = Attr(black=30, red=31, green=32, yellow=33, blue=34, magenta=35, cyan=36, white=37, none=None)
+bgcolor = Attr(black=40, red=41, green=42, yellow=43, blue=44, magenta=45, cyan=46, white=47, none=None)
+attr    = Attr(normal=0, bright=1, faint=2, underline=4, negative=7, conceal=8, crossed=9, none=None)
+
+esc = '\033'
+mode = lambda *args: "%s[%sm" % (esc, ';'.join([str(x) for x in args if x is not None]))
+reset = mode(attr.normal)
+wrap = lambda text, *args: "%s%s%s" % (mode(*args), text, reset)
+
+erase_line = esc + '[K'
+erase_display = esc + '[2J'
+save_cursor = esc + '[s'
+restore_cursor = esc + '[u'
+## End ansi color library
+
+def main():
+    p = optparse.OptionParser()
+    p.add_option('-d', '--description', dest='description', default=None,
+            help="Description for a new repo or gist")
+    p.usage = "Various github actions:\n"
+    for command in sorted(commands):
+        doc = commands[command].__doc__
+        if ']' in doc:
+            p.usage += '\n- %s %s:%s' % (command, doc[:doc.find(']')+1], doc[doc.find(']')+1:])
+        else:
+            p.usage += '\n- %s: %s' % (command, doc)
+    opts, args = p.parse_args()
+    if not args or args[0] not in commands:
+        p.error("No valid command specified")
+    cmd = args.pop(0)
+    try:
+        commands[cmd](opts, args)
+    except KeyboardInterrupt:
+        sys.exit(1)
+
+def err(msg):
+    print >>sys.stderr, msg
+    sys.exit(1)
+
+def check(result):
+    if result.returncode != 0:
+        print result.stderr.rstrip()
+        sys.exit(result.returncode)
+    return result
+
+commands = {}
+def command(fnc):
+    commands[fnc.__name__.replace('_','-')] = fnc
+    return fnc
+
+def github():
+    user = shell.git('config', 'github.user').stdout.strip()
+    if not user:
+        user = raw_input("Github user: ").strip()
+        shell.git('config', '--global', 'github.user', user)
+
+    token = shell.git('config', 'github.token').stdout.strip()
+    if not token:
+        password = getpass.getpass("GitHub password: ")
+        auth = github3.authorize(user, password, ['user', 'repo', 'gist'], 
+                "Github Git integration", "http://seveas.github.com/git-hub")
+        token = auth.token
+        shell.git('config', '--global', 'github.token', token)
+        shell.git('config', '--global', 'github.auth_id', str(auth.id))
+
+    if not user or not token:
+        err("No user or token specified")
+    gh = github3.login(username=user, token=token)
+    try:
+        gh.user()
+    except github3.GitHubError:
+        # Token obsolete
+        shell.git('config', '--global', '--unset', 'github.token')
+        gh = github()
+    return gh
+
+def get_repo():
+    gh = github()
+    root = check(shell.git('rev-parse', '--show-toplevel')).stdout.strip()
+    name = os.path.basename(root)
+    return gh.repository(gh.user().login, name)
+
+@command
+def create(opts, args):
+    """Create a repository on github to push to"""
+    root = check(shell.git('rev-parse', '--show-toplevel')).stdout.strip()
+    name = os.path.basename(root)
+    gh = github()
+    if name in [x.name for x in gh.list_repos()]:
+        err("Repository already exists")
+    gh.create_repo(name=name, description=opts.description or "")
+    set_origin(opts, args)
+
+@command
+def set_origin(opts, args):
+    """Set the remote 'origin' to github.\n  If this is a fork, set the remote 'upstream' to the parent"""
+    repo = get_repo()
+    shell.git('config', 'remote.origin.url', repo.ssh_url)
+    shell.git('config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
+
+    if repo.is_fork():
+        parent = repo.parent
+        shell.git('config', 'remote.upstream.url', parent.git_url)
+        shell.git('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
+
+@command
+def fork(opts, args):
+    """[url or user and repo] Fork a repo and clone it"""
+    if not args:
+        err("No repository specified")
+    if len(args) == 2:
+        user, repo = args
+    else:
+        # Assume a url. Split it by / and remove '.git'
+        user, repo = args[0].rsplit('/', 3)[-2:]
+        if repo.endswith('.git'):
+            repo = repo[:-4]
+    gh = github()
+    if repo in [x.name for x in gh.list_repos()]:
+        err("Repository already exists")
+    repo = gh.repository(user, repo)
+    clone = repo.create_fork()
+    rc = shell.git('clone', clone.ssh_url, stderr=None, stdout=None).returncode 
+    if rc:
+        sys.exit(rc)
+    os.chdir(clone.name)
+    set_origin(opts, args)
+    shell.git('fetch', 'upstream', stderr=None, stdout=None)
+
+@command
+def forks(opts, args):
+    """List all forks of this repository"""
+    repo = get_repo()
+    if repo.is_fork():
+        repo = repo.parent
+    print "[%s] %s" % (wrap(repo.owner.login, attr.bright), repo.html_url)
+    for fork in repo.list_forks():
+        print "[%s] %s" % (fork.owner.login, fork.html_url)
+
+@command
+def issues(opts, args):
+    """[filters] List issues"""
+    repo = get_repo()
+    args = dict([x.split('=', 1) for x in args])
+    for issue in repo.list_issues(**args):
+        url = issue.pull_request and issue.pull_request['html_url'] or issue.html_url
+        print "[%d] %s %s" % (issue.number, issue.title, url)
+
+@command
+def issue(opts, args):
+    """[issue number ...] Issue details"""
+    repo = get_repo()
+    for arg in args:
+        issue = repo.issue(arg)
+        print wrap(issue.title, attr.bright, attr.underline)
+        print issue.body_text
+        print issue.pull_request and issue.pull_request['html_url'] or issue.html_url
+
+@command
+def add_remote(opts, args):
+    """[user] Add user's fork as a remote by that name"""
+    if not args:
+        err("No user specified to fork from")
+    repo = get_repo()
+    if repo.is_fork():
+        repo = repo.parent
+    forks = repo.list_forks()
+    for fork in forks:
+        if fork.owner.login in args:
+            check(shell.git('remote', 'add', fork.owner.login, fork.git_url))
+            check(shell.git('fetch', fork.owner.login, stdout=False, stderr=False))
+
+@command
+def whois(opts, args):
+    """[user ...] Display github user info"""
+    gh = github()
+    for user in args:
+        user = github3.user(user)
+        print wrap(user.name, attr.bright, attr.underline)
+        print 'Profile   %s' % user.html_url
+        if user.email:
+            print 'Email     %s' % user.email
+        if user.blog:
+            print 'Blog      %s' % user.blog
+        if user.location:
+            print 'Location  %s' % user.location
+        if user.company:
+            print 'Company   %s' % user.company
+        print 'Repos     %d public, %d private' % (user.public_repos, user.total_private_repos)
+        print 'Gists     %d public, %d private' % (user.public_gists, user.total_private_gists)
+
+@command
+def whoami(opts, args):
+    """Display github user info"""
+    whois(opts, [github().user().login])
+
+@command
+def gist(opts, args):
+    """[files] Create a new gist from files"""
+    err("This doesn't work yet")
+    if not args:
+        err("No files specified")
+    files = {}
+    description = opts.description or ''
+    for f in args:
+        if not os.path.exists(f):
+            err("No such file: %s" % f)
+        with open(f) as fd:
+            files[f] = {'content': fd.read()}
+    print github().create_gist(description=description, files=files).html_url
+
+main()
