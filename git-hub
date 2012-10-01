@@ -349,4 +349,72 @@ def pull_request(opts, args):
     pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
     print "Pull request %d created %s" % (pull.number, pull.html_url)
 
+@command
+def network(opts, args):
+    """Create a graphviz graph of followers and forks"""
+    from collections import defaultdict
+    class P:
+        def __init__(self, user):
+            self.user = user
+            self.done = False
+            self.rel_to = defaultdict(list)
+
+        def __repr__(self):
+            return dict.__repr__(self.rel_to)
+
+    level = 1
+    if args:
+        try:
+            level = int(args[0])
+        except ValueError:
+            err("Integer argument required")
+    gh = github()
+    me = gh.user()
+    people = {me.login: P(me)}
+    for i in range(level):
+        for login, person in list(people.items()):
+            if person.done:
+                continue
+
+            print "Looking at user %s" % login
+            # Followers
+            for other in person.user.list_followers():
+                if other.login not in people:
+                    people[other.login] = P(other)
+                people[other.login].rel_to[login].append('follows')
+            for other in person.user.list_following():
+                if other.login not in people:
+                    people[other.login] = P(other)
+                person.rel_to[other.login].append('follows')
+
+            # Forks
+            for repo in gh.list_repos(login, type='owner'):
+                print "Looking at repo %s" % repo.name
+                if repo.is_fork():
+                    # Sigh. GH doesn't return parent info in list_repos
+                    repo = gh.repository(repo.owner.login, repo.name)
+                    if repo.owner.login not in people:
+                        people[repo.owner.login] = P(repo.owner)
+                    person.rel_to[repo.parent.owner.login].append('forked %s' % repo.parent.name)
+                else:
+                    for fork in repo.list_forks():
+                        if fork.owner.login == login:
+                            continue
+                        if fork.owner.login not in people:
+                            people[fork.owner.login] = P(fork.owner)
+                        people[fork.owner.login].rel_to[login].append('forked %s' % repo.name)
+            person.done = True
+
+    # Now we create a graph
+    graph = ["digraph network {"]
+    for person in people:
+        graph.append('    "%s"' % person)
+
+    for login, person in people.items():
+        for other, types in person.rel_to.items():
+            graph.append('    "%s" -> "%s" [label="%s"]' % (login, other, "\\n".join(types)))
+
+    graph.append("}")
+    print "\n".join(graph)
+
 main()

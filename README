@@ -15,6 +15,7 @@ $ git hub forks: List all forks of this repository
 $ git hub gist [files]: Create a new gist from files
 $ git hub issue [issue number ...]: Issue details
 $ git hub issues [filters]: List issues
+$ git hub network: Create a graphviz graph of followers and forks
 $ git hub pull-request [branch1:branch2]: Opens a pull request to merge
   your branch1 to upstream branch2 (defaults are current branch and master)
 $ git hub set-origin: Set the remote 'origin' to github.
@@ -24,9 +25,9 @@ $ git hub whois [user ...]: Display github user info
 
 Install instructions:
 
-You need to install whelk and github3.py first. whelk can be installed with
-pip, github3.py (as of writing) needs to be cloned from github as the released
-versions are not quite there yet.
+You need to install requests, whelk and github3.py first. requests and whelk
+can be installed with pip, github3.py (as of writing) needs to be cloned from
+github as the released versions are not quite there yet.
 
 With those prerequisites met, place git-hub somewhere on your $PATH or in git's
 libexec dir, and you're done.
