@@ -4,7 +4,18 @@ Github integration for git
 With this git subcommand, you can perform various github actions, such as
 creating or forking a repository from the command line.
 
+Install instructions:
+
+You need to install requests, whelk and github3.py first. requests and whelk
+can be installed with pip, github3.py (as of writing) needs to be cloned from
+github as the released versions are not quite there yet.
+
+With those prerequisites met, place git-hub somewhere on your $PATH or in git's
+libexec dir, and you're done.
+
 Usage:
+
+(For detailed information, go to http://seveas.github.com/git-hub)
 
 $ git hub add-public-keys [keys]: Adds the keys to your public keys
   (defaults to all keys it can find)
@@ -22,15 +33,6 @@ $ git hub set-origin: Set the remote 'origin' to github.
   If this is a fork, set the remote 'upstream' to the parent
 $ git hub whoami: Display github user info
 $ git hub whois [user ...]: Display github user info
-
-Install instructions:
-
-You need to install requests, whelk and github3.py first. requests and whelk
-can be installed with pip, github3.py (as of writing) needs to be cloned from
-github as the released versions are not quite there yet.
-
-With those prerequisites met, place git-hub somewhere on your $PATH or in git's
-libexec dir, and you're done.
 
 Copyright (C) 2012 Dennis Kaarsemaker <dennis@kaarsemaker.net>
 
