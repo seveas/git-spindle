@@ -160,12 +160,12 @@ def fork(opts, args):
         err("Repository already exists")
     repo = gh.repository(user, repo)
     clone = repo.create_fork()
-    rc = shell.git('clone', clone.ssh_url, stderr=None, stdout=None).returncode
+    rc = shell.git('clone', clone.ssh_url, redirect=False).returncode
     if rc:
         sys.exit(rc)
     os.chdir(clone.name)
     set_origin(opts, args)
-    shell.git('fetch', 'upstream', stderr=None, stdout=None)
+    shell.git('fetch', 'upstream', redirect=False)
 
 @command
 def forks(opts, args):
@@ -337,7 +337,7 @@ def pull_request(opts, args):
     temp_file = os.path.join(check(shell.git('rev-parse', '--git-dir')).stdout.strip(), 'PULL_REQUEST_EDITMSG')
     with open(temp_file, 'w') as fd:
         fd.write("%s\n\n%s" % (title,body))
-    getattr(shell, check(shell.git('var', 'GIT_EDITOR')).stdout.strip())(temp_file, stderr=None, stdout=None, stdin=None)
+    getattr(shell, check(shell.git('var', 'GIT_EDITOR')).stdout.strip())(temp_file, redirect=False)
     with open(temp_file) as fd:
         title, body = (fd.read() +'\n').split('\n', 1)
     title = title.strip()
