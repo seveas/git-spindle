@@ -241,7 +241,6 @@ def whoami(opts, args):
 @command
 def gist(opts, args):
     """[files] Create a new gist from files"""
-    err("This doesn't work yet")
     if not args:
         err("No files specified")
     files = {}
@@ -250,8 +249,9 @@ def gist(opts, args):
         if not os.path.exists(f):
             err("No such file: %s" % f)
         with open(f) as fd:
-            files[f] = {'content': fd.read()}
-    print github().create_gist(description=description, files=files).html_url
+            files[os.path.basename(f)] = {'content': fd.read()}
+    gist = github().create_gist(description=description, files=files)
+    print "Gist created at %s" % gist.html_url
 
 @command
 def add_public_keys(opts, args):
