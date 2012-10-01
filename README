@@ -20,12 +20,14 @@ Usage:
 $ git hub add-public-keys [keys]: Adds the keys to your public keys
   (defaults to all keys it can find)
 $ git hub add-remote [user]: Add user's fork as a remote by that name
+$ git hub clone [repo]: Clone one of your repositories by name
 $ git hub create: Create a repository on github to push to
 $ git hub fork [url or user and repo]: Fork a repo and clone it
 $ git hub forks: List all forks of this repository
 $ git hub gist [files]: Create a new gist from files
 $ git hub issue [issue number ...]: Issue details
 $ git hub issues [filters]: List issues
+$ git hub ls-repos [user]: List all repos of a user, by default yours
 $ git hub network: Create a graphviz graph of followers and forks
 $ git hub pull-request [branch1:branch2]: Opens a pull request to merge
   your branch1 to upstream branch2 (defaults are current branch and master)

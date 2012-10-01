@@ -144,6 +144,32 @@ def set_origin(opts, args):
         shell.git('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
 
 @command
+def ls_repos(opts, args):
+    """[user] List all repos of a user, by default yours"""
+    gh = github()
+    user = gh.user().login
+    if args:
+        user = args[0]
+    for repo in gh.list_repos(user):
+        print "%s - %s" % (repo.name, repo.description)
+
+@command
+def clone(opts, args):
+    """[repo] Clone one of your repositories by name"""
+    if not args:
+        err("No repository specified")
+    repo = args[0]
+    gh = github()
+    repo = gh.repository(gh.user().login, repo)
+    rc = shell.git('clone', repo.ssh_url, redirect=False).returncode
+    if rc:
+        sys.exit(rc)
+    if repo.is_fork():
+        os.chdir(repo.name)
+        set_origin(opts, args)
+        shell.git('fetch', 'upstream', redirect=False)
+
+@command
 def fork(opts, args):
     """[url or user and repo] Fork a repo and clone it"""
     if not args:

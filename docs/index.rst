@@ -41,6 +41,10 @@ If you want to see this information about other users, use :command:`git hub who
   Repos     21 public, 0 private
   Gists     9 public, 0 private
 
+.. describe:: git hub ls-repos [user]
+
+List all repositories owned by a user, by default you.
+
 .. describe:: git hub add-public-keys [keys]
 
 Adds SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
@@ -62,6 +66,11 @@ created on github and your local repository will have github as remote
 Fixes the configuration of your repository's remotes. Remote "origin" will be
 set to your github repository. If that repository is a fork, remote "upstram"
 will be set to the repository you forked from.
+
+.. describe:: git hub clone [repo]
+
+Clones one of your github repositories by name. If it's a fork, the "upstream"
+origin will be set up too.
 
 .. describe:: git hub fork [repo]
 
