@@ -246,10 +246,13 @@ def gist(opts, args):
     files = {}
     description = opts.description or ''
     for f in args:
-        if not os.path.exists(f):
-            err("No such file: %s" % f)
-        with open(f) as fd:
-            files[os.path.basename(f)] = {'content': fd.read()}
+        if f == '-':
+            files['stdout'] = {'content': sys.stdin.read()}
+        else:
+            if not os.path.exists(f):
+                err("No such file: %s" % f)
+            with open(f) as fd:
+                files[os.path.basename(f)] = {'content': fd.read()}
     gist = github().create_gist(description=description, files=files)
     print "Gist created at %s" % gist.html_url
 
