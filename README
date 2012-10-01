@@ -4,8 +4,10 @@ Github integration for git
 With this git subcommand, you can perform various github actions, such as
 creating or forking a repository from the command line.
 
-Usage: 
+Usage:
 
+$ git hub add-public-keys [keys]: Adds the keys to your public keys
+  (defaults to all keys it can find)
 $ git hub add-remote [user]: Add user's fork as a remote by that name
 $ git hub create: Create a repository on github to push to
 $ git hub fork [url or user and repo]: Fork a repo and clone it
@@ -13,6 +15,8 @@ $ git hub forks: List all forks of this repository
 $ git hub gist [files]: Create a new gist from files
 $ git hub issue [issue number ...]: Issue details
 $ git hub issues [filters]: List issues
+$ git hub pull-request [branch1:branch2]: Opens a pull request to merge
+  your branch1 to upstream branch2 (defaults are current branch and master)
 $ git hub set-origin: Set the remote 'origin' to github.
   If this is a fork, set the remote 'upstream' to the parent
 $ git hub whoami: Display github user info

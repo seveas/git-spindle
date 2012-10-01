@@ -18,10 +18,12 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import getpass
+import github3
+import glob
 import optparse
 import os
-import github3
-import getpass
+import re
 import sys
 from whelk import shell
 
@@ -29,7 +31,7 @@ from whelk import shell
 class Attr(object):
     def __init__(self, **attr):
         self.attr = attr
-        self.rev_attr = dict([(v,k) for k,v in attr.items()]) 
+        self.rev_attr = dict([(v,k) for k,v in attr.items()])
         for k, v in attr.items():
             setattr(self, k, v)
 
@@ -55,7 +57,7 @@ def main():
     p = optparse.OptionParser()
     p.add_option('-d', '--description', dest='description', default=None,
             help="Description for a new repo or gist")
-    p.usage = "Various github actions:\n"
+    p.usage = "git hub command [options] [arguments]\nAvailable commands:"
     for command in sorted(commands):
         doc = commands[command].__doc__
         if ']' in doc:
@@ -95,7 +97,7 @@ def github():
     token = shell.git('config', 'github.token').stdout.strip()
     if not token:
         password = getpass.getpass("GitHub password: ")
-        auth = github3.authorize(user, password, ['user', 'repo', 'gist'], 
+        auth = github3.authorize(user, password, ['user', 'repo', 'gist'],
                 "Github Git integration", "http://seveas.github.com/git-hub")
         token = auth.token
         shell.git('config', '--global', 'github.token', token)
@@ -158,7 +160,7 @@ def fork(opts, args):
         err("Repository already exists")
     repo = gh.repository(user, repo)
     clone = repo.create_fork()
-    rc = shell.git('clone', clone.ssh_url, stderr=None, stdout=None).returncode 
+    rc = shell.git('clone', clone.ssh_url, stderr=None, stdout=None).returncode
     if rc:
         sys.exit(rc)
     os.chdir(clone.name)
@@ -213,7 +215,7 @@ def whois(opts, args):
     """[user ...] Display github user info"""
     gh = github()
     for user in args:
-        user = github3.user(user)
+        user = gh.user(user)
         print wrap(user.name, attr.bright, attr.underline)
         print 'Profile   %s' % user.html_url
         if user.email:
@@ -231,6 +233,10 @@ def whois(opts, args):
 def whoami(opts, args):
     """Display github user info"""
     whois(opts, [github().user().login])
+    for pkey in github().list_keys():
+        algo, key = pkey.key.split()
+        algo = algo[4:].upper()
+        print "%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title)
 
 @command
 def gist(opts, args):
@@ -246,5 +252,101 @@ def gist(opts, args):
         with open(f) as fd:
             files[f] = {'content': fd.read()}
     print github().create_gist(description=description, files=files).html_url
+
+@command
+def add_public_keys(opts, args):
+    """[keys] Adds the keys to your public keys (defaults to all it can find)"""
+    if not args:
+        args = glob.glob(os.path.join(os.path.expanduser('~'), '.ssh', 'id_*.pub'))
+    gh = github()
+    existing = [x.key for x in gh.list_keys()]
+    for arg in args:
+        with open(arg) as fd:
+            algo, key, title = fd.read().strip().split(None, 2)
+        key = "%s %s" % (algo, key)
+        if key in existing:
+            continue
+        print "Adding %s" % arg
+        gh.create_key(title=title, key=key)
+
+@command
+def pull_request(opts, args):
+    """[branch1:branch2] Opens a pull request to merge your branch1 to upstream branch2
+  defaults are current branch and master"""
+    repo = get_repo()
+    if not repo.is_fork():
+        err("This is not a forked repository")
+    parent = repo.parent
+    # Which branch?
+    src = dst = None
+    if args:
+        src = args[0]
+        if ':' in src:
+            src, dst = src.split(':')
+    else:
+        src = check(shell.git('rev-parse', '--abbrev-ref', 'HEAD')).stdout.strip()
+    if not dst:
+        dst = 'master'
+    # Try to get the local commit
+    commit = check(shell.git('show-ref', 'refs/heads/%s' % src)).stdout.split()[0]
+    # Do they exist on github?
+    try:
+        srcb = repo.branch(src)
+        if srcb.commit.sha != commit:
+            err("Branch %s not up to date on github (%s vs %s)" % (src, srcb.commit.sha[:7], commit[:7]))
+    except github3.GitHubError:
+        err("Branch %s does not exist in your github repo")
+
+    try:
+        dstb = parent.branch(dst)
+    except github3.GitHubError:
+        err("Branch %s does not exist in %s/%s" % (dst, parent.owner.login, parent.name))
+
+    # Do we have the dst locally?
+    for remote in check(shell.git('remote')).stdout.strip().split("\n"):
+        if check(shell.git('config', 'remote.%s.url' % remote)).stdout.strip() in [parent.git_url, parent.ssh_url, parent.clone_url]:
+            break
+    else:
+        err("You don't have %s/%s configured as a remote repository" % (parent.owner.login, parent.name))
+
+    # How many commits?
+    commits = check(shell.git('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src))).stdout.strip().split()
+    commits.reverse()
+    # 1: title/body from commit
+    if not commits:
+        err("Your branch has no commits yet")
+    if len(commits) == 1:
+        title, body = check(shell.git('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0]))).stdout.split('\n', 1)
+        title = title.strip()
+        body = body.strip()
+
+    # More: title from branchname (titlecased, s/-/ /g), body comments from shortlog
+    else:
+        title = src
+        if '/' in title:
+            title = title[title.rfind('/') + 1:]
+        title = title.title().replace('-', ' ')
+        body = ""
+
+    body += """
+# Please enter a message to accompany your pull request. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#"""
+    body += "\n# " + check(shell.git('shortlog', '%s/%s..%s' % (remote, dst, src))).stdout.strip().replace('\n', '\n# ')
+    body += "\n#\n# " + check(shell.git('diff', '--stat', '%s^..%s' % (commits[0], commits[-1]))).stdout.strip().replace('\n', '\n#')
+    temp_file = os.path.join(check(shell.git('rev-parse', '--git-dir')).stdout.strip(), 'PULL_REQUEST_EDITMSG')
+    with open(temp_file, 'w') as fd:
+        fd.write("%s\n\n%s" % (title,body))
+    getattr(shell, check(shell.git('var', 'GIT_EDITOR')).stdout.strip())(temp_file, stderr=None, stdout=None, stdin=None)
+    with open(temp_file) as fd:
+        title, body = (fd.read() +'\n').split('\n', 1)
+    title = title.strip()
+    body = body.strip()
+    body = re.sub('^#.*', '', body, flags=re.MULTILINE).strip()
+    if not body:
+        err("No pull request message specified")
+
+    pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
+    print "Pull request %d created %s" % (pull.number, pull.html_url)
 
 main()
