@@ -57,6 +57,8 @@ def main():
     p = optparse.OptionParser()
     p.add_option('-d', '--description', dest='description', default=None,
             help="Description for a new repo or gist")
+    p.add_option('-p', '--parent', dest='parent', default=False, action='store_true',
+            help="Show issues for the parent repo")
     p.usage = "git hub command [options] [arguments]\nAvailable commands:"
     for command in sorted(commands):
         doc = commands[command].__doc__
@@ -211,6 +213,8 @@ def forks(opts, args):
 def issues(opts, args):
     """[filters] List issues"""
     repo = get_repo()
+    if repo.is_fork() and opts.parent:
+        repo = repo.parent
     args = dict([x.split('=', 1) for x in args])
     for issue in repo.list_issues(**args):
         url = issue.pull_request and issue.pull_request['html_url'] or issue.html_url
@@ -220,6 +224,8 @@ def issues(opts, args):
 def issue(opts, args):
     """[issue number ...] Issue details"""
     repo = get_repo()
+    if repo.is_fork() and opts.parent:
+        repo = repo.parent
     for arg in args:
         issue = repo.issue(arg)
         print wrap(issue.title, attr.bright, attr.underline)

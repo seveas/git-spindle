@@ -92,9 +92,18 @@ Issues and pull requests
 
 Lists all open issues. You can specify `filters`_ to filter issues.
 
+.. describe:: git hub issues --parent [args]
+
+Lists all open issues for the parent repository. You can specify `filters`_ to
+filter issues.
+
 .. describe:: git hub issue [issue number...]
 
 Shows details about the mentioned issue numbers.
+
+.. describe:: git hub issue --parent [issue number...]
+
+Shows details about the mentioned issue numbers in the parent repository.
 
 .. describe:: git hub pull-request [yours:theirs]
 
