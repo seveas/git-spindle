@@ -59,6 +59,8 @@ def main():
             help="Description for a new repo or gist")
     p.add_option('-p', '--parent', dest='parent', default=False, action='store_true',
             help="Show issues for the parent repo")
+    p.add_option('-i', '--issue', dest='issue', default=None,
+            help="Turn an issue into a pull request instead of creating a new one")
     p.usage = "git hub command [options] [arguments]\nAvailable commands:"
     for command in sorted(commands):
         doc = commands[command].__doc__
@@ -354,6 +356,11 @@ def pull_request(opts, args):
     # 1: title/body from commit
     if not commits:
         err("Your branch has no commits yet")
+    # Are we turning an issue into a commit?
+    if opts.issue:
+        pull = parent.create_pull_from_issue(base=dst, head='%s:%s' % (repo.owner.login, src), issue=int(opts.issue))
+        print "Pull request %d created %s" % (pull.number, pull.html_url)
+        return
     if len(commits) == 1:
         title, body = check(shell.git('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0]))).stdout.split('\n', 1)
         title = title.strip()

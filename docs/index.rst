@@ -105,13 +105,16 @@ Shows details about the mentioned issue numbers.
 
 Shows details about the mentioned issue numbers in the parent repository.
 
-.. describe:: git hub pull-request [yours:theirs]
+.. describe:: git hub pull-request [--issue number] [yours:theirs]
 
 Files a pull request to merge branch "yours" (default: the current branch) into
 the upstream branch "theirs" (default: master). Like for a commit message, your
 editor will be opened to write a pull request message. The comments of said
 message contain the shortlog and diffstat of the commits that you're asking to
 be merged.
+
+If you specify an issue number, that issue will be turned into a pull request
+and you will not be asked to write a pull request message.
 
 .. _`filters`: http://github3py.readthedocs.org/en/latest/repos.html#github3.repos.Repository.list_issues
 
