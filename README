@@ -27,10 +27,10 @@ $ git hub forks: List all forks of this repository
 $ git hub gist [files]: Create a new gist from files
 $ git hub issue [issue number ...]: Issue details
 $ git hub issues [filters]: List issues
-$ git hub ls-repos [user]: List all repos of a user, by default yours
 $ git hub network: Create a graphviz graph of followers and forks
 $ git hub pull-request [branch1:branch2]: Opens a pull request to merge
   your branch1 to upstream branch2 (defaults are current branch and master)
+$ git hub repos [user]: List all repos of a user, by default yours
 $ git hub set-origin: Set the remote 'origin' to github.
   If this is a fork, set the remote 'upstream' to the parent
 $ git hub whoami: Display github user info

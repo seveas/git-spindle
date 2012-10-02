@@ -152,7 +152,7 @@ def set_origin(opts, args):
         shell.git('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
 
 @command
-def ls_repos(opts, args):
+def repos(opts, args):
     """[user] List all repos of a user, by default yours"""
     gh = github()
     user = gh.user().login

@@ -44,7 +44,7 @@ If you want to see this information about other users, use :command:`git hub who
   Repos     21 public, 0 private
   Gists     9 public, 0 private
 
-.. describe:: git hub ls-repos [user]
+.. describe:: git hub repos [user]
 
 List all repositories owned by a user, by default you.
 
