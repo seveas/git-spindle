@@ -328,7 +328,7 @@ def pull_request(opts, args):
         if srcb.commit.sha != commit:
             err("Branch %s not up to date on github (%s vs %s)" % (src, srcb.commit.sha[:7], commit[:7]))
     except github3.GitHubError:
-        err("Branch %s does not exist in your github repo")
+        err("Branch %s does not exist in your github repo" % src)
 
     try:
         dstb = parent.branch(dst)
