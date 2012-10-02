@@ -11,6 +11,9 @@ The first time you use :command:`git hub`, it will ask you for your github
 username and password. It then requests (and stores) an API authentication
 token, so you can always revoke access from your `profile page`_.
 
+The authentication token is stored in :file:`~/.githubconfig`. Never share this
+token with anyone as it gives full access to your github account.
+
 .. describe:: git hub whoami
 
 A simple command to try out is :command:`git hub whoami`, which tells you what

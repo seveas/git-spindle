@@ -89,19 +89,22 @@ def command(fnc):
     return fnc
 
 def github():
-    user = shell.git('config', 'github.user').stdout.strip()
+    config_file = os.path.join(os.path.expanduser('~'), '.githubconfig')
+    old_umask = os.umask(0077)
+
+    user = shell.git('config', '--file', config_file, 'github.user').stdout.strip()
     if not user:
         user = raw_input("Github user: ").strip()
-        shell.git('config', '--global', 'github.user', user)
+        shell.git('config', '--file', config_file, 'github.user', user)
 
-    token = shell.git('config', 'github.token').stdout.strip()
+    token = shell.git('config', '--file', config_file, 'github.token').stdout.strip()
     if not token:
         password = getpass.getpass("GitHub password: ")
         auth = github3.authorize(user, password, ['user', 'repo', 'gist'],
                 "Github Git integration", "http://seveas.github.com/git-hub")
         token = auth.token
-        shell.git('config', '--global', 'github.token', token)
-        shell.git('config', '--global', 'github.auth_id', str(auth.id))
+        shell.git('config', '--file', config_file, 'github.token', token)
+        shell.git('config', '--file', config_file, 'github.auth_id', str(auth.id))
 
     if not user or not token:
         err("No user or token specified")
@@ -110,8 +113,9 @@ def github():
         gh.user()
     except github3.GitHubError:
         # Token obsolete
-        shell.git('config', '--global', '--unset', 'github.token')
+        shell.git('config', '--file', config_file, '--unset', 'github.token')
         gh = github()
+    os.umask(old_umask)
     return gh
 
 def get_repo():
