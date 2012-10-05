@@ -65,6 +65,7 @@ Usage:
   git-hub fork [--ssh|--http] <repo>
   git-hub forks
   git-hub gist [--desc <description>] <file>...
+  git-hub gists [<user>]
   git-hub issue [--parent] <issue>...
   git-hub issues [--parent] [<filter>...]
   git-hub network [<level>]
@@ -309,6 +310,13 @@ def gist(opts):
                 files[os.path.basename(f)] = {'content': fd.read()}
     gist = github().create_gist(description=description, files=files)
     print "Gist created at %s" % gist.html_url
+
+@command
+def gists(opts):
+    gh = github()
+    user = (opts['<user>'] or [gh.user().login])[0]
+    for gist in gh.list_gists(user):
+        print "%s - %s" % (gist.html_url, gist.description)
 
 @command
 def add_public_keys(opts):

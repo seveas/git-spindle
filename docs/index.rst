@@ -120,6 +120,10 @@ Creates a gist (with optional description) from the named files. If you specify
 :file:`-` as filename, :file:`stdin` will be used, making it easy to pipe
 command output to github, for example: :command:`fortune | git hub gist -`
 
+.. describe:: git hub gists [<user>]
+
+List your gists, or those created by another user.
+
 Other 
 -----
 .. describe:: git hub network
