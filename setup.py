@@ -16,5 +16,5 @@ setup(name='git-hub',
         "Topic :: Software Development :: Version Control",
         "Topic :: Software Development :: Version Control :: Git",
     ],
-    install_requires=["github3.py>=0.1a8", "whelk>=1.1"],
+    install_requires=["github3.py>=0.1a8", "whelk>=1.1", "docopt>=0.5.0"],
 )
