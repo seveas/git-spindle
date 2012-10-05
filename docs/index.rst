@@ -44,20 +44,20 @@ If you want to see this information about other users, use :command:`git hub who
   Repos     21 public, 0 private
   Gists     9 public, 0 private
 
-.. describe:: git hub repos [user]
+.. describe:: git hub repos [<user>...]
 
 List all repositories owned by a user, by default you.
 
-.. describe:: git hub add-public-keys [keys]
+.. describe:: git hub add-public-keys [<key>...]
 
-Adds SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
+Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 
 .. _`profile page`: https://github.com/settings/applications
 
 Interacting with repositories
 -----------------------------
 
-.. describe:: git hub create [-d|--description "Description goes here"]
+.. describe:: git hub create [-d <description>]
 
 Create a repository on github for your current repository. An optional
 description can be given too. After running this command, a repository will be
@@ -66,46 +66,39 @@ created on github and your local repository will have github as remote
 
 .. describe:: git hub set-origin
 
-Fixes the configuration of your repository's remotes. Remote "origin" will be
-set to your github repository. If that repository is a fork, remote "upstram"
-will be set to the repository you forked from.
+Fix the configuration of your repository's remotes. Remote "origin" will be set
+to your github repository. If that repository is a fork, remote "upstram" will
+be set to the repository you forked from.
 
-.. describe:: git hub clone [repo]
+.. describe:: git hub clone [<repo>]
 
-Clones one of your github repositories by name. If it's a fork, the "upstream"
-origin will be set up too.
+Clone a github repository by name (e.g. seveas/hacks) or URL. If it's a fork,
+the "upstream" origin will be set up too.
 
-.. describe:: git hub fork [repo]
+.. describe:: git hub fork [<repo>]
 
-Forks another person's git repository on github and clones that repository
+Fork another person's git repository on github and clones that repository
 locally. Repo can be specified as a (git) url or simply username/repo. Like
 with set-origin, the "origin" and "upstream" remotes will be set up too.
 
 .. describe:: git hub forks
 
-Lists all forks of this repository, highlighting the original repository.
+List all forks of this repository, highlighting the original repository.
 
 Issues and pull requests
 ------------------------
 
-.. describe:: git hub issues [args]
+.. describe:: git hub issues [--parent] [<filters>]
 
-Lists all open issues. You can specify `filters`_ to filter issues.
+List all open issues. You can specify `filters`_ to filter issues. When you
+specify :option:`--parent`, , list all open issues for the parent repository.
 
-.. describe:: git hub issues --parent [args]
+.. describe:: git hub issue [--parent] <issue>...
 
-Lists all open issues for the parent repository. You can specify `filters`_ to
-filter issues.
+Shows details about the mentioned issue numbers. As with :option:`issues`, you
+can use the :option:`--parent` option to use the parent repository.
 
-.. describe:: git hub issue [issue number...]
-
-Shows details about the mentioned issue numbers.
-
-.. describe:: git hub issue --parent [issue number...]
-
-Shows details about the mentioned issue numbers in the parent repository.
-
-.. describe:: git hub pull-request [--issue number] [yours:theirs]
+.. describe:: git hub pull-request [--issue <issue>] <yours:theirs>
 
 Files a pull request to merge branch "yours" (default: the current branch) into
 the upstream branch "theirs" (default: master). Like for a commit message, your
@@ -121,7 +114,7 @@ and you will not be asked to write a pull request message.
 Gists
 -----
 
-.. describe:: git hub gist [-d description] file [file ...]
+.. describe:: git hub gist [-d <description>] <file>...
 
 Creates a gist (with optional description) from the named files. If you specify
 :file:`-` as filename, :file:`stdin` will be used, making it easy to pipe

@@ -21,7 +21,7 @@
 import getpass
 import github3
 import glob
-import optparse
+import docopt
 import os
 import re
 import sys
@@ -54,30 +54,43 @@ restore_cursor = esc + '[u'
 ## End ansi color library
 
 def main():
-    p = optparse.OptionParser()
-    p.add_option('-d', '--description', dest='description', default=None,
-            help="Description for a new repo or gist")
-    p.add_option('-p', '--parent', dest='parent', default=False, action='store_true',
-            help="Show issues for the parent repo")
-    p.add_option('-i', '--issue', dest='issue', default=None,
-            help="Turn an issue into a pull request instead of creating a new one")
-    p.add_option('-P', '--protocol', dest='protocol', default='git', choices=('git','ssh','http'),
-            help="Use this protocol for cloning 3rd party repos")
-    p.usage = "git hub command [options] [arguments]\nAvailable commands:"
-    for command in sorted(commands):
-        doc = commands[command].__doc__
-        if ']' in doc:
-            p.usage += '\n- %s %s:%s' % (command, doc[:doc.find(']')+1], doc[doc.find(']')+1:])
-        else:
-            p.usage += '\n- %s: %s' % (command, doc)
-    opts, args = p.parse_args()
-    if not args or args[0] not in commands:
-        p.error("No valid command specified")
-    cmd = args.pop(0)
-    try:
-        commands[cmd](opts, args)
-    except KeyboardInterrupt:
-        sys.exit(1)
+    usage = """github integration for git
+A full manual can be found on http://seveas.github.com/git-hub
+
+Usage:
+  git-hub add-public-keys [<key>...]
+  git-hub add-remote <user>
+  git-hub clone [--ssh|--http] <repo>
+  git-hub create [-d <description>]
+  git-hub fork [--ssh|--http] <repo>
+  git-hub forks
+  git-hub gist [--desc <description>] <file>...
+  git-hub issue [--parent] <issue>...
+  git-hub issues [--parent] [<filter>...]
+  git-hub network [<level>]
+  git-hub pull-request [--issue=<issue>] [<branch1:branch2>]
+  git-hub repos [<user>]
+  git-hub set-origin
+  git-hub whoami
+  git-hub whois <user>...
+
+Options:
+  -h --help              Show this help message and exit
+  --desc=<description>   Description for the new gist/repo
+  --parent               Show issues for the parent repo
+  --issue=<issue>        Turn this issue into a pull request
+  --ssh                  Use SSH for cloning 3rd party repos
+  --http                 Use https for cloning 3rd party repos
+"""
+
+    opts = docopt.docopt(usage)
+    for command in commands:
+        if opts[command]:
+            try:
+                commands[command](opts)
+            except KeyboardInterrupt:
+                sys.exit(1)
+            break
 
 def err(msg):
     print >>sys.stderr, msg
@@ -131,18 +144,18 @@ def get_repo():
     return gh.repository(gh.user().login, name)
 
 @command
-def create(opts, args):
+def create(opts):
     """Create a repository on github to push to"""
     root = check(shell.git('rev-parse', '--show-toplevel')).stdout.strip()
     name = os.path.basename(root)
     gh = github()
     if name in [x.name for x in gh.iter_repos()]:
         err("Repository already exists")
-    gh.create_repo(name=name, description=opts.description or "")
-    set_origin(opts, args)
+    gh.create_repo(name=name, description=opts['<description>'] or "")
+    set_origin(opts)
 
 @command
-def set_origin(opts, args):
+def set_origin(opts):
     """Set the remote 'origin' to github.\n  If this is a fork, set the remote 'upstream' to the parent"""
     repo = get_repo()
     shell.git('config', 'remote.origin.url', repo.ssh_url)
@@ -154,34 +167,31 @@ def set_origin(opts, args):
         shell.git('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
 
 @command
-def repos(opts, args):
+def repos(opts):
     """[user] List all repos of a user, by default yours"""
     gh = github()
-    user = gh.user().login
-    if args:
-        user = args[0]
+    user = (opts['<user>'] or [gh.user().login])[0]
     for repo in gh.iter_repos(user):
         print "%s - %s" % (repo.name, repo.description)
 
 @command
-def clone(opts, args):
-    """[repo] Clone one of your repositories by name"""
-    if not args:
-        err("No repository specified")
+def clone(opts):
+    """Clone a repositories by name"""
     gh = github()
-    if len(args) == 1:
-        if '/' in args[0]:
-            user, repo = args[0].rsplit('/',2)[-2:]
-        else:
-            user, repo = gh.user().login, args[0]
+    if '/' in opts['<repo>']:
+        user, repo = opts['<repo>'].rsplit('/',2)[-2:]
     else:
-        user, repo = args[:2]
+        user, repo = gh.user().login, opts['<repo>']
+    if repo.endswith('.git'):
+        repo = repo[:-4]
+
     repo = gh.repository(user, repo)
     url = repo.ssh_url
     if gh.user().login != user:
-        if opts.protocol == 'git':
-            url = repo.git_url
-        elif opts.protocol == 'http':
+        url = repo.git_url
+        if opts['--ssh']:
+            url = repo.ssh_url
+        elif opts['--http']:
             url = repo.clone_url
 
     rc = shell.git('clone', repo.ssh_url, redirect=False).returncode
@@ -189,30 +199,28 @@ def clone(opts, args):
         sys.exit(rc)
     if repo.is_fork():
         os.chdir(repo.name)
-        set_origin(opts, args)
+        set_origin(opts)
         shell.git('fetch', 'upstream', redirect=False)
 
 @command
-def fork(opts, args):
-    """[url or user and repo] Fork a repo and clone it"""
-    if not args:
-        err("No repository specified")
-    if len(args) == 2:
-        user, repo = args
-    else:
-        # Assume a url. Split it by / and remove '.git'
-        user, repo = args[0].rsplit('/', 3)[-2:]
-        if repo.endswith('.git'):
-            repo = repo[:-4]
+def fork(opts):
     gh = github()
+    """Fork a repo and clone it"""
+    if '/' not in opts['<repo>']:
+        err("Usage: git hub fork url\n       git hub fork user/repo")
+    user, repo = opts['<repo>'].rsplit('/',2)[-2:]
+    if repo.endswith('.git'):
+        repo = repo[:-4]
+
     if repo in [x.name for x in gh.iter_repos()]:
         err("Repository already exists")
     repo = gh.repository(user, repo)
     my_clone = repo.create_fork()
-    clone(my_clone.name)
+    opts['<repo>'] = my_clone.name
+    clone(opts)
 
 @command
-def forks(opts, args):
+def forks(opts):
     """List all forks of this repository"""
     repo = get_repo()
     if repo.is_fork():
@@ -222,47 +230,45 @@ def forks(opts, args):
         print "[%s] %s" % (fork.owner.login, fork.html_url)
 
 @command
-def issues(opts, args):
-    """[filters] List issues"""
+def issues(opts):
+    """List issues"""
     repo = get_repo()
-    if repo.is_fork() and opts.parent:
+    if repo.is_fork() and opts['--parent']:
         repo = repo.parent
-    args = dict([x.split('=', 1) for x in args])
-    for issue in repo.iter_issues(**args):
+    filters = dict([x.split('=', 1) for x in opts['<filter>']])
+    for issue in repo.iter_issues(**filters):
         url = issue.pull_request and issue.pull_request['html_url'] or issue.html_url
         print "[%d] %s %s" % (issue.number, issue.title, url)
 
 @command
-def issue(opts, args):
-    """[issue number ...] Issue details"""
+def issue(opts):
+    """Issue details"""
     repo = get_repo()
-    if repo.is_fork() and opts.parent:
+    if repo.is_fork() and opts['--parent']:
         repo = repo.parent
-    for arg in args:
-        issue = repo.issue(arg)
+    for issue in opts['<issue>']:
+        issue = repo.issue(issue)
         print wrap(issue.title, attr.bright, attr.underline)
-        print issue.body_text
+        print issue.body
         print issue.pull_request and issue.pull_request['html_url'] or issue.html_url
 
 @command
-def add_remote(opts, args):
-    """[user] Add user's fork as a remote by that name"""
-    if not args:
-        err("No user specified to fork from")
+def add_remote(opts):
+    """Add user's fork as a remote by that name"""
     repo = get_repo()
     if repo.is_fork():
         repo = repo.parent
     forks = repo.iter_forks()
     for fork in forks:
-        if fork.owner.login in args:
+        if fork.owner.login in opts['<user>']:
             check(shell.git('remote', 'add', fork.owner.login, fork.git_url))
             check(shell.git('fetch', fork.owner.login, stdout=False, stderr=False))
 
 @command
-def whois(opts, args):
-    """[user ...] Display github user info"""
+def whois(opts):
+    """Display github user info"""
     gh = github()
-    for user in args:
+    for user in opts['<user>']:
         user = gh.user(user)
         print wrap(user.name, attr.bright, attr.underline)
         print 'Profile   %s' % user.html_url
@@ -278,23 +284,22 @@ def whois(opts, args):
         print 'Gists     %d public, %d private' % (user.public_gists, user.total_private_gists)
 
 @command
-def whoami(opts, args):
+def whoami(opts):
     """Display github user info"""
     gh = github()
-    whois(opts, [gh.user().login])
+    opts['<user>'] = [gh.user().login]
+    whois(opts)
     for pkey in gh.iter_keys():
         algo, key = pkey.key.split()
         algo = algo[4:].upper()
         print "%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title)
 
 @command
-def gist(opts, args):
-    """[files] Create a new gist from files"""
-    if not args:
-        err("No files specified")
+def gist(opts):
+    """Create a new gist from files"""
     files = {}
-    description = opts.description or ''
-    for f in args:
+    description = opts['<description>'] or ''
+    for f in opts['<file>']:
         if f == '-':
             files['stdout'] = {'content': sys.stdin.read()}
         else:
@@ -306,13 +311,13 @@ def gist(opts, args):
     print "Gist created at %s" % gist.html_url
 
 @command
-def add_public_keys(opts, args):
-    """[keys] Adds the keys to your public keys (defaults to all it can find)"""
-    if not args:
-        args = glob.glob(os.path.join(os.path.expanduser('~'), '.ssh', 'id_*.pub'))
+def add_public_keys(opts):
+    """Adds keys to your public keys"""
+    if not opts['<key>']:
+        opts['<key>'] = glob.glob(os.path.join(os.path.expanduser('~'), '.ssh', 'id_*.pub'))
     gh = github()
     existing = [x.key for x in gh.iter_keys()]
-    for arg in args:
+    for arg in opts['<key>']:
         with open(arg) as fd:
             algo, key, title = fd.read().strip().split(None, 2)
         key = "%s %s" % (algo, key)
@@ -322,23 +327,22 @@ def add_public_keys(opts, args):
         gh.create_key(title=title, key=key)
 
 @command
-def pull_request(opts, args):
-    """[branch1:branch2] Opens a pull request to merge your branch1 to upstream branch2
-  defaults are current branch and master"""
+def pull_request(opts):
+    """Opens a pull request to merge your branch1 to upstream branch2"""
     repo = get_repo()
     if not repo.is_fork():
         err("This is not a forked repository")
     parent = repo.parent
     # Which branch?
-    src = dst = None
-    if args:
-        src = args[0]
-        if ':' in src:
-            src, dst = src.split(':')
-    else:
+    src = opts['<branch1:branch2>'] or ''
+    dst = None
+    if ':' in src:
+        src, dst = src.split(':', 1)
+    if not src:
         src = check(shell.git('rev-parse', '--abbrev-ref', 'HEAD')).stdout.strip()
     if not dst:
         dst = 'master'
+
     # Try to get the local commit
     commit = check(shell.git('show-ref', 'refs/heads/%s' % src)).stdout.split()[0]
     # Do they exist on github?
@@ -368,8 +372,8 @@ def pull_request(opts, args):
     if not commits:
         err("Your branch has no commits yet")
     # Are we turning an issue into a commit?
-    if opts.issue:
-        pull = parent.create_pull_from_issue(base=dst, head='%s:%s' % (repo.owner.login, src), issue=int(opts.issue))
+    if opts['<issue>']:
+        pull = parent.create_pull_from_issue(base=dst, head='%s:%s' % (repo.owner.login, src), issue=int(opts['<issue>']))
         print "Pull request %d created %s" % (pull.number, pull.html_url)
         return
     if len(commits) == 1:
@@ -407,7 +411,7 @@ def pull_request(opts, args):
     print "Pull request %d created %s" % (pull.number, pull.html_url)
 
 @command
-def network(opts, args):
+def network(opts):
     """Create a graphviz graph of followers and forks"""
     from collections import defaultdict
     class P:
@@ -420,9 +424,9 @@ def network(opts, args):
             return dict.__repr__(self.rel_to)
 
     level = 1
-    if args:
+    if opts['<level>']:
         try:
-            level = int(args[0])
+            level = int(opts['<level>'])
         except ValueError:
             err("Integer argument required")
     gh = github()
