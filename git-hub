@@ -61,6 +61,8 @@ def main():
             help="Show issues for the parent repo")
     p.add_option('-i', '--issue', dest='issue', default=None,
             help="Turn an issue into a pull request instead of creating a new one")
+    p.add_option('-P', '--protocol', dest='protocol', default='git', choices=('git','ssh','http'),
+            help="Use this protocol for cloning 3rd party repos")
     p.usage = "git hub command [options] [arguments]\nAvailable commands:"
     for command in sorted(commands):
         doc = commands[command].__doc__
@@ -166,9 +168,22 @@ def clone(opts, args):
     """[repo] Clone one of your repositories by name"""
     if not args:
         err("No repository specified")
-    repo = args[0]
     gh = github()
-    repo = gh.repository(gh.user().login, repo)
+    if len(args) == 1:
+        if '/' in args[0]:
+            user, repo = args[0].rsplit('/',2)[-2:]
+        else:
+            user, repo = gh.user().login, args[0]
+    else:
+        user, repo = args[:2]
+    repo = gh.repository(user, repo)
+    url = repo.ssh_url
+    if gh.user().login != user:
+        if opts.protocol == 'git':
+            url = repo.git_url
+        elif opts.protocol == 'http':
+            url = repo.clone_url
+
     rc = shell.git('clone', repo.ssh_url, redirect=False).returncode
     if rc:
         sys.exit(rc)
@@ -193,13 +208,8 @@ def fork(opts, args):
     if repo in [x.name for x in gh.iter_repos()]:
         err("Repository already exists")
     repo = gh.repository(user, repo)
-    clone = repo.create_fork()
-    rc = shell.git('clone', clone.ssh_url, redirect=False).returncode
-    if rc:
-        sys.exit(rc)
-    os.chdir(clone.name)
-    set_origin(opts, args)
-    shell.git('fetch', 'upstream', redirect=False)
+    my_clone = repo.create_fork()
+    clone(my_clone.name)
 
 @command
 def forks(opts, args):
