@@ -172,8 +172,11 @@ def repos(opts):
     """[user] List all repos of a user, by default yours"""
     gh = github()
     user = (opts['<user>'] or [gh.user().login])[0]
-    for repo in gh.iter_repos(user):
-        print "%s - %s" % (repo.name, repo.description)
+    repos = list(gh.iter_repos(user))
+    maxlen = max([len(x.name) for x in repos])
+    fmt = "%%-%ds %%s" % maxlen
+    for repo in repos:
+        print wrap(fmt % (repo.name, repo.description), attr.faint if repo.is_fork() else attr.normal)
 
 @command
 def clone(opts):
