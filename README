@@ -25,7 +25,7 @@ $ git hub create: Create a repository on github to push to
 $ git hub fork [url or user and repo]: Fork a repo and clone it
 $ git hub forks: List all forks of this repository
 $ git hub gist [files]: Create a new gist from files
-$ git hub gist [user]: List a users gists
+$ git hub gists [user]: List a users gists
 $ git hub issue [issue number ...]: Issue details
 $ git hub issues [filters]: List issues
 $ git hub network: Create a graphviz graph of followers and forks
