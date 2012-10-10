@@ -1,11 +1,11 @@
 from distutils.core import setup
 
 setup(name='git-hub',
-    version="1.0",
+    version="1.5",
     description='Github integration for git',
     author='Dennis Kaarsemaker',
     author_email='dennis@kaarsemaker.net',
-    url='http://github.com/seveas/django-sqlviews',
+    url='http://github.com/seveas/git-hub',
     scripts=['git-hub'],
     classifiers=[
         "Intended Audience :: Developers",

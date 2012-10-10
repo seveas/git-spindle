@@ -5,6 +5,10 @@ Using github from the CLI
 Among other things, it lets you create and fork repositories, or file pull
 requests.
 
+Install info
+------------
+pip install http://seveas.net/git-hub
+
 Basic usage
 -----------
 The first time you use :command:`git hub`, it will ask you for your github

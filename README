@@ -13,6 +13,8 @@ to be cloned from github as the released versions are not quite there yet.
 With those prerequisites met, place git-hub somewhere on your $PATH or in git's
 libexec dir, and you're done.
 
+pip install http://seveas.net/git-hub
+
 Usage:
 
 (For detailed information, go to http://seveas.github.com/git-hub)
