@@ -318,7 +318,7 @@ def whois(opts):
     gh = github()
     for user in opts['<user>']:
         user = gh.user(user)
-        print wrap(user.name, attr.bright, attr.underline)
+        print wrap(user.name or user.login, attr.bright, attr.underline)
         print 'Profile   %s' % user.html_url
         if user.email:
             print 'Email     %s' % user.email
