@@ -58,19 +58,23 @@ def main():
 A full manual can be found on http://seveas.github.com/git-hub
 
 Usage:
+  git-hub add-hook <name> [<setting>...]
   git-hub add-public-keys [<key>...]
   git-hub add-remote <user>
   git-hub clone [--ssh|--http] <repo>
   git-hub create [-d <description>]
+  git-hub edit-hook <name> [<setting>...]
   git-hub fork [--ssh|--http] <repo>
   git-hub forks
   git-hub gist [--desc <description>] <file>...
   git-hub gists [<user>]
+  git-hub hooks
   git-hub issue [--parent] <issue>...
   git-hub issues [--parent] [<filter>...]
   git-hub mirror [<repo>]
   git-hub network [<level>]
   git-hub pull-request [--issue=<issue>] [<branch1:branch2>]
+  git-hub remove-hook <name>
   git-hub repos [<user>]
   git-hub set-origin
   git-hub whoami
@@ -528,5 +532,53 @@ def network(opts):
 
     graph.append("}")
     print "\n".join(graph)
+
+@command
+def hooks(opts):
+    repo = get_repo()
+    for hook in repo.iter_hooks():
+        print wrap("%s (%s)" % (hook.name, ', '.join(hook.events)), attr.bright)
+        for key, val in sorted(hook.config.items()):
+            if val in (None, ''):
+                continue
+            print "  %s: %s" % (key, val)
+
+@command
+def remove_hook(opts):
+    repo = get_repo()
+    for hook in repo.iter_hooks():
+        if hook.name == opts['<name>']:
+            hook.delete()
+
+@command
+def add_hook(opts):
+    repo = get_repo()
+    for hook in repo.iter_hooks():
+        if hook.name == opts['<name>']:
+            raise ValueError("Hook %s already exists" % opts['<name>'])
+    settings = dict([x.split('=', 1) for x in opts['<setting>']])
+    for key in settings:
+        if settings[key].isdigit():
+            settings[key] = int(settings[key])
+    events = settings.pop('events', 'push').split(',')
+    repo.create_hook(opts['<name>'], settings, events)
+
+@command
+def edit_hook(opts):
+    repo = get_repo()
+    for hook in repo.iter_hooks():
+        if hook.name == opts['<name>']:
+            break
+    else:
+        raise ValueError("Hook %s does not exist" % opts['<name>'])
+
+    settings = dict([x.split('=', 1) for x in opts['<setting>']])
+    for key in settings:
+        if settings[key].isdigit():
+            settings[key] = int(settings[key])
+    events = settings.pop('events', ','.join(hook.events)).split(',')
+    config = hook.config
+    config.update(settings)
+    hook.edit(opts['<name>'], config, events)
 
 main()

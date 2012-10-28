@@ -99,10 +99,27 @@ argument, the current repository will be updated.
 
 Show all service hooks for this repository.
 
+.. describe:: git hub add-hook <name> [<setting>...]
+
+Add a hook to this repository with the appropriate settings. Settings can be
+found in the hooks page on github. One setting all hooks accept is
+:data:`events`, a comma-separated list of events this hook will be triggered
+for. A list of all events can be found on the `GitHub API page`_
+
+.. describe:: git hub edit-hook <name> [<setting>...]
+
+Edit one or more settings for a hook.
+
+.. describe:: git-hub remove-hook <name>
+
+Remove a service hook.
+
+.. _`GitHub API page`: http://developer.github.com/v3/repos/hooks/
+
 Issues and pull requests
 ------------------------
 
-.. describe:: git hub issues [--parent] [<filters>]
+.. describe:: git hub issues [--parent] [<filter>...]
 
 List all open issues. You can specify `filters`_ to filter issues. When you
 specify :option:`--parent`, list all open issues for the parent repository.
