@@ -25,7 +25,7 @@ github thinks about who you are. For example::
 
   dennis@lightning:~$ git hub whoami
   Github user: seveas
-  GitHub password: 
+  GitHub password:
   [1;4mDennis Kaarsemaker[0m
   Profile   https://github.com/seveas
   Email     dennis@kaarsemaker.net
@@ -74,12 +74,12 @@ Fix the configuration of your repository's remotes. Remote "origin" will be set
 to your github repository. If that repository is a fork, remote "upstram" will
 be set to the repository you forked from.
 
-.. describe:: git hub clone [<repo>]
+.. describe:: git hub clone <repo>
 
 Clone a github repository by name (e.g. seveas/hacks) or URL. If it's a fork,
 the "upstream" origin will be set up too.
 
-.. describe:: git hub fork [<repo>]
+.. describe:: git hub fork <repo>
 
 Fork another person's git repository on github and clones that repository
 locally. Repo can be specified as a (git) url or simply username/repo. Like
@@ -89,13 +89,23 @@ with set-origin, the "origin" and "upstream" remotes will be set up too.
 
 List all forks of this repository, highlighting the original repository.
 
+.. describe:: git hub mirror [<repo>]
+
+Mirror a repository from github. This is similar to clone, but clones into a
+bare repository and maps all remote refs to local refs. When run without
+argument, the current repository will be updated.
+
+.. describe:: git hub hooks
+
+Show all service hooks for this repository.
+
 Issues and pull requests
 ------------------------
 
 .. describe:: git hub issues [--parent] [<filters>]
 
 List all open issues. You can specify `filters`_ to filter issues. When you
-specify :option:`--parent`, , list all open issues for the parent repository.
+specify :option:`--parent`, list all open issues for the parent repository.
 
 .. describe:: git hub issue [--parent] <issue>...
 
@@ -128,7 +138,7 @@ command output to github, for example: :command:`fortune | git hub gist -`
 
 List your gists, or those created by another user.
 
-Other 
+Other
 -----
 .. describe:: git hub network
 

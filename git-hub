@@ -68,6 +68,7 @@ Usage:
   git-hub gists [<user>]
   git-hub issue [--parent] <issue>...
   git-hub issues [--parent] [<filter>...]
+  git-hub mirror [<repo>]
   git-hub network [<level>]
   git-hub pull-request [--issue=<issue>] [<branch1:branch2>]
   git-hub repos [<user>]
@@ -205,6 +206,45 @@ def clone(opts):
         os.chdir(repo.name)
         set_origin(opts)
         shell.git('fetch', 'upstream', redirect=False)
+
+@command
+def mirror(opts):
+    gh = github()
+    if not opts['<repo>']:
+        # Update the current, mirrored repo
+        repo = get_repo()
+        if shell.git('config', 'core.bare').stdout != 'true' or \
+           shell.git('config', 'remote.origin.mirror').stdout != 'true':
+               err("This is not a mirrored repository")
+        rc = shell.git('fetch', '-q', 'origin', redirect=False).returncode
+        if rc:
+            sys.exit(rc)
+        shell.git('remote', 'prune', 'origin', redirect=False).returncode
+        if rc:
+            sys.exit(rc)
+        with open('description', 'w') as fd:
+            fd.write(repo.description)
+        return
+
+    if '/' in opts['<repo>']:
+        user, repo = opts['<repo>'].rsplit('/',2)[-2:]
+    else:
+        user, repo = gh.user().login, opts['<repo>']
+    if repo.endswith('.git'):
+        repo = repo[:-4]
+
+    repo = gh.repository(user, repo)
+    url = repo.git_url
+    if opts['--ssh']:
+        url = repo.ssh_url
+    elif opts['--http']:
+        url = repo.clone_url
+
+    rc = shell.git('clone', '--mirror', repo.ssh_url, redirect=False).returncode
+    if rc:
+        sys.exit(rc)
+    with open(os.path.join(repo.name + '.git', 'description'), 'w') as fd:
+        fd.write(repo.description)
 
 @command
 def fork(opts):
