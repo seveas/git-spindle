@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='git-hub',
-    version="1.6",
+    version="1.7",
     description='Github integration for git',
     author='Dennis Kaarsemaker',
     author_email='dennis@kaarsemaker.net',
