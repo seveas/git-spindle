@@ -60,7 +60,7 @@ A full manual can be found on http://seveas.github.com/git-hub
 Usage:
   git-hub add-hook <name> [<setting>...]
   git-hub add-public-keys [<key>...]
-  git-hub add-remote <user>
+  git-hub add-remote [--ssh|--http] <user>
   git-hub clone [--ssh|--http] <repo>
   git-hub create [-d <description>]
   git-hub edit-hook <name> [<setting>...]
@@ -309,7 +309,12 @@ def add_remote(opts):
     forks = repo.iter_forks()
     for fork in forks:
         if fork.owner.login in opts['<user>']:
-            check(shell.git('remote', 'add', fork.owner.login, fork.git_url))
+            url = fork.git_url
+            if opts['--ssh']:
+                url = fork.ssh_url
+            elif opts['--http']:
+                url = fork.clone_url
+            check(shell.git('remote', 'add', fork.owner.login, url))
             check(shell.git('fetch', fork.owner.login, stdout=False, stderr=False))
 
 @command
