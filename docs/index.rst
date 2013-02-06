@@ -7,7 +7,13 @@ requests.
 
 Install info
 ------------
-pip install http://seveas.net/git-hub
+To install the latest released version::
+
+    pip install hub
+
+To install the latest development version::
+
+    pip install http://seveas.net/git-hub
 
 Basic usage
 -----------
