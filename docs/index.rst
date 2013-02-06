@@ -157,6 +157,12 @@ List your gists, or those created by another user.
 
 Other
 -----
+.. describe:: git hub ignore [<lang>...]
+
+Github provides :file:`.gitignore` templates for various languages and
+environments. This command will let you quickly grab them and add them to your
+:file:`.gitignore`. For example: :command:`git hub ignore Python C`
+
 .. describe:: git hub network
 
 Generates a graphviz graph of people following you, people you follow or people

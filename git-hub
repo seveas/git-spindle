@@ -69,6 +69,7 @@ Usage:
   git-hub gist [--desc <description>] <file>...
   git-hub gists [<user>]
   git-hub hooks
+  git-hub ignore [<language>...]
   git-hub issue [--parent] <issue>...
   git-hub issues [--parent] [<filter>...]
   git-hub mirror [<repo>]
@@ -585,5 +586,17 @@ def edit_hook(opts):
     config = hook.config
     config.update(settings)
     hook.edit(opts['<name>'], config, events)
+
+@command
+def ignore(opts):
+    lang = opts['<language>']
+    gh = github()
+    if not lang:
+        langs = sorted(gh.gitignore_templates(), key = lambda x: x.lower())
+        print "Languages for which a gitignore template is available:\n  * " + "\n  * ".join(langs)
+    else:
+        for l in lang:
+            print "# Ignore patterns for " + l
+            print gh.gitignore_template(l).strip()
 
 main()
