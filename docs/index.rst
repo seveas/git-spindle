@@ -56,6 +56,11 @@ List all repositories owned by a user, by default you.
 
 Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 
+.. describe:: git hub public-keys <user>
+
+Display all public keys of a user, in a format that can be added to
+:file:`~/.authorized_keys`.
+
 .. _`profile page`: https://github.com/settings/applications
 
 Interacting with repositories

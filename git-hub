@@ -74,6 +74,7 @@ Usage:
   git-hub issues [--parent] [<filter>...]
   git-hub mirror [<repo>]
   git-hub network [<level>]
+  git-hub public-keys <user>
   git-hub pull-request [--issue=<issue>] [<branch1:branch2>]
   git-hub remove-hook <name>
   git-hub repos [<user>]
@@ -336,6 +337,13 @@ def whois(opts):
             print 'Company   %s' % user.company
         print 'Repos     %d public, %d private' % (user.public_repos, user.total_private_repos)
         print 'Gists     %d public, %d private' % (user.public_gists, user.total_private_gists)
+        for pkey in user.iter_keys():
+            algo, key = pkey.key.split()
+            algo = algo[4:].upper()
+            if pkey.title:
+                print "%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title)
+            else:
+                print "%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:])
 
 @command
 def whoami(opts):
@@ -343,10 +351,6 @@ def whoami(opts):
     gh = github()
     opts['<user>'] = [gh.user().login]
     whois(opts)
-    for pkey in gh.iter_keys():
-        algo, key = pkey.key.split()
-        algo = algo[4:].upper()
-        print "%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title)
 
 @command
 def gist(opts):
@@ -386,6 +390,13 @@ def add_public_keys(opts):
             continue
         print "Adding %s" % arg
         gh.create_key(title=title, key=key)
+
+@command
+def public_keys(opts):
+    """Lists all keys for a user"""
+    user = github().user(opts['<user>'][0])
+    for key in user.iter_keys():
+        print "%s %s" % (key.key, key.title or '')
 
 @command
 def pull_request(opts):
