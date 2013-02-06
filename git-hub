@@ -462,9 +462,11 @@ def pull_request(opts):
         body = ""
 
     body += """
+# Requesting a pull from %s/%s into %s/%s
+#
 # Please enter a message to accompany your pull request. Lines starting
 # with '#' will be ignored, and an empty message aborts the commit.
-#"""
+#""" % (repo.owner.login, src, parent.owner.login, dst)
     body += "\n# " + check(shell.git('shortlog', '%s/%s..%s' % (remote, dst, src))).stdout.strip().replace('\n', '\n# ')
     body += "\n#\n# " + check(shell.git('diff', '--stat', '%s^..%s' % (commits[0], commits[-1]))).stdout.strip().replace('\n', '\n#')
     temp_file = os.path.join(check(shell.git('rev-parse', '--git-dir')).stdout.strip(), 'PULL_REQUEST_EDITMSG')
