@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='hub',
-    version="1.8",
+    version="1.9",
     description='Github integration for git',
     author='Dennis Kaarsemaker',
     author_email='dennis@kaarsemaker.net',
@@ -15,5 +15,5 @@ setup(name='hub',
         "Topic :: Software Development",
         "Topic :: Software Development :: Version Control"
     ],
-    install_requires=["github3.py>=0.1b0", "whelk>=1.1", "docopt>=0.5.0"],
+    install_requires=["github3.py>=0.4", "whelk>=1.1", "docopt>=0.5.0"],
 )

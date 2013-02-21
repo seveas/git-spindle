@@ -61,6 +61,7 @@ Usage:
   git-hub add-hook <name> [<setting>...]
   git-hub add-public-keys [<key>...]
   git-hub add-remote [--ssh|--http] <user>
+  git-hub browse
   git-hub clone [--ssh|--http] <repo>
   git-hub create [-d <description>]
   git-hub edit-hook <name> [<setting>...]
@@ -169,7 +170,7 @@ def set_origin(opts):
     shell.git('config', 'remote.origin.url', repo.ssh_url)
     shell.git('config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
 
-    if repo.is_fork():
+    if repo.fork:
         parent = repo.parent
         shell.git('config', 'remote.upstream.url', parent.git_url)
         shell.git('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
@@ -183,7 +184,7 @@ def repos(opts):
     maxlen = max([len(x.name) for x in repos])
     fmt = "%%-%ds %%s" % maxlen
     for repo in repos:
-        print wrap(fmt % (repo.name, repo.description), attr.faint if repo.is_fork() else attr.normal)
+        print wrap(fmt % (repo.name, repo.description), attr.faint if repo.fork else attr.normal)
 
 @command
 def clone(opts):
@@ -208,7 +209,7 @@ def clone(opts):
     rc = shell.git('clone', repo.ssh_url, redirect=False).returncode
     if rc:
         sys.exit(rc)
-    if repo.is_fork():
+    if repo.fork:
         os.chdir(repo.name)
         set_origin(opts)
         shell.git('fetch', 'upstream', redirect=False)
@@ -273,7 +274,7 @@ def fork(opts):
 def forks(opts):
     """List all forks of this repository"""
     repo = get_repo()
-    if repo.is_fork():
+    if repo.fork:
         repo = repo.parent
     print "[%s] %s" % (wrap(repo.owner.login, attr.bright), repo.html_url)
     for fork in repo.iter_forks():
@@ -283,7 +284,7 @@ def forks(opts):
 def issues(opts):
     """List issues"""
     repo = get_repo()
-    if repo.is_fork() and opts['--parent']:
+    if repo.fork and opts['--parent']:
         repo = repo.parent
     filters = dict([x.split('=', 1) for x in opts['<filter>']])
     for issue in repo.iter_issues(**filters):
@@ -294,7 +295,7 @@ def issues(opts):
 def issue(opts):
     """Issue details"""
     repo = get_repo()
-    if repo.is_fork() and opts['--parent']:
+    if repo.fork and opts['--parent']:
         repo = repo.parent
     for issue in opts['<issue>']:
         issue = repo.issue(issue)
@@ -306,7 +307,7 @@ def issue(opts):
 def add_remote(opts):
     """Add user's fork as a remote by that name"""
     repo = get_repo()
-    if repo.is_fork():
+    if repo.fork:
         repo = repo.parent
     forks = repo.iter_forks()
     for fork in forks:
@@ -410,7 +411,7 @@ def public_keys(opts):
 def pull_request(opts):
     """Opens a pull request to merge your branch1 to upstream branch2"""
     repo = get_repo()
-    if not repo.is_fork():
+    if not repo.fork:
         err("This is not a forked repository")
     parent = repo.parent
     # Which branch?
@@ -533,7 +534,7 @@ def network(opts):
             # Forks
             for repo in gh.iter_repos(login, type='owner'):
                 print >>sys.stderr, "Looking at repo %s" % repo.name
-                if repo.is_fork():
+                if repo.fork:
                     # Sigh. GH doesn't return parent info in iter_repos
                     repo = gh.repository(repo.owner.login, repo.name)
                     if repo.owner.login not in people:
@@ -619,5 +620,15 @@ def ignore(opts):
         for l in lang:
             print "# Ignore patterns for " + l
             print gh.gitignore_template(l).strip()
+
+@command
+def browse(opts):
+    """Open the GitHub page for this repo in a browser"""
+    url = get_repo().html_url
+    for browser in ('/usr/bin/x-www-browser', '/usr/bin/sensible-browser',
+            '/usr/bin/crome', '/usr/bin/chromium-browser', '/usr/bin/firefox'):
+        if os.access(browser, os.X_OK):
+            os.execv(browser, [browser, url])
+    print "Couldn't find a browser"
 
 main()
