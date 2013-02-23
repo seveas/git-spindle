@@ -629,6 +629,7 @@ def browse(opts):
             '/usr/bin/crome', '/usr/bin/chromium-browser', '/usr/bin/firefox'):
         if os.access(browser, os.X_OK):
             os.execv(browser, [browser, url])
-    print "Couldn't find a browser"
+    import webbrowser
+    webbrowser.open_new(url)
 
 main()
