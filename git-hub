@@ -81,6 +81,7 @@ Usage:
   git-hub remove-hook <name>
   git-hub repos [<user>]
   git-hub set-origin
+  git-hub shell
   git-hub whoami
   git-hub whois <user>...
 
@@ -621,6 +622,13 @@ def ignore(opts):
         for l in lang:
             print "# Ignore patterns for " + l
             print gh.gitignore_template(l).strip()
+
+def shell_cmd(opts):
+    """Start IPython"""
+    from IPython import embed
+    embed()
+
+commands['shell'] = shell_cmd
 
 @command
 def browse(opts):
