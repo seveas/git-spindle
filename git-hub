@@ -72,6 +72,7 @@ Usage:
   git-hub gists [<user>]
   git-hub hooks
   git-hub ignore [<language>...]
+  git-hub ipython
   git-hub issue [--parent] <issue>...
   git-hub issues [--parent] [<filter>...]
   git-hub mirror [<repo>]
@@ -621,6 +622,12 @@ def ignore(opts):
         for l in lang:
             print "# Ignore patterns for " + l
             print gh.gitignore_template(l).strip()
+
+@command
+def ipython(opts):
+    """Start IPython"""
+    from IPython import embed
+    embed()
 
 @command
 def browse(opts):
