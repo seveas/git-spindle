@@ -1,0 +1,14 @@
+Source: git-hub
+Section: python
+Priority: extra
+Maintainer: Dennis Kaarsemaker <dennis@kaarsemaker.net>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.9.3
+Vcs-Git: http://github.com/seveas/git-hub
+
+Package: git-hub
+Architecture: all
+Depends: python-whelk (>=1.2), python-github3.py (>=0.5.1), python-docopt (>=0.5.0)
+Description: Github integration for git
+ With this git subcommand, you can perform various github actions, such as
+ creating or forking a repository from the command line.

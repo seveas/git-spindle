@@ -1,0 +1,5 @@
+git-hub (1.2-1) quantal; urgency=low
+
+  * Initial packaging
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Wed, 27 Feb 2013 22:25:14 +0100
