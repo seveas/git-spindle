@@ -100,6 +100,14 @@ with set-origin, the "origin" and "upstream" remotes will be set up too.
 
 List all forks of this repository, highlighting the original repository.
 
+.. describe:: git hub add-remote [<user>]
+
+Add a users fork as a remote using the user's login as name for the remote.
+
+.. describe:: git hub browse
+
+Browse the repository on GitHub
+
 .. describe:: git hub mirror [<repo>]
 
 Mirror a repository from github. This is similar to clone, but clones into a
