@@ -23,6 +23,7 @@ $ git hub add-hook [name] [setting ...]: Add a service hook
 $ git hub add-public-keys [keys]: Adds the keys to your public keys
   (defaults to all keys it can find)
 $ git hub add-remote [user]: Add user's fork as a remote by that name
+$ git hub browse: Browse the repo on github
 $ git hub clone [repo]: Clone one of your repositories by name
 $ git hub create: Create a repository on github to push to
 $ git hub edit-hook [name] [setting ...]: Edit a service hook
@@ -44,7 +45,7 @@ $ git hub set-origin: Set the remote 'origin' to github.
 $ git hub whoami: Display github user info
 $ git hub whois [user ...]: Display github user info
 
-Copyright (C) 2012 Dennis Kaarsemaker <dennis@kaarsemaker.net>
+Copyright (C) 2012-2013 Dennis Kaarsemaker <dennis@kaarsemaker.net>
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
