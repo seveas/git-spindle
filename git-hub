@@ -26,7 +26,8 @@ import os
 import re
 import sys
 import webbrowser
-from whelk import shell
+from whelk import Shell
+shell = Shell(encoding='utf-8')
 
 ## ANSI color library from github.com/seveas/hacks
 class Attr(object):
@@ -103,12 +104,12 @@ Options:
             break
 
 def err(msg):
-    print >>sys.stderr, msg
+    sys.stderr.write(msg + "\n")
     sys.exit(1)
 
 def check(result):
     if result.returncode != 0:
-        print result.stderr.rstrip()
+        print(result.stderr.rstrip())
         sys.exit(result.returncode)
     return result
 
@@ -119,7 +120,7 @@ def command(fnc):
 
 def github():
     config_file = os.path.join(os.path.expanduser('~'), '.githubconfig')
-    old_umask = os.umask(0077)
+    old_umask = os.umask(63) # 0o077
 
     user = shell.git('config', '--file', config_file, 'github.user').stdout.strip()
     if not user:
@@ -185,7 +186,7 @@ def repos(opts):
     maxlen = max([len(x.name) for x in repos])
     fmt = "%%-%ds %%s" % maxlen
     for repo in repos:
-        print wrap(fmt % (repo.name, repo.description), attr.faint if repo.fork else attr.normal)
+        print(wrap(fmt % (repo.name, repo.description), attr.faint if repo.fork else attr.normal))
 
 @command
 def clone(opts):
@@ -277,9 +278,9 @@ def forks(opts):
     repo = get_repo()
     if repo.fork:
         repo = repo.parent
-    print "[%s] %s" % (wrap(repo.owner.login, attr.bright), repo.html_url)
+    print("[%s] %s" % (wrap(repo.owner.login, attr.bright), repo.html_url))
     for fork in repo.iter_forks():
-        print "[%s] %s" % (fork.owner.login, fork.html_url)
+        print("[%s] %s" % (fork.owner.login, fork.html_url))
 
 @command
 def issues(opts):
@@ -290,7 +291,7 @@ def issues(opts):
     filters = dict([x.split('=', 1) for x in opts['<filter>']])
     for issue in repo.iter_issues(**filters):
         url = issue.pull_request and issue.pull_request['html_url'] or issue.html_url
-        print "[%d] %s %s" % (issue.number, issue.title, url)
+        print("[%d] %s %s" % (issue.number, issue.title, url))
 
 @command
 def issue(opts):
@@ -300,9 +301,9 @@ def issue(opts):
         repo = repo.parent
     for issue in opts['<issue>']:
         issue = repo.issue(issue)
-        print wrap(issue.title, attr.bright, attr.underline)
-        print issue.body
-        print issue.pull_request and issue.pull_request['html_url'] or issue.html_url
+        print(wrap(issue.title, attr.bright, attr.underline))
+        print(issue.body)
+        print(issue.pull_request and issue.pull_request['html_url'] or issue.html_url)
 
 @command
 def add_remote(opts):
@@ -327,18 +328,18 @@ def whois(opts):
     gh = github()
     for user in opts['<user>']:
         user = gh.user(user)
-        print wrap(user.name or user.login, attr.bright, attr.underline)
-        print 'Profile   %s' % user.html_url
+        print(wrap(user.name or user.login, attr.bright, attr.underline))
+        print('Profile   %s' % user.html_url)
         if user.email:
-            print 'Email     %s' % user.email
+            print('Email     %s' % user.email)
         if user.blog:
-            print 'Blog      %s' % user.blog
+            print('Blog      %s' % user.blog)
         if user.location:
-            print 'Location  %s' % user.location
+            print('Location  %s' % user.location)
         if user.company:
-            print 'Company   %s' % user.company
-        print 'Repos     %d public, %d private' % (user.public_repos, user.total_private_repos)
-        print 'Gists     %d public, %d private' % (user.public_gists, user.total_private_gists)
+            print('Company   %s' % user.company)
+        print('Repos     %d public, %d private' % (user.public_repos, user.total_private_repos))
+        print('Gists     %d public, %d private' % (user.public_gists, user.total_private_gists))
         if user.login == gh.user().login:
             keys = gh.iter_keys()
         else:
@@ -347,9 +348,9 @@ def whois(opts):
             algo, key = pkey.key.split()
             algo = algo[4:].upper()
             if pkey.title:
-                print "%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title)
+                print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
             else:
-                print "%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:])
+                print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
 
 @command
 def whoami(opts):
@@ -372,14 +373,14 @@ def gist(opts):
             with open(f) as fd:
                 files[os.path.basename(f)] = {'content': fd.read()}
     gist = github().create_gist(description=description, files=files)
-    print "Gist created at %s" % gist.html_url
+    print("Gist created at %s" % gist.html_url)
 
 @command
 def gists(opts):
     gh = github()
     user = (opts['<user>'] or [gh.user().login])[0]
     for gist in gh.list_gists(user):
-        print "%s - %s" % (gist.html_url, gist.description)
+        print("%s - %s" % (gist.html_url, gist.description))
 
 @command
 def add_public_keys(opts):
@@ -394,7 +395,7 @@ def add_public_keys(opts):
         key = "%s %s" % (algo, key)
         if key in existing:
             continue
-        print "Adding %s" % arg
+        print("Adding %s" % arg)
         gh.create_key(title=title, key=key)
 
 @command
@@ -406,7 +407,7 @@ def public_keys(opts):
     else:
         keys = gh.user(opts['<user>'][0]).iter_keys()
     for key in keys:
-        print "%s %s" % (key.key, key.title or '')
+        print("%s %s" % (key.key, key.title or ''))
 
 @command
 def pull_request(opts):
@@ -456,7 +457,7 @@ def pull_request(opts):
     # Are we turning an issue into a commit?
     if opts['<issue>']:
         pull = parent.create_pull_from_issue(base=dst, head='%s:%s' % (repo.owner.login, src), issue=int(opts['<issue>']))
-        print "Pull request %d created %s" % (pull.number, pull.html_url)
+        print("Pull request %d created %s" % (pull.number, pull.html_url))
         return
     if len(commits) == 1:
         title, body = check(shell.git('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0]))).stdout.split('\n', 1)
@@ -492,7 +493,7 @@ def pull_request(opts):
         err("No pull request message specified")
 
     pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
-    print "Pull request %d created %s" % (pull.number, pull.html_url)
+    print("Pull request %d created %s" % (pull.number, pull.html_url))
 
 @command
 def network(opts):
@@ -521,7 +522,7 @@ def network(opts):
             if person.done:
                 continue
 
-            print >>sys.stderr, "Looking at user %s" % login
+            sys.stderr.write("Looking at user %s" % login)
             # Followers
             for other in person.user.iter_followers():
                 if other.login not in people:
@@ -534,7 +535,7 @@ def network(opts):
 
             # Forks
             for repo in gh.iter_repos(login, type='owner'):
-                print >>sys.stderr, "Looking at repo %s" % repo.name
+                sys.stderr.write("Looking at repo %s" % repo.name)
                 if repo.fork:
                     # Sigh. GH doesn't return parent info in iter_repos
                     repo = gh.repository(repo.owner.login, repo.name)
@@ -560,17 +561,17 @@ def network(opts):
             graph.append('    "%s" -> "%s" [label="%s"]' % (login, other, "\\n".join(types)))
 
     graph.append("}")
-    print "\n".join(graph)
+    print("\n".join(graph))
 
 @command
 def hooks(opts):
     repo = get_repo()
     for hook in repo.iter_hooks():
-        print wrap("%s (%s)" % (hook.name, ', '.join(hook.events)), attr.bright)
+        print(wrap("%s (%s)" % (hook.name, ', '.join(hook.events)), attr.bright))
         for key, val in sorted(hook.config.items()):
             if val in (None, ''):
                 continue
-            print "  %s: %s" % (key, val)
+            print("  %s: %s" % (key, val))
 
 @command
 def remove_hook(opts):
@@ -616,11 +617,11 @@ def ignore(opts):
     gh = github()
     if not lang:
         langs = sorted(gh.gitignore_templates(), key = lambda x: x.lower())
-        print "Languages for which a gitignore template is available:\n  * " + "\n  * ".join(langs)
+        print("Languages for which a gitignore template is available:\n  * " + "\n  * ".join(langs))
     else:
         for l in lang:
-            print "# Ignore patterns for " + l
-            print gh.gitignore_template(l).strip()
+            print("# Ignore patterns for " + l)
+            print(gh.gitignore_template(l).strip())
 
 @command
 def browse(opts):
