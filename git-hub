@@ -24,6 +24,7 @@ import glob
 import docopt
 import os
 import re
+import socket
 import sys
 import webbrowser
 from whelk import Shell
@@ -131,7 +132,7 @@ def github():
     if not token:
         password = getpass.getpass("GitHub password: ")
         auth = github3.authorize(user, password, ['user', 'repo', 'gist'],
-                "Github Git integration", "http://seveas.github.com/git-hub")
+                "Github Git integration on %s" % socket.gethostname(), "http://seveas.github.com/git-hub")
         token = auth.token
         shell.git('config', '--file', config_file, 'github.token', token)
         shell.git('config', '--file', config_file, 'github.auth_id', str(auth.id))
