@@ -154,7 +154,8 @@ Files a pull request to merge branch "yours" (default: the current branch) into
 the upstream branch "theirs" (default: master). Like for a commit message, your
 editor will be opened to write a pull request message. The comments of said
 message contain the shortlog and diffstat of the commits that you're asking to
-be merged.
+be merged. Note that if you use any characterset in your logs and filenames
+that is not ascii or utf-8, git hub will misbehave.
 
 If you specify an issue number, that issue will be turned into a pull request
 and you will not be asked to write a pull request message.

@@ -29,6 +29,12 @@ import sys
 import webbrowser
 from whelk import Shell
 shell = Shell(encoding='utf-8')
+if sys.version_info[0] > 2:
+    # On python 3, shell decodes into utf-8 as above
+    try_decode = lambda x: x
+else:
+    # Try decoding as utf-8 only
+    try_decode = lambda x: x.decode('utf-8')
 
 ## ANSI color library from github.com/seveas/hacks
 class Attr(object):
@@ -450,7 +456,7 @@ def pull_request(opts):
         err("You don't have %s/%s configured as a remote repository" % (parent.owner.login, parent.name))
 
     # How many commits?
-    commits = check(shell.git('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src))).stdout.strip().split()
+    commits = try_decode(check(shell.git('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src))).stdout).strip().split()
     commits.reverse()
     # 1: title/body from commit
     if not commits:
@@ -479,14 +485,14 @@ def pull_request(opts):
 # Please enter a message to accompany your pull request. Lines starting
 # with '#' will be ignored, and an empty message aborts the commit.
 #""" % (repo.owner.login, src, parent.owner.login, dst)
-    body += "\n# " + check(shell.git('shortlog', '%s/%s..%s' % (remote, dst, src))).stdout.strip().replace('\n', '\n# ')
-    body += "\n#\n# " + check(shell.git('diff', '--stat', '%s^..%s' % (commits[0], commits[-1]))).stdout.strip().replace('\n', '\n#')
+    body += "\n# " + try_decode(check(shell.git('shortlog', '%s/%s..%s' % (remote, dst, src))).stdout).strip().replace('\n', '\n# ')
+    body += "\n#\n# " + try_decode(check(shell.git('diff', '--stat', '%s^..%s' % (commits[0], commits[-1]))).stdout).strip().replace('\n', '\n#')
     temp_file = os.path.join(check(shell.git('rev-parse', '--git-dir')).stdout.strip(), 'PULL_REQUEST_EDITMSG')
     with open(temp_file, 'w') as fd:
         fd.write("%s\n\n%s" % (title,body))
     getattr(shell, check(shell.git('var', 'GIT_EDITOR')).stdout.strip())(temp_file, redirect=False)
     with open(temp_file) as fd:
-        title, body = (fd.read() +'\n').split('\n', 1)
+        title, body = (try_decode(fd.read()) +'\n').split('\n', 1)
     title = title.strip()
     body = body.strip()
     body = re.sub('^#.*', '', body, flags=re.MULTILINE).strip()
