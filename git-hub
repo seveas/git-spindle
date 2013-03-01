@@ -378,7 +378,7 @@ def gist(opts):
 def gists(opts):
     gh = github()
     user = (opts['<user>'] or [gh.user().login])[0]
-    for gist in gh.list_gists(user):
+    for gist in gh.iter_gists(user):
         print "%s - %s" % (gist.html_url, gist.description)
 
 @command
