@@ -70,7 +70,7 @@ Usage:
   git-hub add-hook <name> [<setting>...]
   git-hub add-public-keys [<key>...]
   git-hub add-remote [--ssh|--http] <user>
-  git-hub browse
+  git-hub browse [--parent]
   git-hub clone [--ssh|--http] <repo>
   git-hub create [-d <description>]
   git-hub edit-hook <name> [<setting>...]
@@ -633,7 +633,9 @@ def ignore(opts):
 @command
 def browse(opts):
     """Open the GitHub page for this repo in a browser"""
-    url = get_repo().html_url
-    webbrowser.open_new(url)
+    repo = get_repo()
+    if repo.fork and opts['--parent']:
+        repo = repo.parent
+    webbrowser.open_new(repo.html_url)
 
 main()
