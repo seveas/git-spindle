@@ -104,9 +104,9 @@ List all forks of this repository, highlighting the original repository.
 
 Add a users fork as a remote using the user's login as name for the remote.
 
-.. describe:: git hub browse
+.. describe:: git hub browse [--parent]
 
-Browse the repository on GitHub
+Browse the repository (or its parent) on GitHub
 
 .. describe:: git hub mirror [<repo>]
 
