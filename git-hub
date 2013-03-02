@@ -335,8 +335,11 @@ def add_remote(opts):
 def whois(opts):
     """Display github user info"""
     gh = github()
-    for user in opts['<user>']:
-        user = gh.user(user)
+    for user_ in opts['<user>']:
+        user = gh.user(user_)
+        if not user:
+            print("No such user: %s" % user_)
+            continue
         print(wrap(user.name or user.login, attr.bright, attr.underline))
         print('Profile   %s' % user.html_url)
         if user.email:
