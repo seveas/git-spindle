@@ -18,6 +18,7 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 import getpass
 import github3
 import glob
@@ -82,6 +83,7 @@ Usage:
   git-hub ignore [<language>...]
   git-hub issue [--parent] <issue>...
   git-hub issues [--parent] [<filter>...]
+  git-hub log [<what>]
   git-hub mirror [<repo>]
   git-hub network [<level>]
   git-hub public-keys <user>
@@ -637,5 +639,77 @@ def browse(opts):
     if repo.fork and opts['--parent']:
         repo = repo.parent
     webbrowser.open_new(repo.html_url)
+
+@command
+def log(opts):
+    """Display github log for yourself or other users"""
+    gh = github()
+    logtype = 'user'
+    if not opts['<what>']:
+        what = gh.user()
+    else:
+        if '/' in opts['<what>']:
+            logtype = 'repo'
+            user, repo = opts['<what>'].split('/', 1)
+            what = gh.repository(user, repo)
+        else:
+            what = gh.user(opts['<what>'])
+
+    events = [x for x in what.iter_events(number=30)]
+    now = datetime.datetime.now()
+    for event in reversed(events):
+        ts = event.created_at
+        if ts.year == now.year:
+            if (ts.month, ts.day) == (now.month, now.day):
+                ts = wrap(ts.strftime("%H:%M"), attr.faint)
+            else:
+                ts = wrap(ts.strftime("%m/%d %H:%M"), attr.faint)
+        else:
+            ts = wrap(ts.strftime("%Y/%m/%d %H:%M"), attr.faint)
+        repo = '/'.join(event.repo)
+        repo_ = ' (%s)' % repo
+        if logtype == 'repo':
+            repo_ = ''
+            ts += ' %s' % event.actor.login
+        if event.type == 'CommitCommentEvent':
+            print("%s commented on commit %s%s" % (ts, event.payload['comment'].commit_id, repo_))
+        elif event.type == 'CreateEvent':
+            print("%s created %s %s%s" % (ts, event.payload['ref_type'], event.payload['ref'], repo_))
+        elif event.type == 'DeleteEvent':
+            print("%s deleted %s %s%s" % (ts, event.payload['ref_type'], event.payload['ref'], repo_))
+        elif event.type == 'FollowEvent':
+            print("%s started following %s" % (ts, event.payload['target'].login))
+        elif event.type == 'ForkEvent':
+            print("%s forked %s to %s/%s" % (ts, repo, event.payload['forkee'].owner.login, event.payload['forkee'].name))
+        elif event.type == 'ForkApplyEvent':
+            print("%s applied %s to %s%s" % (ts, event.payload['after'][:7], event.payload['head'], repo_))
+        elif event.type == 'GistEvent':
+            print("%s %sd gist #%s" % (ts, event.payload['action'], event.payload['gist'].html_url))
+        elif event.type == 'GollumEvent':
+            pages = len(event.payload['pages'])
+            print("%s updated %d wikipage%s%s" % (ts, pages, {1:''}.get(pages, 's'), repo_))
+        elif event.type == 'IssueCommentEvent':
+            print("%s commented on issue #%s%s" % (ts, event.payload['issue'].number, repo_))
+        elif event.type == 'IssuesEvent':
+            print("%s %s issue #%s%s" % (ts, event.payload['action'], event.payload['issue'].number, repo_))
+        elif event.type == 'MemberEvent':
+            print("%s %s %s to %s" % (ts, event.payload['action'], event.payload['member'].login, repo))
+        elif event.type == 'PublicEvent':
+            print("%s made %s open source" % repo)
+        elif event.type == 'PullRequestEvent':
+            print("%s %s pull_request #%s%s" % (ts, event.payload['action'], event.payload['pull_request'].number, repo_))
+        elif event.type == 'PushEvent':
+            # Old push events have shas and not commits
+            if 'commits' in event.payload:
+                commits = len(event.payload['commits'])
+            else:
+                commits = len(event.payload['shas'])
+            print("%s pushed %d commits to %s%s" % (ts, commits, event.payload['ref'][11:], repo_))
+        elif event.type == 'WatchEvent':
+            print("%s %s watching %s" % (ts, event.payload['action'], repo))
+        else:
+            from pprint import pprint
+            print(wrap("Cannot display %s. Please file a bug at github.com/seveas/git-hub\nincluding the following output:" % event.type, attr.bright))
+            pprint(event.payload)
 
 main()

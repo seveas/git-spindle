@@ -34,6 +34,7 @@ $ git hub gists [user]: List a users gists
 $ git hub hooks: List service hooks
 $ git hub issue [issue number ...]: Issue details
 $ git hub issues [filters]: List issues
+$ git hub log [what]: Display github action logs for users or repos
 $ git hub mirror [repo]: Mirror a repo or update it
 $ git hub network: Create a graphviz graph of followers and forks
 $ git hub pull-request [branch1:branch2]: Opens a pull request to merge
