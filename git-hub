@@ -254,6 +254,11 @@ def mirror(opts):
         if repo.endswith('.git'):
             repo = repo[:-4]
         git_dir = repo + '.git'
+        if repo == '*':
+            for repo in gh.iter_repos(user):
+                opts['<repo>'] = '%s/%s' % (user, repo)
+                mirror(opts)
+            return
         repo = gh.repository(user, repo)
     else:
         git_dir = '.'

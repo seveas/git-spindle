@@ -118,7 +118,8 @@ Browse the repository (or its parent) on GitHub
 
 Mirror a repository from github. This is similar to clone, but clones into a
 bare repository and maps all remote refs to local refs. When run without
-argument, the current repository will be updated.
+argument, the current repository will be updated. You can also specify
+:option:`user/*` as repository to mirror all repositories of a user.
 
 When you use the :option:`--goblet` option, the resulting mirror will be
 configured for the goblet web interface, using description, owner and clone
