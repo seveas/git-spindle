@@ -158,10 +158,27 @@ def github():
     return gh
 
 def get_repo():
+    # Find the repo on github by searching for remotes hosted on github in the
+    # following order
+    # - A remote owned by the current user
+    # - A remote named 'origin'
+    # - A remote named 'upstream'
+    # - The first defined remote
     gh = github()
-    root = check(shell.git('rev-parse', '--show-toplevel')).stdout.strip()
-    name = os.path.basename(root)
-    return gh.repository(gh.user().login, name)
+    me = gh.user().login
+    mine = origin = upstream = repo = None
+    remotes = shell.git('config', '--get-regexp', 'remote\..*\.url', 'github.com').stdout.strip().splitlines()
+    for remote in reversed(remotes):
+        m = re.match('^remote\.([^.]*)\.url.*github.com[/:]([^/]*)/([^/]*?).git', remote)
+        remote, user, repo = m.groups()
+        repo = gh.repository(user, repo)
+        if remote == 'origin':
+            origin = repo
+        elif remote == 'upstream':
+            upstream = repo
+        if user == me:
+            mine = repo
+    return mine or origin or upstream or repo
 
 @command
 def create(opts):
