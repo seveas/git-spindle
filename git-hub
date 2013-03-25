@@ -84,7 +84,7 @@ Usage:
   git-hub issue [--parent] <issue>...
   git-hub issues [--parent] [<filter>...]
   git-hub log [<what>]
-  git-hub mirror [<repo>]
+  git-hub mirror [--goblet] [<repo>]
   git-hub network [<level>]
   git-hub public-keys <user>
   git-hub pull-request [--issue=<issue>] [<branch1:branch2>]
@@ -101,6 +101,7 @@ Options:
   --issue=<issue>        Turn this issue into a pull request
   --ssh                  Use SSH for cloning 3rd party repos
   --http                 Use https for cloning 3rd party repos
+  --goblet               When mirroring, set up goblet configuration
 """
 
     opts = docopt.docopt(usage)
@@ -283,6 +284,18 @@ def mirror(opts):
 
     with open(os.path.join(git_dir, 'description'), 'w') as fd:
         fd.write(repo.description.encode('utf-8'))
+    if opts['--goblet']:
+        if repo.fork:
+            owner = gh.user(repo.parent.owner.login)
+        else:
+            owner = gh.user(repo.owner.login)
+        shell.git('--git-dir', git_dir, 'config', 'goblet.owner', owner.name.encode('utf-8') or owner.login)
+        shell.git('--git-dir', git_dir, 'config', 'goblet.cloneurlgit', repo.git_url)
+        shell.git('--git-dir', git_dir, 'config', 'goblet.cloneurlhttp', repo.clone_url)
+        goblet_dir = os.path.join(git_dir, 'goblet')
+        if not os.path.exists(goblet_dir):
+            os.mkdir(goblet_dir, 0777)
+            os.chmod(goblet_dir, 0777)
 
 @command
 def fork(opts):

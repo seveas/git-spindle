@@ -114,11 +114,15 @@ Add a users fork as a remote using the user's login as name for the remote.
 
 Browse the repository (or its parent) on GitHub
 
-.. describe:: git hub mirror [<repo>]
+.. describe:: git hub mirror [--goblet] [<repo>]
 
 Mirror a repository from github. This is similar to clone, but clones into a
 bare repository and maps all remote refs to local refs. When run without
 argument, the current repository will be updated.
+
+When you use the :option:`--goblet` option, the resulting mirror will be
+configured for the goblet web interface, using description, owner and clone
+information from github.
 
 .. describe:: git hub hooks
 
