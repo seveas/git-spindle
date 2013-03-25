@@ -1,3 +1,9 @@
+git-hub (1.11-1) quantal; urgency=low
+
+  * New upstream release
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Mon, 25 Mar 2013 23:06:35 +0100
+
 git-hub (1.2-1) quantal; urgency=low
 
   * Initial packaging
