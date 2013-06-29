@@ -209,7 +209,7 @@ def repos(opts):
     """[user] List all repos of a user, by default yours"""
     gh = github()
     user = (opts['<user>'] or [gh.user().login])[0]
-    repos = list(gh.iter_repos(user))
+    repos = list(gh.iter_user_repos(user))
     maxlen = max([len(x.name) for x in repos])
     fmt = "%%-%ds %%s" % maxlen
     for repo in repos:
@@ -255,7 +255,7 @@ def mirror(opts):
             repo = repo[:-4]
         git_dir = repo + '.git'
         if repo == '*':
-            for repo in gh.iter_repos(user):
+            for repo in gh.iter_user_repos(user):
                 opts['<repo>'] = '%s/%s' % (user, repo)
                 mirror(opts)
             return
