@@ -479,12 +479,11 @@ def pull_request(opts):
     # Try to get the local commit
     commit = check(shell.git('show-ref', 'refs/heads/%s' % src)).stdout.split()[0]
     # Do they exist on github?
-    try:
-        srcb = repo.branch(src)
-        if srcb.commit.sha != commit:
-            err("Branch %s not up to date on github (%s vs %s)" % (src, srcb.commit.sha[:7], commit[:7]))
-    except github3.GitHubError:
+    srcb = repo.branch(src)
+    if not srcb:
         err("Branch %s does not exist in your github repo" % src)
+    elif srcb and srcb.commit.sha != commit:
+        err("Branch %s not up to date on github (%s vs %s)" % (src, srcb.commit.sha[:7], commit[:7]))
 
     try:
         dstb = parent.branch(dst)
