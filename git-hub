@@ -539,7 +539,7 @@ def pull_request(opts):
     title = title.strip()
     body = body.strip()
     body = re.sub('^#.*', '', body, flags=re.MULTILINE).strip()
-    if not body:
+    if not title:
         err("No pull request message specified")
 
     pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
