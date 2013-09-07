@@ -175,7 +175,7 @@ def get_repo():
     mine = origin = upstream = repo = None
     remotes = shell.git('config', '--get-regexp', 'remote\..*\.url', 'github.com').stdout.strip().splitlines()
     for remote in reversed(remotes):
-        m = re.match('^remote\.([^.]*)\.url.*github.com[/:]([^/]*)/([^/]*?).git', remote)
+        m = re.match('^remote\.([^.]*)\.url.*github.com[/:]([^/]*)/([^/]*?)(?:\.git)?$', remote)
         remote, user, repo = m.groups()
         repo = gh.repository(user, repo)
         if remote == 'origin':
