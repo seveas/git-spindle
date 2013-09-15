@@ -197,12 +197,20 @@ def set_origin(opts):
     """Set the remote 'origin' to github.\n  If this is a fork, set the remote 'upstream' to the parent"""
     repo = get_repo()
     shell.git('config', 'remote.origin.url', repo.ssh_url)
-    shell.git('config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
+    shell.git('config', '--replace-all', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
 
     if repo.fork:
         parent = repo.parent
         shell.git('config', 'remote.upstream.url', parent.git_url)
         shell.git('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
+    else:
+        # If issues are enabled, fetch pull requests
+        try:
+            list(repo.iter_issues(number=1))
+        except github3.GitHubError:
+            pass
+        else:
+            shell.git('config', '--add', 'remote.origin.fetch', '+refs/pull/*/head:refs/pull/*/head')
 
 @command
 def repos(opts):
