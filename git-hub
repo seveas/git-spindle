@@ -344,9 +344,16 @@ def issues(opts):
     if repo.fork and opts['--parent']:
         repo = repo.parent
     filters = dict([x.split('=', 1) for x in opts['<filter>']])
-    for issue in repo.iter_issues(**filters):
-        url = issue.pull_request and issue.pull_request['html_url'] or issue.html_url
-        print("[%d] %s %s" % (issue.number, issue.title, url))
+    try:
+        for issue in repo.iter_issues(**filters):
+            url = issue.pull_request and issue.pull_request['html_url'] or issue.html_url
+            print("[%d] %s %s" % (issue.number, issue.title, url))
+    except github3.GitHubError:
+        _, err, _ = sys.exc_info()
+        if err.code == 410:
+            print(err.message)
+        else:
+            raise
 
 @command
 def issue(opts):
