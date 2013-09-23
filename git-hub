@@ -500,9 +500,8 @@ def pull_request(opts):
     elif srcb and srcb.commit.sha != commit:
         err("Branch %s not up to date on github (%s vs %s)" % (src, srcb.commit.sha[:7], commit[:7]))
 
-    try:
-        dstb = parent.branch(dst)
-    except github3.GitHubError:
+    dstb = parent.branch(dst)
+    if not dstb:
         err("Branch %s does not exist in %s/%s" % (dst, parent.owner.login, parent.name))
 
     # Do we have the dst locally?
