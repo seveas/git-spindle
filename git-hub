@@ -784,14 +784,14 @@ def calendar(opts):
     y, m, d = [int(x) for x in data[0][0].split('/')]
     wd = (datetime.date(y,m,d).weekday()+1) % 7
     for i in range(wd):
-        rows[i].append(None)
+        rows[i].append((None,None))
     if wd:
         months.append(m)
     for (date, count) in data:
         count = int(count)
         y, m, d = [int(x) for x in date.split('/')]
         wd = (datetime.date(y,m,d).weekday()+1) % 7
-        rows[wd].append(count)
+        rows[wd].append((d, count))
         if not wd:
             months.append(m)
         if count:
@@ -819,26 +819,31 @@ def calendar(opts):
     p5  = commits[int(round(len(commits) * 0.95))]
     p15 = commits[int(round(len(commits) * 0.85))]
     p35 = commits[int(round(len(commits) * 0.65))]
-    blob = b'\xe2\x96\xa0 '.decode('utf-8')
+    blob1 = b'\xe2\x96\xa0'.decode('utf-8')
+    blob2 = b'\xe2\x97\xbc'.decode('utf-8')
     for rnum, row in enumerate(rows):
         if rnum % 2:
             sys.stdout.write(days[rnum] + " ")
         else:
             sys.stdout.write("  ")
-        for col in row:
-            if col is None:
+        for (day, count) in row:
+            if count is None:
                 color = attr.conceal
-            elif col > p5:
+            elif count > p5:
                 color = fgcolor.xterm(22)
-            elif col > p15:
+            elif count > p15:
                 color = fgcolor.xterm(28)
-            elif col > p35:
+            elif count > p35:
                 color = fgcolor.xterm(64)
-            elif col:
+            elif count:
                 color = fgcolor.xterm(65)
             else:
                 color = fgcolor.xterm(237)
-            sys.stdout.write(wrap(blob, color).encode('utf-8'))
+            if day == 1:
+                sys.stdout.write(wrap(blob2, attr.underline, color).encode('utf-8'))
+            else:
+                sys.stdout.write(wrap(blob1, color).encode('utf-8'))
+            sys.stdout.write(' ')
         print("")
 
 main()
