@@ -4,16 +4,13 @@ Github integration for git
 With this git subcommand, you can perform various github actions, such as
 creating or forking a repository from the command line.
 
-Install instructions:
+To install the latest released version:
 
-You need to install docopt, requests, whelk and github3.py first. docopt,
-requests and whelk can be installed with pip, github3.py (as of writing) needs
-to be cloned from github as the released versions are not quite there yet.
+    pip install hub
 
-With those prerequisites met, place git-hub somewhere on your $PATH or in git's
-libexec dir, and you're done.
+To install the latest development version:
 
-pip install http://seveas.net/git-hub
+    pip install http://seveas.net/git-hub
 
 Usage:
 
