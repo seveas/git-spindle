@@ -307,8 +307,8 @@ def mirror(opts):
         shell.git('--git-dir', git_dir, 'config', 'goblet.cloneurlhttp', repo.clone_url)
         goblet_dir = os.path.join(git_dir, 'goblet')
         if not os.path.exists(goblet_dir):
-            os.mkdir(goblet_dir, 0777)
-            os.chmod(goblet_dir, 0777)
+            os.mkdir(goblet_dir, 0o777)
+            os.chmod(goblet_dir, 0o777)
 
 @command
 def fork(opts):
