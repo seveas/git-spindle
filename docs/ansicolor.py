@@ -30,6 +30,16 @@ def process_escape(match):
         return "</span>"
     else:
         attrs = [codes[x] for x in codes if x in items]
+        if 38 in items:
+            color = items[items.index(38)+2]
+            color = {
+                22:  "005f00",
+                28:  "008700",
+                64:  "5f8700",
+                65:  "5f875f",
+                237: "3a3a3a",
+            }[color]
+            return '<span style="color: #%s">' % color
         return '<span style="%s">' % '; '.join([", ".join([': '.join(x) for x in attr.items()]) for attr in attrs])
     print match.groups()
 

@@ -25,6 +25,7 @@ import glob
 import docopt
 import os
 import re
+import requests
 import socket
 import sys
 import webbrowser
@@ -48,8 +49,11 @@ class Attr(object):
     def name(self, val):
         return self.rev_attr[val]
 
-fgcolor = Attr(black=30, red=31, green=32, yellow=33, blue=34, magenta=35, cyan=36, white=37, none=None)
-bgcolor = Attr(black=40, red=41, green=42, yellow=43, blue=44, magenta=45, cyan=46, white=47, none=None)
+    def xterm(self, val):
+        return '%d;5;%d' % (self._xterm, val)
+
+fgcolor = Attr(black=30, red=31, green=32, yellow=33, blue=34, magenta=35, cyan=36, white=37, _xterm=38, default=39, none=None)
+bgcolor = Attr(black=40, red=41, green=42, yellow=43, blue=44, magenta=45, cyan=46, white=47, _xterm=48, default=49, none=None)
 attr    = Attr(normal=0, bright=1, faint=2, underline=4, negative=7, conceal=8, crossed=9, none=None)
 
 esc = '\033'
@@ -72,6 +76,7 @@ Usage:
   git-hub add-public-keys [<key>...]
   git-hub add-remote [--ssh|--http] <user>
   git-hub browse [--parent]
+  git-hub calendar [<user>]
   git-hub clone [--ssh|--http] <repo>
   git-hub create [-d <description>]
   git-hub edit-hook <name> [<setting>...]
@@ -765,5 +770,75 @@ def log(opts):
             from pprint import pprint
             print(wrap("Cannot display %s. Please file a bug at github.com/seveas/git-hub\nincluding the following output:" % event.type, attr.bright))
             pprint(event.payload)
+
+@command
+def calendar(opts):
+    """Show a timeline of a user's activity"""
+    gh = github()
+    user = (opts['<user>'] or [gh.user().login])[0]
+    months = []
+    rows = [[],[],[],[],[],[],[]]
+    commits = []
+
+    data = requests.get('https://github.com/users/%s/contributions_calendar_data' % user).json()
+    y, m, d = [int(x) for x in data[0][0].split('/')]
+    wd = (datetime.date(y,m,d).weekday()+1) % 7
+    for i in range(wd):
+        rows[i].append(None)
+    if wd:
+        months.append(m)
+    for (date, count) in data:
+        count = int(count)
+        y, m, d = [int(x) for x in date.split('/')]
+        wd = (datetime.date(y,m,d).weekday()+1) % 7
+        rows[wd].append(count)
+        if not wd:
+            months.append(m)
+        if count:
+            commits.append(count)
+
+    # Print months
+    sys.stdout.write("  ")
+    last = -1
+    skip = months[2] != months[0]
+    monthtext = ('', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+    for month in months:
+        if month != last:
+            sys.stdout.write(monthtext[month] + ' ')
+            skip = True
+            last = month
+        elif not skip:
+            sys.stdout.write('  ')
+        else:
+            skip = False
+    print("")
+
+    # Print commits
+    days = 'SMTWTFS'
+    commits.sort()
+    p5  = commits[int(round(len(commits) * 0.95))]
+    p15 = commits[int(round(len(commits) * 0.85))]
+    p35 = commits[int(round(len(commits) * 0.65))]
+    blob = b'\xe2\x96\xa0 '.decode('utf-8')
+    for rnum, row in enumerate(rows):
+        if rnum % 2:
+            sys.stdout.write(days[rnum] + " ")
+        else:
+            sys.stdout.write("  ")
+        for col in row:
+            if col is None:
+                color = attr.conceal
+            elif col > p5:
+                color = fgcolor.xterm(22)
+            elif col > p15:
+                color = fgcolor.xterm(28)
+            elif col > p35:
+                color = fgcolor.xterm(64)
+            elif col:
+                color = fgcolor.xterm(65)
+            else:
+                color = fgcolor.xterm(237)
+            sys.stdout.write(wrap(blob, color).encode('utf-8'))
+        print("")
 
 main()
