@@ -67,6 +67,18 @@ save_cursor = esc + '[s'
 restore_cursor = esc + '[u'
 ## End ansi color library
 
+class Remote(object):
+    def __init__(self, name, user, repo):
+        self.name = name
+        self.user = user
+        self.repo = repo
+
+    def __unicode__(self):
+        return u"(%s: user=%s, repo=%s)" % (self.name, self.user, self.repo)
+
+    def __str__(self):
+        return self.__unicode__()
+
 def main():
     usage = """github integration for git
 A full manual can be found on http://seveas.github.com/git-hub
@@ -163,7 +175,7 @@ def github():
     os.umask(old_umask)
     return gh
 
-def get_repo():
+def get_remote():
     # Find the repo on github by searching for remotes hosted on github in the
     # following order
     # - A remote owned by the current user
@@ -172,19 +184,34 @@ def get_repo():
     # - The first defined remote
     gh = github()
     me = gh.user().login
+
     mine = origin = upstream = repo = None
     remotes = shell.git('config', '--get-regexp', 'remote\..*\.url', 'github.com').stdout.strip().splitlines()
+
     for remote in reversed(remotes):
         m = re.match('^remote\.([^.]*)\.url.*github.com[/:]([^/]*)/([^/]*?)(?:\.git)?$', remote)
-        remote, user, repo = m.groups()
-        repo = gh.repository(user, repo)
-        if remote == 'origin':
-            origin = repo
-        elif remote == 'upstream':
-            upstream = repo
+        name, user, repo = m.groups()
+
+        remote_obj = Remote(name, user, repo)
+
         if user == me:
-            mine = repo
+            mine = remote_obj
+        elif name == 'origin':
+            origin = remote_obj
+        elif name == 'upstream':
+            upstream = remote_obj
+
+        repo = remote_obj
+
     return mine or origin or upstream or repo
+
+def get_repo():
+    remote = get_remote()
+
+    gh = github()
+    repo = gh.repository(remote.user, remote.repo)
+
+    return repo
 
 @command
 def create(opts):
