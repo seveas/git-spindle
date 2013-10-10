@@ -67,6 +67,20 @@ save_cursor = esc + '[s'
 restore_cursor = esc + '[u'
 ## End ansi color library
 
+GITHUBCONFIG = '.githubconfig'
+
+class Remote(object):
+    def __init__(self, name, user, repo):
+        self.name = name
+        self.user = user
+        self.repo = repo
+
+    def __unicode__(self):
+        return u"(%s: user=%s, repo=%s)" % (self.name, self.user, self.repo)
+
+    def __str__(self):
+        return self.__unicode__()
+
 def main():
     usage = """github integration for git
 A full manual can be found on http://seveas.github.com/git-hub
@@ -134,7 +148,7 @@ def command(fnc):
     return fnc
 
 def github():
-    config_file = os.path.join(os.path.expanduser('~'), '.githubconfig')
+    config_file = os.path.join(os.path.expanduser('~'), GITHUBCONFIG)
     old_umask = os.umask(63) # 0o077
 
     user = shell.git('config', '--file', config_file, 'github.user').stdout.strip()
@@ -163,7 +177,7 @@ def github():
     os.umask(old_umask)
     return gh
 
-def get_repo():
+def get_remote():
     # Find the repo on github by searching for remotes hosted on github in the
     # following order
     # - A remote owned by the current user
@@ -172,19 +186,34 @@ def get_repo():
     # - The first defined remote
     gh = github()
     me = gh.user().login
+
     mine = origin = upstream = repo = None
     remotes = shell.git('config', '--get-regexp', 'remote\..*\.url', 'github.com').stdout.strip().splitlines()
+
     for remote in reversed(remotes):
         m = re.match('^remote\.([^.]*)\.url.*github.com[/:]([^/]*)/([^/]*?)(?:\.git)?$', remote)
-        remote, user, repo = m.groups()
-        repo = gh.repository(user, repo)
-        if remote == 'origin':
-            origin = repo
-        elif remote == 'upstream':
-            upstream = repo
+        name, user, repo = m.groups()
+
+        remote_obj = Remote(name, user, repo)
+
         if user == me:
-            mine = repo
+            mine = remote_obj
+        elif name == 'origin':
+            origin = remote_obj
+        elif name == 'upstream':
+            upstream = remote_obj
+
+        repo = remote_obj
+
     return mine or origin or upstream or repo
+
+def get_repo():
+    remote = get_remote()
+
+    gh = github()
+    repo = gh.repository(remote.user, remote.repo)
+
+    return repo
 
 @command
 def create(opts):
@@ -479,6 +508,43 @@ def public_keys(opts):
     for key in keys:
         print("%s %s" % (key.key, key.title or ''))
 
+def prompt_to_push(branch, msg, force=False):
+    config_file = os.path.join(os.path.expanduser('~'), GITHUBCONFIG)
+    prompt_user = shell.git('config', '--file', config_file, 'github.prompt-to-push').stdout.strip().lower() == 'y'
+    allow_force_pushes = shell.git('config', '--file', config_file, 'github.allow-force-pushes').stdout.strip().lower() == 'y'
+
+    remote = get_remote()
+
+    if prompt_user:
+        push = raw_input("%s -- push to %s? (y/N): " % (msg, remote.name))
+        if push.lower() == 'y':
+            base_cmd = ('push', remote.name, branch)
+            cmd = base_cmd
+            if force and allow_force_pushes:
+                cmd = base_cmd + ('--force')
+            check(shell.git(cmd))
+        else:
+            err("Aborting...you will need to push to the repo manually.")
+
+    else:
+        err(msg)
+
+def check_commit(repo, src):
+
+    # Try to get the local commit
+    commit = check(shell.git('show-ref', 'refs/heads/%s' % src)).stdout.split()[0]
+
+    # Do they exist on github?
+    srcb = repo.branch(src)
+
+    if not srcb:
+        msg = "Branch %s does not exist in your github repo" % src
+        prompt_to_push(src, msg, force=False)
+
+    elif srcb and srcb.commit.sha != commit:
+        msg = "Branch %s not up to date on github (%s vs %s)" % (src, srcb.commit.sha[:7], commit[:7])
+        prompt_to_push(src, msg, force=True)
+
 @command
 def pull_request(opts):
     """Opens a pull request to merge your branch1 to upstream branch2"""
@@ -496,14 +562,8 @@ def pull_request(opts):
     if not dst:
         dst = 'master'
 
-    # Try to get the local commit
-    commit = check(shell.git('show-ref', 'refs/heads/%s' % src)).stdout.split()[0]
     # Do they exist on github?
-    srcb = repo.branch(src)
-    if not srcb:
-        err("Branch %s does not exist in your github repo" % src)
-    elif srcb and srcb.commit.sha != commit:
-        err("Branch %s not up to date on github (%s vs %s)" % (src, srcb.commit.sha[:7], commit[:7]))
+    check_commit(repo, src)
 
     dstb = parent.branch(dst)
     if not dstb:
