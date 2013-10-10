@@ -516,7 +516,7 @@ def pull_request(opts):
     srcb = repo.branch(src)
     if not srcb:
         if raw_input("Branch %s does not exist in your github repo, shall I push? [Y/n] " % src).lower() in ['y', 'Y', '']:
-            shell.git('push', repo.remote)
+            shell.git('push', repo.remote, src)
         else:
             err("Aborting")
     elif srcb and srcb.commit.sha != commit:
@@ -524,12 +524,12 @@ def pull_request(opts):
         diverged = shell.git('rev-list', srcb.commit.sha, '^' + commit)
         if diverged.stderr or diverged.stdout:
             if raw_input("Branch %s has diverged from github, shall I push and overwrite? [y/N] " % src) in ['y', 'Y']:
-                shell.git('push', '--force', repo.remote)
+                shell.git('push', '--force', repo.remote, src)
             else:
                 err("Aborting")
         else:
             if raw_input("Branch %s not up to date on github, but can be fast forwarded, shall I push? [Y/n] " % src) in ['y', 'Y', '']:
-                shell.git('push', repo.remote)
+                shell.git('push', repo.remote, src)
             else:
                 err("Aborting")
 
