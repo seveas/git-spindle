@@ -812,8 +812,7 @@ def calendar(opts):
     rows = [[],[],[],[],[],[],[]]
     commits = []
 
-    #data = requests.get('https://github.com/users/%s/contributions_calendar_data' % user).json()
-    data = list(gh.user(user).iter_contributions_calendar_data())
+    data = requests.get('https://github.com/users/%s/contributions_calendar_data' % user).json()
     y, m, d = [int(x) for x in data[0][0].split('/')]
     wd = (datetime.date(y,m,d).weekday()+1) % 7
     for i in range(wd):
