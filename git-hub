@@ -178,6 +178,9 @@ def get_repo():
         m = re.match('^remote\.([^.]*)\.url.*github.com[/:]([^/]*)/([^/]*?)(?:\.git)?$', remote)
         remote, user, repo = m.groups()
         repo = gh.repository(user, repo)
+        if not repo:
+            print "Repository %s/%s no longer exists on github" % m.groups()[1:]
+            continue
         repo.remote = remote
         if remote == 'origin':
             origin = repo
@@ -240,7 +243,10 @@ def clone(opts):
     if repo.endswith('.git'):
         repo = repo[:-4]
 
-    repo = gh.repository(user, repo)
+    repo_ = gh.repository(user, repo)
+    if not repo_:
+        err("Repository %s/%s does not exist" % (user, repo))
+    repo = repo_
     url = repo.ssh_url
     if gh.user().login != user:
         url = repo.git_url
@@ -273,10 +279,15 @@ def mirror(opts):
                 opts['<repo>'] = '%s/%s' % (user, repo)
                 mirror(opts)
             return
-        repo = gh.repository(user, repo)
+        repo_ = gh.repository(user, repo)
+        if not repo_:
+            err("Repository %s/%s does not exist" % (user, repo))
     else:
         git_dir = '.'
-        repo = get_repo()
+        repo_ = get_repo()
+        if not repo_:
+            err("Repository %s/%s does not exist" % (user, repo))
+    repo = repo_
 
     if not os.path.exists(git_dir):
         url = repo.git_url
@@ -328,8 +339,10 @@ def fork(opts):
 
     if repo in [x.name for x in gh.iter_repos()]:
         err("Repository already exists")
-    repo = gh.repository(user, repo)
-    my_clone = repo.create_fork()
+    repo_ = gh.repository(user, repo)
+    if not repo_:
+        err("Repository %s/%s does not exist" % (user, repo))
+    my_clone = repo_.create_fork()
     opts['<repo>'] = my_clone.name
     clone(opts)
 
@@ -726,8 +739,12 @@ def log(opts):
             logtype = 'repo'
             user, repo = opts['<what>'].split('/', 1)
             what = gh.repository(user, repo)
+            if not what:
+                err("Repository %s/%s does not exist" % (user, repo))
         else:
             what = gh.user(opts['<what>'])
+            if not what:
+                err("User %s does not exist" % opts['<what>'])
 
     events = [x for x in what.iter_events(number=30)]
     now = datetime.datetime.now()
