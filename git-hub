@@ -178,6 +178,11 @@ def get_repo():
         m = re.match('^remote\.([^.]*)\.url.*github.com[/:]([^/]*)/([^/]*?)(?:\.git)?$', remote)
         remote, user, repo = m.groups()
         repo = gh.repository(user, repo)
+
+        if not repo:
+            print "Remote %s does not appear to exist from GitHub.  Please check this remote repo." % remote
+            continue
+
         repo.remote = remote
         if remote == 'origin':
             origin = repo
