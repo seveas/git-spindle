@@ -96,11 +96,14 @@ be set to the repository you forked from.
 Clone a github repository by name (e.g. seveas/hacks) or URL. If it's a fork,
 the "upstream" origin will be set up too.
 
-.. describe:: git hub fork <repo>
+.. describe:: git hub fork [<repo>]
 
 Fork another person's git repository on github and clones that repository
 locally. Repo can be specified as a (git) url or simply username/repo. Like
 with set-origin, the "origin" and "upstream" remotes will be set up too.
+
+Calling fork in a previously cloned-but-not-forked repository will create a
+fork of that repository.
 
 .. describe:: git hub forks
 

@@ -80,7 +80,7 @@ Usage:
   git-hub clone [--ssh|--http] <repo>
   git-hub create [-d <description>]
   git-hub edit-hook <name> [<setting>...]
-  git-hub fork [--ssh|--http] <repo>
+  git-hub fork [--ssh|--http] [<repo>]
   git-hub forks
   git-hub gist [--desc <description>] <file>...
   git-hub gists [<user>]
@@ -339,9 +339,15 @@ def mirror(opts):
 def fork(opts):
     gh = github()
     """Fork a repo and clone it"""
-    if '/' not in opts['<repo>']:
-        err("Usage: git hub fork url\n       git hub fork user/repo")
-    user, repo = opts['<repo>'].rsplit('/',2)[-2:]
+    if not opts['<repo>']:
+        repo = get_repo()
+        user, repo = repo.owner.login, repo.name
+        do_clone = False
+    else:
+        if '/' not in opts['<repo>']:
+            err("Usage: git hub fork url\n       git hub fork user/repo")
+        user, repo = opts['<repo>'].rsplit('/',2)[-2:]
+        do_clone = True
     if repo.endswith('.git'):
         repo = repo[:-4]
 
@@ -352,7 +358,10 @@ def fork(opts):
         err("Repository %s/%s does not exist" % (user, repo))
     my_clone = repo_.create_fork()
     opts['<repo>'] = my_clone.name
-    clone(opts)
+    if do_clone:
+        clone(opts)
+    else:
+        set_origin(opts)
 
 @command
 def forks(opts):
