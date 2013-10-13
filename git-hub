@@ -204,7 +204,15 @@ def create(opts):
 @command
 def set_origin(opts):
     """Set the remote 'origin' to github.\n  If this is a fork, set the remote 'upstream' to the parent"""
+    gh = github()
+    me = gh.user()
     repo = get_repo()
+    # Is this mine? No? Do I have a clone?
+    if repo.owner.login != me.login:
+        my_repo = gh.repository(me, repo.name)
+        if my_repo:
+            repo = my_repo
+
     shell.git('config', 'remote.origin.url', repo.ssh_url)
     shell.git('config', '--replace-all', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
 
