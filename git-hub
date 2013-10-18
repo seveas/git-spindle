@@ -179,7 +179,7 @@ def get_repo():
         remote, user, repo = m.groups()
         repo = gh.repository(user, repo)
         if not repo:
-            print "Repository %s/%s no longer exists on github" % m.groups()[1:]
+            err("Repository %s/%s no longer exists on github" % m.groups()[1:])
             continue
         repo.remote = remote
         if remote == 'origin':
