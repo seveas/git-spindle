@@ -514,9 +514,10 @@ def public_keys(opts):
 def pull_request(opts):
     """Opens a pull request to merge your branch1 to upstream branch2"""
     repo = get_repo()
-    if not repo.fork:
-        err("This is not a forked repository")
-    parent = repo.parent
+    if repo.fork:
+        parent = repo.parent
+    else:
+        parent = repo
     # Which branch?
     src = opts['<branch1:branch2>'] or ''
     dst = None
@@ -526,6 +527,9 @@ def pull_request(opts):
         src = check(shell.git('rev-parse', '--abbrev-ref', 'HEAD')).stdout.strip()
     if not dst:
         dst = 'master'
+
+    if src == dst and parent == repo:
+        err("Cannot file a pull request on the same branch")
 
     # Try to get the local commit
     commit = check(shell.git('show-ref', 'refs/heads/%s' % src)).stdout.split()[0]
