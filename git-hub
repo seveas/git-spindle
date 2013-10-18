@@ -31,7 +31,8 @@ import sys
 import webbrowser
 from whelk import Shell
 shell = Shell(encoding='utf-8')
-if sys.version_info[0] > 2:
+PY3 = sys.version_info[0] > 2
+if PY3:
     # On python 3, shell decodes into utf-8 as above
     try_decode = lambda x: x
 else:
@@ -321,7 +322,10 @@ def mirror(opts):
             sys.exit(rc)
 
     with open(os.path.join(git_dir, 'description'), 'w') as fd:
-        fd.write(repo.description.encode('utf-8'))
+        if PY3:
+            fd.write(repo.description)
+        else:
+            fd.write(repo.description.encode('utf-8'))
     if opts['--goblet']:
         if repo.fork:
             owner = gh.user(repo.parent.owner.login)
@@ -893,9 +897,15 @@ def calendar(opts):
             else:
                 color = fgcolor.xterm(237)
             if day == 1:
-                sys.stdout.write(wrap(blob2, attr.underline, color).encode('utf-8'))
+                msg = wrap(blob2, attr.underline, color)
+                if not PY3:
+                    msg = msg.encode('utf-8')
+                sys.stdout.write(msg)
             else:
-                sys.stdout.write(wrap(blob1, color).encode('utf-8'))
+                msg = wrap(blob1, attr.underline, color)
+                if not PY3:
+                    msg = msg.encode('utf-8')
+                sys.stdout.write(msg)
             sys.stdout.write(' ')
         print("")
 
