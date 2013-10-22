@@ -22,6 +22,7 @@ $ git hub add-public-keys [keys]: Adds the keys to your public keys
 $ git hub add-remote [user]: Add user's fork as a remote by that name
 $ git hub browse [--parent]: Browse the repo (or its parent) on github
 $ git hub calendar [user]: Show a timeline of a user's activity
+$ git hub cat [file]: Display a file as present on github
 $ git hub clone [repo]: Clone one of your repositories by name
 $ git hub create: Create a repository on github to push to
 $ git hub edit-hook [name] [setting ...]: Edit a service hook

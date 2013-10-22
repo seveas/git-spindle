@@ -78,6 +78,7 @@ Usage:
   git-hub add-remote [--ssh|--http] <user>
   git-hub browse [--parent]
   git-hub calendar [<user>]
+  git-hub cat <file>...
   git-hub clone [--ssh|--http] <repo>
   git-hub create [-d <description>]
   git-hub edit-hook <name> [<setting>...]
@@ -751,6 +752,22 @@ def browse(opts):
     if repo.fork and opts['--parent']:
         repo = repo.parent
     webbrowser.open_new(repo.html_url)
+
+@command
+def cat(opts):
+    """Display the contents of a file on github"""
+    gh = github()
+    for file in opts['<file>']:
+        repo, ref, file = ([None, None] + file.split(':',2))[-3:]
+        user = None
+        if repo:
+            user, repo = ([None] + repo.split('/'))[-2:]
+        repo = gh.repository(user or gh.user().login, repo) if repo else get_repo()
+        content = repo.contents(path=file, ref=ref)
+        if content:
+            print(content.decoded)
+        else:
+            sys.stderr.write("No such file: %s\n" % file)
 
 @command
 def log(opts):

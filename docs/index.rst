@@ -96,6 +96,12 @@ be set to the repository you forked from.
 Clone a github repository by name (e.g. seveas/hacks) or URL. If it's a fork,
 the "upstream" origin will be set up too.
 
+.. describe:: git hub cat <file>
+
+Display the contents of a file on github. File can start with repository names
+and refs. For example: `master:git-hub`,  `git-hub:master:git-hub` or
+`seveas/git-hub:master:git-hub`.
+
 .. describe:: git hub fork [<repo>]
 
 Fork another person's git repository on github and clones that repository
