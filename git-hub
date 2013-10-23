@@ -812,6 +812,8 @@ def log(opts):
             print("%s %s %s to %s" % (ts, event.payload['action'], event.payload['member'].login, repo))
         elif event.type == 'PublicEvent':
             print("%s made %s open source" % repo)
+        elif event.type == 'PullRequestReviewCommentEvent':
+            print("%s commented on a pull_request%s" % (ts, repo_))
         elif event.type == 'PullRequestEvent':
             print("%s %s pull_request #%s%s" % (ts, event.payload['action'], event.payload['pull_request'].number, repo_))
         elif event.type == 'PushEvent':
