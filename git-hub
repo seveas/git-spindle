@@ -810,9 +810,12 @@ def log(opts):
             repo_ = ''
             ts += ' %s' % event.actor.login
         if event.type == 'CommitCommentEvent':
-            print("%s commented on commit %s%s" % (ts, event.payload['comment'].commit_id, repo_))
+            print("%s commented on commit %s%s" % (ts, event.payload['comment'].commit_id[:7], repo_))
         elif event.type == 'CreateEvent':
-            print("%s created %s %s%s" % (ts, event.payload['ref_type'], event.payload['ref'], repo_))
+            if event.payload['ref_type'] == 'repository':
+                print("%s created %s %s" % (ts, event.payload['ref_type'], repo))
+            else:
+                print("%s created %s %s%s" % (ts, event.payload['ref_type'], event.payload['ref'], repo_))
         elif event.type == 'DeleteEvent':
             print("%s deleted %s %s%s" % (ts, event.payload['ref_type'], event.payload['ref'], repo_))
         elif event.type == 'DownloadEvent':
@@ -837,7 +840,7 @@ def log(opts):
         elif event.type == 'PublicEvent':
             print("%s made %s open source" % repo)
         elif event.type == 'PullRequestReviewCommentEvent':
-            print("%s commented on a pull_request%s" % (ts, repo_))
+            print("%s commented on a pull request for commit %s%s" % (ts, event.payload['comment'].commit_id[:7], repo_))
         elif event.type == 'PullRequestEvent':
             print("%s %s pull_request #%s%s" % (ts, event.payload['action'], event.payload['pull_request'].number, repo_))
         elif event.type == 'PushEvent':
