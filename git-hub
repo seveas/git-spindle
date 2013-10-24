@@ -644,7 +644,7 @@ def network(opts):
             if person.done:
                 continue
 
-            sys.stderr.write("Looking at user %s" % login)
+            sys.stderr.write("Looking at user %s\n" % login)
             # Followers
             for other in person.user.iter_followers():
                 if other.login not in people:
@@ -656,8 +656,8 @@ def network(opts):
                 person.rel_to[other.login].append('follows')
 
             # Forks
-            for repo in gh.iter_repos(login, type='owner'):
-                sys.stderr.write("Looking at repo %s" % repo.name)
+            for repo in gh.iter_user_repos(login, type='owner'):
+                sys.stderr.write("Looking at repo %s\n" % repo.name)
                 if repo.fork:
                     # Sigh. GH doesn't return parent info in iter_repos
                     repo = gh.repository(repo.owner.login, repo.name)
