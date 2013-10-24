@@ -810,6 +810,8 @@ def log(opts):
             print("%s created %s %s%s" % (ts, event.payload['ref_type'], event.payload['ref'], repo_))
         elif event.type == 'DeleteEvent':
             print("%s deleted %s %s%s" % (ts, event.payload['ref_type'], event.payload['ref'], repo_))
+        elif event.type == 'DownloadEvent':
+            print("%s created download %s (%s)" % (ts, event.payload['name'], event.payload['description']))
         elif event.type == 'FollowEvent':
             print("%s started following %s" % (ts, event.payload['target'].login))
         elif event.type == 'ForkEvent':
@@ -840,6 +842,13 @@ def log(opts):
             else:
                 commits = len(event.payload['shas'])
             print("%s pushed %d commits to %s%s" % (ts, commits, event.payload['ref'][11:], repo_))
+        elif event.type == 'ReleaseEvent':
+            print("%s released %s" % (ts, event.payload['name']))
+        elif event.type == 'StatusEvent':
+            print("%s commit %s changed to %s" % (ts, event.payload['sha'][:7], event.payload['state']))
+        elif event.type == 'TeamAddEvent':
+            what = event.payload['user'] or event.payload['repository']
+            print("%s %s %s was added to team %s" % (ts, what.__class__.lower(), what.name, event.payload['team'].name))
         elif event.type == 'WatchEvent':
             print("%s %s watching %s" % (ts, event.payload['action'], repo))
         else:
