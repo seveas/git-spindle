@@ -172,6 +172,7 @@ def get_repo():
     # - A remote named 'origin'
     # - A remote named 'upstream'
     # - The first defined remote
+    # - A repository on github with the same name as the current directory
     gh = github()
     me = gh.user().login
     mine = origin = upstream = repo = None
@@ -190,7 +191,11 @@ def get_repo():
             upstream = repo
         if user == me:
             mine = repo
-    return mine or origin or upstream or repo
+    repo = mine or origin or upstream or repo
+    if not repo:
+        repo = os.path.basename(shell.git('rev-parse', '--show-toplevel').stdout.strip())
+        repo = gh.repository(me, repo)
+    return repo
 
 @command
 def create(opts):
