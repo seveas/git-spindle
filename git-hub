@@ -152,6 +152,8 @@ def github():
         token = auth.token
         shell.git('config', '--file', config_file, 'github.token', token)
         shell.git('config', '--file', config_file, 'github.auth_id', str(auth.id))
+        print("A GitHub authentication token is now cached in ~/.githubconfig - do not share this file")
+        print("To revoke access, visit https://github.com/settings/applications")
 
     if not user or not token:
         err("No user or token specified")
