@@ -584,8 +584,8 @@ def pull_request(opts):
     if not commits:
         err("Your branch has no commits yet")
     # Are we turning an issue into a commit?
-    if opts['<issue>']:
-        pull = parent.create_pull_from_issue(base=dst, head='%s:%s' % (repo.owner.login, src), issue=int(opts['<issue>']))
+    if opts['--issue']:
+        pull = parent.create_pull_from_issue(base=dst, head='%s:%s' % (repo.owner.login, src), issue=int(opts['--issue']))
         print("Pull request %d created %s" % (pull.number, pull.html_url))
         return
     if len(commits) == 1:
