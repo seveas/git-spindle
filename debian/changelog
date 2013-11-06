@@ -1,3 +1,9 @@
+git-hub (1.16-1) saucy; urgency=low
+
+  * New upstream release
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Wed, 06 Nov 2013 23:06:21 +0100
+
 git-hub (1.15-1) saucy; urgency=low
 
   * New upstream release
