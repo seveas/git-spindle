@@ -28,6 +28,8 @@ import re
 import requests
 import socket
 import sys
+import tempfile
+import time
 import webbrowser
 from whelk import Shell
 shell = Shell(encoding='utf-8')
@@ -96,6 +98,7 @@ Usage:
   git-hub public-keys <user>
   git-hub pull-request [--issue=<issue>] [<branch1:branch2>]
   git-hub remove-hook <name>
+  git-hub render <file>
   git-hub repos [<user>]
   git-hub set-origin
   git-hub whoami
@@ -775,6 +778,17 @@ def cat(opts):
             print(content.decoded)
         else:
             sys.stderr.write("No such file: %s\n" % file)
+
+@command
+def render(opts):
+    with open(opts['<file>'][0]) as fd:
+        data = fd.read()
+    html = github3.markdown(data)
+    with tempfile.NamedTemporaryFile(suffix='.html') as fd:
+        fd.write(html)
+        fd.flush()
+        webbrowser.open('file://' + fd.name)
+        time.sleep(1)
 
 @command
 def log(opts):
