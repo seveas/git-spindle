@@ -467,6 +467,12 @@ def whois(opts):
                 print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
             else:
                 print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
+        # XXX User.iter_orgs is not yet in a released version of github3.py.
+        # Remove check when released and dependencies updated
+        if hasattr(user, 'iter_orgs'):
+            orgs = list(user.iter_orgs())
+            if orgs:
+                print("Member of %s" % ', '.join([x.login for x in orgs]))
 
 @command
 def whoami(opts):
