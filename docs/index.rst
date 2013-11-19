@@ -78,23 +78,27 @@ instead of yours.
 Interacting with repositories
 -----------------------------
 
-.. describe:: git hub create [-d <description>]
+.. describe:: git hub create [--private] [-d <description>]
 
-Create a repository on github for your current repository. An optional
-description can be given too. After running this command, a repository will be
-created on github and your local repository will have github as remote
+Create a (possibly rivate) repository on github for your current repository. An
+optional description can be given too. After running this command, a repository
+will be created on github and your local repository will have github as remote
 "origin", so :command:`git push origin master` will work.
 
-.. describe:: git hub set-origin
+.. describe:: git hub set-origin [--ssh|--http]
 
 Fix the configuration of your repository's remotes. Remote "origin" will be set
 to your github repository. If that repository is a fork, remote "upstram" will
 be set to the repository you forked from.
 
-.. describe:: git hub clone <repo>
+For origin, an SSH url is used. For upstream, set-origin defaults to adding a
+git url, but this can be overridden. For private repos SSH is used.
+
+.. describe:: git hub clone [--ssh|--http] <repo>
 
 Clone a github repository by name (e.g. seveas/hacks) or URL. If it's a fork,
-the "upstream" origin will be set up too.
+the "upstream" origin will be set up too. Defaults to cloning from a git url,
+but this can be overridden. For private repos SSH is used.
 
 .. describe:: git hub cat <file>
 
@@ -102,7 +106,7 @@ Display the contents of a file on github. File can start with repository names
 and refs. For example: `master:git-hub`,  `git-hub:master:git-hub` or
 `seveas/git-hub:master:git-hub`.
 
-.. describe:: git hub fork [<repo>]
+.. describe:: git hub fork [--ssh|--http] [<repo>]
 
 Fork another person's git repository on github and clones that repository
 locally. Repo can be specified as a (git) url or simply username/repo. Like
@@ -115,15 +119,17 @@ fork of that repository.
 
 List all forks of this repository, highlighting the original repository.
 
-.. describe:: git hub add-remote [<user>]
+.. describe:: git hub add-remote [--ssh|--http] [<user>]
 
 Add a users fork as a remote using the user's login as name for the remote.
+Defaults to adding a git url, but this can be overridden. For private repos
+SSH is used.
 
 .. describe:: git hub browse [--parent]
 
 Browse the repository (or its parent) on GitHub
 
-.. describe:: git hub mirror [--goblet] [<repo>]
+.. describe:: git hub mirror [--ssh|--http] [--goblet] [<repo>]
 
 Mirror a repository from github. This is similar to clone, but clones into a
 bare repository and maps all remote refs to local refs. When run without
