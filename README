@@ -39,6 +39,7 @@ $ git hub network: Create a graphviz graph of followers and forks
 $ git hub pull-request [branch1:branch2]: Opens a pull request to merge
   your branch1 to upstream branch2 (defaults are current branch and master)
 $ git hub remove-hook [name]: Remove a service hook
+$ git hub render [file]: Render a markdown page and show it in your browser
 $ git hub repos [user]: List all repos of a user, by default yours
 $ git hub set-origin: Set the remote 'origin' to github.
   If this is a fork, set the remote 'upstream' to the parent
