@@ -11,10 +11,6 @@ To install the latest released version::
 
     pip install hub
 
-To install the latest development version::
-
-    pip install http://seveas.net/git-hub
-
 Basic usage
 -----------
 The first time you use :command:`git hub`, it will ask you for your github
@@ -204,7 +200,7 @@ List your gists, or those created by another user.
 
 Other
 -----
-.. calendar:: git hub calendar [<user>...]
+.. describe:: git hub calendar [<user>...]
 
 Show a timeline of a your activity, or that of another user. The timeline will
 look like that on your github profile page::

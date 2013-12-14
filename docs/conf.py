@@ -19,3 +19,4 @@ html_theme_path = [csp.get_theme_dir()]
 html_show_sourcelink = False
 html_show_sphinx = False
 extensions = ['ansicolor']
+man_pages = [('index', 'git-hub', 'GitHub integration', 'Dennis Kaarsemaker', '1')]
