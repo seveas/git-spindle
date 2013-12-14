@@ -4,6 +4,7 @@
 	dh $@
 
 override_dh_auto_build:
+	make -C docs man
 
 override_dh_auto_install:
 	mkdir -p $(CURDIR)/debian/tmp/usr/bin
