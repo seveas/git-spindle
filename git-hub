@@ -102,7 +102,7 @@ Usage:
   git-hub pull-request [--issue=<issue>] [<branch1:branch2>]
   git-hub remove-hook <name>
   git-hub render <file>
-  git-hub repos [<user>]
+  git-hub repos [--no-forks] [<user>]
   git-hub set-origin [--ssh|--http]
   git-hub whoami
   git-hub whois <user>...
@@ -265,6 +265,8 @@ def repos(opts):
         if repo.private:
             color.append(fgcolor.red)
         if repo.fork:
+            if opts['--no-forks']:
+                continue
             color.append(attr.faint)
         name = repo.name
         if opts['<user>'][0] != repo.owner.login:
