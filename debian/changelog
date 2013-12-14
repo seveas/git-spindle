@@ -1,3 +1,9 @@
+git-hub (1.17-2) saucy; urgency=low
+
+  * Add build dependency on sphinx and cloud-sptheme 
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Sat, 14 Dec 2013 17:32:30 +0100
+
 git-hub (1.17-1) saucy; urgency=low
 
   * New upstream release
