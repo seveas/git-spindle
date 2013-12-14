@@ -62,7 +62,10 @@ attr    = Attr(normal=0, bright=1, faint=2, underline=4, negative=7, conceal=8, 
 esc = '\033'
 mode = lambda *args: "%s[%sm" % (esc, ';'.join([str(x) for x in args if x is not None]))
 reset = mode(attr.normal)
-wrap = lambda text, *args: "%s%s%s" % (mode(*args), text, reset)
+if sys.stdout.isatty():
+    wrap = lambda text, *args: "%s%s%s" % (mode(*args), text, reset)
+else:
+    wrap = lambda text, *args: text
 
 erase_line = esc + '[K'
 erase_display = esc + '[2J'
