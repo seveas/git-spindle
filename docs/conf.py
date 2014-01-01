@@ -4,9 +4,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 source_suffix = '.rst'
 master_doc = 'index'
 project = u'git-hub'
-copyright = u'2012-2013, Dennis Kaarsemaker'
-version = '1.17'
-release = '1.17'
+copyright = u'2012-2014, Dennis Kaarsemaker'
+version = '1.18'
+release = '1.18'
 exclude_patterns = ['_build']
 pygments_style = 'sphinx'
 html_theme = 'cloud'
