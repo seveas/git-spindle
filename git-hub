@@ -103,6 +103,7 @@ Usage:
   git-hub remove-hook <name>
   git-hub render <file>
   git-hub repos [--no-forks] [<user>]
+  git-hub say [<msg>]
   git-hub set-origin [--ssh|--http]
   git-hub whoami
   git-hub whois <user>...
@@ -1002,5 +1003,9 @@ def calendar(opts):
                 sys.stdout.write(msg)
             sys.stdout.write(' ')
         print("")
+
+@command
+def say(opts):
+    print(github3.octocat(opts['<msg>'] or None))
 
 main()
