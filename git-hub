@@ -95,7 +95,7 @@ Usage:
   git-hub ignore [<language>...]
   git-hub issue [--parent] <issue>...
   git-hub issues [--parent] [<filter>...]
-  git-hub log [<what>]
+  git-hub log [--type=<type>] [<what>]
   git-hub mirror [--ssh|--http] [--goblet] [<repo>]
   git-hub network [<level>]
   git-hub public-keys <user>
@@ -841,7 +841,17 @@ def log(opts):
             if not what:
                 err("User %s does not exist" % opts['<what>'])
 
-    events = [x for x in what.iter_events(number=30)]
+    if not opts['--type']:
+        events = [x for x in what.iter_events(number=30)]
+    else:
+        events = []
+        etype = opts['--type'].lower() + 'event'
+        for event in what.iter_events(number=300):
+            if event.type.lower() == etype:
+                events.append(event)
+                if len(events) == 30:
+                    break
+
     now = datetime.datetime.now()
     for event in reversed(events):
         ts = event.created_at

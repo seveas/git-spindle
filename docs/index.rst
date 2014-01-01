@@ -64,11 +64,14 @@ Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 Display all public keys of a user, in a format that can be added to
 :file:`~/.authorized_keys`.
 
-.. describe:: git hub log [<what>]
+.. describe:: git hub log [--type=<type>] [<what>]
 
 Displays a log of your github actions, such as pushes and issue comments. You
 can also specify a user or repository and the relevant log will be shown
 instead of yours.
+
+If you are only interested in events of a specific type, you can filter for it,
+e.g. :option:`--type=push`.
 
 .. _`profile page`: https://github.com/settings/applications
 
