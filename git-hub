@@ -997,7 +997,7 @@ def calendar(opts):
                     msg = msg.encode('utf-8')
                 sys.stdout.write(msg)
             else:
-                msg = wrap(blob1, attr.underline, color)
+                msg = wrap(blob1, color)
                 if not PY3:
                     msg = msg.encode('utf-8')
                 sys.stdout.write(msg)
