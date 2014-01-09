@@ -229,7 +229,9 @@ def set_origin(opts):
         if my_repo:
             repo = my_repo
 
-    shell.git('config', 'remote.origin.url', repo.ssh_url)
+    if shell.git('config', 'remote.origin.url').stdout.strip() != repo.ssh_url:
+        print("Pointing origin to %s" % repo.ssh_url)
+        shell.git('config', 'remote.origin.url', repo.ssh_url)
     shell.git('config', '--replace-all', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
 
     if repo.fork:
@@ -239,7 +241,9 @@ def set_origin(opts):
             url = parent.ssh_url
         elif opts['--http']:
             url = parent.clone_url
-        shell.git('config', 'remote.upstream.url', url)
+        if shell.git('config', 'remote.upstream.url').stdout.strip() != url:
+            print("Pointing upstream to %s" % url)
+            shell.git('config', 'remote.upstream.url', url)
         shell.git('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
     else:
         # If issues are enabled, fetch pull requests
@@ -249,6 +253,14 @@ def set_origin(opts):
             pass
         else:
             shell.git('config', '--add', 'remote.origin.fetch', '+refs/pull/*/head:refs/pull/*/head')
+
+    for branch in shell.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
+        branch = branch.split(None, 2)[-1][11:]
+        if shell.git('for-each-ref', 'refs/remotes/origin/%s' % branch).stdout.strip():
+            if shell.git('config', 'branch.%s.remote' % branch).returncode != 0:
+                print("Marking %s as remote-tracking branch" % branch)
+                shell.git('config', 'branch.%s.remote' % branch, 'origin')
+                shell.git('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
 
 @command
 def repos(opts):
