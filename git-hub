@@ -284,7 +284,10 @@ def repos(opts):
         name = repo.name
         if opts['<user>'][0] != repo.owner.login:
             name = '%s/%s' % (repo.owner.login, name)
-        print(wrap(fmt % (name, repo.description), *color))
+        msg = wrap(fmt % (name, repo.description), *color)
+        if not PY3:
+            msg = msg.encode('utf-8')
+        print(msg)
 
 @command
 def clone(opts):
