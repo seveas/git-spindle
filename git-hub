@@ -272,7 +272,7 @@ def repos(opts):
         name = repo.name
         if opts['<user>'][0] != repo.owner.login:
             name = '%s/%s' % (repo.owner.login, name)
-        print(wrap(fmt % (name, repo.description), *color))
+        print(wrap((fmt % (name, repo.description)).encode("Utf-8"), *color))
 
 @command
 def clone(opts):
