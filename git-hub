@@ -457,25 +457,48 @@ def fork(opts):
     """Fork a repo and clone it"""
     gh = github()
     me = gh.user()
+    repo_ = None
     if not opts['<repo>']:
-        repo = get_repo()
-        user, repo = repo.owner.login, repo.name
+        repo_ = get_repo()
+        if isinstance(repo_, github3.gists.Gist):
+            user, repo = 'gist', repo_.name
+        else:
+            user, repo = repo_.owner.login, repo_.name
         do_clone = False
     else:
         if '/' not in opts['<repo>']:
             err("Usage: git hub fork url\n       git hub fork user/repo")
-        user, repo = opts['<repo>'].rsplit('/',2)[-2:]
+        if 'gist.github.com' in opts['<repo>']:
+            user, repo = 'gist', opts['<repo>'].rsplit('/',1)[-1]
+        else:
+            user, repo = opts['<repo>'].rsplit('/',2)[-2:]
+        if user == 'gist':
+            repo_ = gh.gist(repo)
+            if not repo_:
+                err("Gist %s does not exist" % repo)
+        else:
+            repo_ = gh.repository(user, repo)
+            if not repo_:
+                err("Repository %s/%s does not exist" % (user, repo))
         do_clone = True
+
     if repo.endswith('.git'):
         repo = repo[:-4]
 
-    if repo in [x.name for x in gh.iter_repos() if x.owner.login == me.login]:
-        err("Repository already exists")
-    repo_ = gh.repository(user, repo)
-    if not repo_:
-        err("Repository %s/%s does not exist" % (user, repo))
+    if user == 'gist':
+        for fork in repo_.iter_forks():
+            if fork.owner.login == me.login:
+                err("You already forked this gist as %s" % fork.html_url)
+    else:
+        if repo in [x.name for x in gh.iter_repos() if x.owner.login == me.login]:
+            err("Repository already exists")
+
     my_clone = repo_.create_fork()
-    opts['<repo>'] = my_clone.name
+    if user == 'gist':
+        opts['<repo>'] = 'gist/%s' % my_clone.name
+    else:
+        opts['<repo>'] = my_clone.name
+
     if do_clone:
         clone(opts)
     else:
