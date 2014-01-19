@@ -325,7 +325,9 @@ def repos(opts):
     maxstar = len(str(max([x._json_data['stargazers_count'] for x in repos])))
     maxfork = len(str(max([x.forks for x in repos])))
     maxwatch = len(str(max([x.watchers for x in repos])))
-    fmt = u"%%-%ds \u2605 %%-%ds \u25c9 %%-%ds \u2919 %%-%ds %%s" % (maxlen, maxstar, maxwatch, maxfork)
+    # XXX github support request filed: watchers is actually stars
+    #fmt = u"%%-%ds \u2605 %%-%ds \u25c9 %%-%ds \u2919 %%-%ds %%s" % (maxlen, maxstar, maxwatch, maxfork)
+    fmt = u"%%-%ds \u2605 %%-%ds \u2919 %%-%ds %%s" % (maxlen, maxstar, maxfork)
     for repo in repos:
         color = [attr.normal]
         if repo.private:
@@ -337,7 +339,7 @@ def repos(opts):
         name = repo.name
         if opts['<user>'][0] != repo.owner.login:
             name = '%s/%s' % (repo.owner.login, name)
-        msg = wrap(fmt % (name, repo._json_data['stargazers_count'], repo.watchers, repo.forks, repo.description), *color)
+        msg = wrap(fmt % (name, repo._json_data['stargazers_count'], repo.forks, repo.description), *color)
         if not PY3:
             msg = msg.encode('utf-8')
         print(msg)
