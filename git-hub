@@ -392,10 +392,18 @@ def mirror(opts):
             for repo in gh.iter_user_repos(user):
                 opts['<repo>'] = '%s/%s' % (user, repo)
                 mirror(opts)
+            for repo in gh.iter_gists(user):
+                opts['<repo>'] = 'gist/%s' % repo.name
+                mirror(opts)
             return
-        repo_ = gh.repository(user, repo)
-        if not repo_:
-            err("Repository %s/%s does not exist" % (user, repo))
+        if user == 'gist':
+            repo_ = gh.gist(repo)
+            if not repo_:
+                err("Gist %s does not exist" % repo)
+        else:
+            repo_ = gh.repository(user, repo)
+            if not repo_:
+                err("Repository %s/%s does not exist" % (user, repo))
     else:
         git_dir = '.'
         repo_ = get_repo()
