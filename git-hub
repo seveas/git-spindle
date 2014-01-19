@@ -338,18 +338,28 @@ def repos(opts):
 
 @command
 def clone(opts):
-    """Clone a repositories by name"""
+    """Clone a repository by name"""
     gh = github()
     if '/' in opts['<repo>']:
-        user, repo = opts['<repo>'].rsplit('/',2)[-2:]
+        if 'gist.github.com' in opts['<repo>']:
+            user, repo = 'gist', opts['<repo>'].rsplit('/',1)[-1]
+        else:
+            user, repo = opts['<repo>'].rsplit('/',2)[-2:]
     else:
         user, repo = gh.user().login, opts['<repo>']
     if repo.endswith('.git'):
         repo = repo[:-4]
 
-    repo_ = gh.repository(user, repo)
-    if not repo_:
-        err("Repository %s/%s does not exist" % (user, repo))
+    if user == 'gist':
+        # This is a gist, not a normal repo
+        repo_ = gh.gist(repo)
+        if not repo_:
+            err("Gist %s does not exist" % repo)
+        user = repo_.owner.login
+    else:
+        repo_ = gh.repository(user, repo)
+        if not repo_:
+            err("Repository %s/%s does not exist" % (user, repo))
     repo = repo_
     url = repo.ssh_url
     if gh.user().login != user:
