@@ -937,9 +937,14 @@ def log(opts):
         if '/' in opts['<what>']:
             logtype = 'repo'
             user, repo = opts['<what>'].split('/', 1)
-            what = gh.repository(user, repo)
-            if not what:
-                err("Repository %s/%s does not exist" % (user, repo))
+            if user == 'gist':
+                what = gh.gist(repo)
+                if not what:
+                    err("Gist %s does not exist" % repo)
+            else:
+                what = gh.repository(user, repo)
+                if not what:
+                    err("Repository %s/%s does not exist" % (user, repo))
         else:
             what = gh.user(opts['<what>'])
             if not what:
@@ -1021,6 +1026,8 @@ def log(opts):
             print("%s %s %s was added to team %s" % (ts, what.__class__.lower(), what.name, event.payload['team'].name))
         elif event.type == 'WatchEvent':
             print("%s %s watching %s" % (ts, event.payload['action'], repo))
+        elif event.type == 'GistHistoryEvent':
+            print("%s committed %s additions, %s deletions" % (ts, event.additions, event.deletions))
         else:
             from pprint import pprint
             print(wrap("Cannot display %s. Please file a bug at github.com/seveas/git-hub\nincluding the following output:" % event.type, attr.bright))
