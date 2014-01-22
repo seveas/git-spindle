@@ -26,6 +26,7 @@ import docopt
 import os
 import re
 import requests
+import shlex
 import socket
 import sys
 import tempfile
@@ -756,7 +757,8 @@ def pull_request(opts):
     temp_file = os.path.join(check(shell.git('rev-parse', '--git-dir')).stdout.strip(), 'PULL_REQUEST_EDITMSG')
     with open(temp_file, 'w') as fd:
         fd.write(("%s\n\n%s" % (title,body)).encode('utf-8'))
-    getattr(shell, check(shell.git('var', 'GIT_EDITOR')).stdout.strip())(temp_file, redirect=False)
+    editor = shlex.split(check(shell.git('var', 'GIT_EDITOR')).stdout) + [temp_file]
+    shell[editor[0]](*editor[1:], redirect=False)
     with open(temp_file) as fd:
         title, body = (try_decode(fd.read()) +'\n').split('\n', 1)
     title = title.strip()
