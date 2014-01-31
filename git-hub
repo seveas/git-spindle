@@ -197,12 +197,17 @@ def github():
 
     token = shell.git('config', '--file', config_file, 'github.token').stdout.strip()
     if not token:
-        password = getpass.getpass("GitHub password: ")
+        password = getpass.getpass("GitHub password/OTP code: ")
         auth = github3.authorize(user, password, ['user', 'repo', 'gist'],
                 "Github Git integration on %s" % socket.gethostname(), "http://seveas.github.com/git-hub")
-        token = auth.token
+	if auth is None:  # GitHub returns None when using OTP codes
+	   token = password
+	else:
+           token = auth.token
+           shell.git('config', '--file', config_file, 'github.auth_id', str(auth.id))
+
         shell.git('config', '--file', config_file, 'github.token', token)
-        shell.git('config', '--file', config_file, 'github.auth_id', str(auth.id))
+
         print("A GitHub authentication token is now cached in ~/.githubconfig - do not share this file")
         print("To revoke access, visit https://github.com/settings/applications")
 
