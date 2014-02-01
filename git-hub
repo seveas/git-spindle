@@ -187,6 +187,13 @@ def command(fnc):
     return fnc
 
 def github():
+    def prompt_for_2fa():
+        """Callback for github3.py's 2FA support."""
+        return raw_input("Two-Factor Authentication Code: ").strip()
+
+    gh = github3.GitHub()
+    gh.login(two_factor_callback=prompt_for_2fa)
+
     config_file = os.path.join(os.path.expanduser('~'), '.githubconfig')
     old_umask = os.umask(63) # 0o077
 
@@ -198,7 +205,7 @@ def github():
     token = shell.git('config', '--file', config_file, 'github.token').stdout.strip()
     if not token:
         password = getpass.getpass("GitHub password: ")
-        auth = github3.authorize(user, password, ['user', 'repo', 'gist'],
+        auth = gh.authorize(user, password, ['user', 'repo', 'gist'],
                 "Github Git integration on %s" % socket.gethostname(), "http://seveas.github.com/git-hub")
         token = auth.token
         shell.git('config', '--file', config_file, 'github.token', token)
@@ -208,7 +215,7 @@ def github():
 
     if not user or not token:
         err("No user or token specified")
-    gh = github3.login(username=user, token=token)
+    gh.login(username=user, token=token)
     try:
         gh.user()
     except github3.GitHubError:
