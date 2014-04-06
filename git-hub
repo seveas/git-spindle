@@ -38,6 +38,8 @@ PY3 = sys.version_info[0] > 2
 if PY3:
     # On python 3, shell decodes into utf-8 as above
     try_decode = lambda x: x
+    # On python 3, raw_input has become input
+    raw_input = input
 else:
     # Try decoding as utf-8 only
     try_decode = lambda x: x.decode('utf-8')
