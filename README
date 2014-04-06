@@ -43,6 +43,7 @@ $ git hub render [file]: Render a markdown page and show it in your browser
 $ git hub repos [user]: List all repos of a user, by default yours
 $ git hub set-origin: Set the remote 'origin' to github.
   If this is a fork, set the remote 'upstream' to the parent
+$ git hub status: Show the last few GitHub status messages
 $ git hub whoami: Display github user info
 $ git hub whois [user ...]: Display github user info
 

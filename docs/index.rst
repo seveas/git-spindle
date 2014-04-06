@@ -50,6 +50,22 @@ If you want to see this information about other users, use :command:`git hub who
   Repos     21 public, 0 private
   Gists     9 public, 0 private
 
+.. describe:: git hub status
+
+Shows the last few GitHub status messages::
+
+  dennis@lightning:~$ git hub status
+  [2m2014-04-01 23:06[0m [33mminor[0m Pages builds are paused while we investigate an increase in failed builds
+  [2m2014-04-01 23:22[0m [32mgood [0m Everything operating normally.
+  [2m2014-04-02 00:05[0m [33mminor[0m We're investigating reports of git operation failures.
+  [2m2014-04-02 00:29[0m [31mmajor[0m We're experiencing problems with repo operations and are working to restore functionality.
+  [2m2014-04-02 01:00[0m [31mmajor[0m Git and HTTPS repo operations are intermittently unavailable while we repair the source of the problem.
+  [2m2014-04-02 01:22[0m [31mmajor[0m SSH git operations have been restored and we're working to fix HTTPS functionality.
+  [2m2014-04-02 01:40[0m [33mminor[0m We have implemented a fix for the issue and git operations are recovering.
+  [2m2014-04-02 01:47[0m [32mgood [0m Everything operating normally.
+  [2m2014-04-03 09:55[0m [33mminor[0m We're currently investigating issues with operations against a small percentage of repositories.
+  [2m2014-04-03 10:14[0m [32mgood [0m Everything operating normally.
+
 .. describe:: git hub repos [--no-forks] [<user>...]
 
 List all repositories owned by a user, by default you. Specify :option:`--no-forks`

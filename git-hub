@@ -151,6 +151,7 @@ Usage:
   git-hub repos [--no-forks] [<user>]
   git-hub say [<msg>]
   git-hub set-origin [--ssh|--http]
+  git-hub status
   git-hub whoami
   git-hub whois <user>...
 
@@ -1138,5 +1139,17 @@ def calendar(opts):
 @command
 def say(opts):
     print(github3.octocat(opts['<msg>'] or None))
+
+@command
+def status(opts):
+    messages = github3.GitHubStatus().messages()
+    for message in reversed(messages):
+        ts = time.strptime(message['created_on'], '%Y-%m-%dT%H:%M:%SZ')
+        offset = time.timezone
+        if time.daylight:
+            offset = time.altzone
+        color = {'good': fgcolor.green, 'minor': fgcolor.yellow, 'major': fgcolor.red}[message['status']]
+        ts = datetime.datetime(ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec) - datetime.timedelta(0,offset)
+        print '%s %s %s' % (wrap(ts.strftime('%Y-%m-%d %H:%M'), attr.faint), wrap("%-5s" % message['status'], color), message['body'])
 
 main()
