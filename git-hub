@@ -178,8 +178,8 @@ def err(msg):
     sys.stderr.write(msg + "\n")
     sys.exit(1)
 
-def check(result):
-    if result.returncode != 0:
+def check(result, must_succeed):
+    if result.returncode != 0 and must_succeed:
         print(result.stderr.rstrip())
         sys.exit(result.returncode)
     return result
@@ -230,7 +230,7 @@ def github():
     os.umask(old_umask)
     return gh
 
-def get_repo():
+def get_repo(must_be_in_repo=False):
     # Find the repo on github by searching for remotes hosted on github in the
     # following order
     # - A remote owned by the current user
@@ -241,7 +241,8 @@ def get_repo():
     gh = github()
     me = gh.user().login
     mine = origin = upstream = repo = None
-    check(shell.git('rev-parse', '--git-dir'))
+    if not check(shell.git('rev-parse', '--git-dir'), False):
+        return
     remotes = shell.git('config', '--get-regexp', 'remote\..*\.url', 'github.com').stdout.strip().splitlines()
     for remote in reversed(remotes):
         m = re.match('^remote\.([^.]*)\.url.*?(gist.)?github.com[/:](?:([^/]*)/)?([^/]*?)(?:\.git)?$', remote)
@@ -538,20 +539,31 @@ def forks(opts):
 @command
 def issues(opts):
     """List issues"""
-    repo = get_repo()
-    if repo.fork and opts['--parent']:
-        repo = repo.parent
-    filters = dict([x.split('=', 1) for x in opts['<filter>']])
-    try:
-        for issue in repo.iter_issues(**filters):
+    repo = get_repo(False)
+    if not repo:
+        repos = list(github().iter_repos(type='all'))
+    else:
+        repos = [repo]
+    for repo in repos:
+        if repo.fork and opts['--parent']:
+            repo = repo.parent
+        filters = dict([x.split('=', 1) for x in opts['<filter>']])
+        try:
+            issues = list(repo.iter_issues(**filters))
+        except github3.GitHubError:
+            _, err, _ = sys.exc_info()
+            if err.code == 410:
+                if len(repos) == 1:
+                    print(err.message)
+                continue
+            else:
+                raise
+        if not issues:
+            continue
+        print(wrap("Issues for %s/%s" % (repo.owner.login, repo.name), attr.bright))
+        for issue in issues:
             url = issue.pull_request and issue.pull_request['html_url'] or issue.html_url
             print("[%d] %s %s" % (issue.number, issue.title, url))
-    except github3.GitHubError:
-        _, err, _ = sys.exc_info()
-        if err.code == 410:
-            print(err.message)
-        else:
-            raise
 
 @command
 def issue(opts):
