@@ -1,51 +1,143 @@
+==========================
 Github integration for git
 ==========================
 
 With this git subcommand, you can perform various github actions, such as
 creating or forking a repository from the command line.
 
-To install the latest released version:
+Installation
+============
+
+To install the latest released version::
 
     pip install hub
 
-To install the latest development version:
+To install the latest development version::
 
     pip install http://seveas.net/git-hub
 
-Usage:
+Documentation
+=============
 
-(For detailed information, go to http://seveas.github.com/git-hub)
+http://pythonhosted.org/hub/
 
-$ git hub add-hook [name] [setting ...]: Add a service hook
-$ git hub add-public-keys [keys]: Adds the keys to your public keys
-  (defaults to all keys it can find)
-$ git hub add-remote [user]: Add user's fork as a remote by that name
-$ git hub browse [--parent]: Browse the repo (or its parent) on github
-$ git hub calendar [user]: Show a timeline of a user's activity
-$ git hub cat [file]: Display a file as present on github
-$ git hub clone [repo]: Clone one of your repositories by name
-$ git hub create: Create a repository on github to push to
-$ git hub edit-hook [name] [setting ...]: Edit a service hook
-$ git hub fork [url or user and repo]: Fork a repo and clone it
-$ git hub forks: List all forks of this repository
-$ git hub gist [files]: Create a new gist from files
-$ git hub gists [user]: List a users gists
-$ git hub hooks: List service hooks
-$ git hub issue [issue number ...]: Issue details
-$ git hub issues [filters]: List issues
-$ git hub log [what]: Display github action logs for users or repos
-$ git hub mirror [repo]: Mirror a repo or update it
-$ git hub network: Create a graphviz graph of followers and forks
-$ git hub pull-request [branch1:branch2]: Opens a pull request to merge
-  your branch1 to upstream branch2 (defaults are current branch and master)
-$ git hub remove-hook [name]: Remove a service hook
-$ git hub render [file]: Render a markdown page and show it in your browser
-$ git hub repos [user]: List all repos of a user, by default yours
-$ git hub set-origin: Set the remote 'origin' to github.
-  If this is a fork, set the remote 'upstream' to the parent
-$ git hub status: Show the last few GitHub status messages
-$ git hub whoami: Display github user info
-$ git hub whois [user ...]: Display github user info
+http://seveas.github.com/git-hub
+
+Usage
+=====
+
+Add a service hook::
+
+    $ git hub add-hook [name] [setting ...]
+
+Adds the keys to your public keys (defaults to all keys it can find)::
+
+    $ git hub add-public-keys [keys]
+
+Add user's fork as a remote by that name::
+
+    $ git hub add-remote [user]
+
+Browse the repo (or its parent) on github::
+
+    $ git hub browse [--parent]
+
+Show a timeline of a user's activity::
+
+    $ git hub calendar [user]
+
+Display a file as present on github::
+
+    $ git hub cat [file]
+
+Clone one of your repositories by name::
+
+    $ git hub clone [repo]
+
+Create a repository on github to push to::
+
+    $ git hub create
+
+Edit a service hook::
+
+    $ git hub edit-hook [name] [setting ...]
+
+Fork a repo and clone it::
+
+    $ git hub fork [url or user and repo]
+
+List all forks of this repository::
+
+    $ git hub forks
+
+Create a new gist from files::
+
+    $ git hub gist [files]
+
+List a users gists::
+
+    $ git hub gists [user]
+
+List service hooks::
+
+    $ git hub hooks
+
+Issue details::
+
+    $ git hub issue [issue number ...]
+
+List issues::
+
+    $ git hub issues [filters]
+
+Display github action logs for users or repos::
+
+    $ git hub log [what]
+
+Mirror a repo or update it::
+
+    $ git hub mirror [repo]
+
+Create a graphviz graph of followers and forks::
+
+    $ git hub network
+
+Opens a pull request to merge your branch1 to upstream branch2
+(defaults are current branch and master)::
+
+    $ git hub pull-request [branch1:branch2]
+
+Remove a service hook::
+
+    $ git hub remove-hook [name]
+
+Render a markdown page and show it in your browser::
+
+    $ git hub render [file]
+
+List all repos of a user, by default yours::
+
+    $ git hub repos [user]
+
+Set the remote 'origin' to github. If this is a fork,
+set the remote 'upstream' to the parent::
+
+    $ git hub set-origin
+
+Show the last few GitHub status messages::
+
+    $ git hub status
+
+Display github user info::
+
+    $ git hub whoami
+
+Display github user info::
+
+    $ git hub whois [user ...]
+
+Copyright & License
+=====================
 
 Copyright (C) 2012-2014 Dennis Kaarsemaker <dennis@kaarsemaker.net>
 
