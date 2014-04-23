@@ -1,8 +1,13 @@
-from distutils.core import setup
+from setuptools import setup
+import codecs
+
+with codecs.open('README.rst', encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(name='hub',
     version="1.20",
     description='Github integration for git',
+    long_description=long_description,
     author='Dennis Kaarsemaker',
     author_email='dennis@kaarsemaker.net',
     url='http://github.com/seveas/git-hub',
