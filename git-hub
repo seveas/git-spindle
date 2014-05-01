@@ -210,8 +210,18 @@ def github():
         # main gh object having a username/password and thus getting into a 2fa loop
         gh2 = github3.GitHub()
         gh2.login(user, password, two_factor_callback=prompt_for_2fa)
-        auth = gh2.authorize(user, password, ['user', 'repo', 'gist'],
-                "Github Git integration on %s" % socket.gethostname(), "http://seveas.github.com/git-hub")
+        try:
+            auth = gh2.authorize(user, password, ['user', 'repo', 'gist'],
+                    "Github Git integration on %s" % socket.gethostname(), "http://seveas.github.com/git-hub")
+        except github3.GitHubError:
+            type, exc, tb = sys.exc_info()
+            if hasattr(exc, 'response'):
+                response = exc.response
+                if response.status_code == 422:
+                    for error in response.json()['errors']:
+                        if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
+                            err("An OAuth token for this host already exists, please delete it on https://github.com/settings/applications")
+            raise type, exc, tb
         token = auth.token
         shell.git('config', '--file', config_file, 'github.token', token)
         shell.git('config', '--file', config_file, 'github.auth_id', str(auth.id))
