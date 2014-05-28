@@ -149,6 +149,7 @@ Usage:
   git-hub remove-hook <name>
   git-hub render <file>
   git-hub repos [--no-forks] [<user>]
+  git-hub run-shell
   git-hub say [<msg>]
   git-hub set-origin [--ssh|--http]
   git-hub status
@@ -1189,5 +1190,27 @@ def status(opts):
         color = {'good': fgcolor.green, 'minor': fgcolor.yellow, 'major': fgcolor.red}[message['status']]
         ts = datetime.datetime(ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec) - datetime.timedelta(0,offset)
         print('%s %s %s' % (wrap(ts.strftime('%Y-%m-%d %H:%M'), attr.faint), wrap("%-5s" % message['status'], color), message['body']))
+
+@command
+def run_shell(opts):
+    import code
+    import readline
+    import rlcompleter
+    gh = github()
+
+    data = dict([(x.__name__, x) for x in commands.values()])
+    data.update({
+        'github':  gh,
+        'github3': github3,
+        'me':      gh.user(),
+        'opts':    opts,
+        'repo':    get_repo(False),
+        'shell':   shell,
+    })
+    readline.set_completer(rlcompleter.Completer(data).complete)
+    readline.parse_and_bind("tab: complete")
+    shl = code.InteractiveConsole(data)
+    shl.interact()
+    sys.exit(1)
 
 main()
