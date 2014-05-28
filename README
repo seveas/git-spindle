@@ -31,7 +31,7 @@ $ git hub forks: List all forks of this repository
 $ git hub gist [files]: Create a new gist from files
 $ git hub gists [user]: List a users gists
 $ git hub hooks: List service hooks
-$ git hub issue [issue number ...]: Issue details
+$ git hub issue [issue number ...]: Issue details or create an issue
 $ git hub issues [filters]: List issues
 $ git hub log [what]: Display github action logs for users or repos
 $ git hub mirror [repo]: Mirror a repo or update it

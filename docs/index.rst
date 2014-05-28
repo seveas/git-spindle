@@ -185,10 +185,12 @@ Issues and pull requests
 List all open issues. You can specify `filters`_ to filter issues. When you
 specify :option:`--parent`, list all open issues for the parent repository.
 
-.. describe:: git hub issue [--parent] <issue>...
+.. describe:: git hub issue [--parent] [<issue>...]
 
 Shows details about the mentioned issue numbers. As with :option:`issues`, you
-can use the :option:`--parent` option to use the parent repository.
+can use the :option:`--parent` option to use the parent repository. If you do
+not specify an issue number, you will be prompted for a message that will be
+used to create a new issue.
 
 .. describe:: git hub pull-request [--issue <issue>] <yours:theirs>
 

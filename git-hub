@@ -139,7 +139,7 @@ Usage:
   git-hub gists [<user>]
   git-hub hooks
   git-hub ignore [<language>...]
-  git-hub issue [--parent] <issue>...
+  git-hub issue [--parent] [<issue>...]
   git-hub issues [--parent] [<filter>...]
   git-hub log [--type=<type>] [<what>]
   git-hub mirror [--ssh|--http] [--goblet] [<repo>]
@@ -586,6 +586,18 @@ def issue(opts):
         print(wrap(issue.title, attr.bright, attr.underline))
         print(issue.body)
         print(issue.pull_request and issue.pull_request['html_url'] or issue.html_url)
+    if not opts['<issue>']:
+        body = """
+# Reporting an issue on %s/%s
+# Please describe the issue as clarly as possible. Lines starting with '#' will
+# be ignored, the first line will be used as title for the issue.
+#""" % (repo.owner.login, repo.name)
+        title, body = edit_msg(body, 'ISSUE_EDITMSG')
+        if not body:
+            err("Empty issue message")
+
+        issue = repo.create_issue(title=title, body=body)
+        print("Issue %d created %s" % (issue.number, issue.html_url))
 
 @command
 def add_remote(opts):
@@ -791,9 +803,17 @@ def pull_request(opts):
 #""" % (repo.owner.login, src, parent.owner.login, dst)
     body += "\n# " + try_decode(check(shell.git('shortlog', '%s/%s..%s' % (remote, dst, src))).stdout).strip().replace('\n', '\n# ')
     body += "\n#\n# " + try_decode(check(shell.git('diff', '--stat', '%s^..%s' % (commits[0], commits[-1]))).stdout).strip().replace('\n', '\n#')
-    temp_file = os.path.join(check(shell.git('rev-parse', '--git-dir')).stdout.strip(), 'PULL_REQUEST_EDITMSG')
+    title, body = edit_msg("%s\n\n%s" % (title,body), 'PULL_REQUEST_EDIT_MSG')
+    if not body:
+        err("No pull request message specified")
+
+    pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
+    print("Pull request %d created %s" % (pull.number, pull.html_url))
+
+def edit_msg(msg, filename):
+    temp_file = os.path.join(check(shell.git('rev-parse', '--git-dir')).stdout.strip(), filename)
     with open(temp_file, 'w') as fd:
-        fd.write(("%s\n\n%s" % (title,body)).encode('utf-8'))
+        fd.write(msg.encode('utf-8'))
     editor = shlex.split(check(shell.git('var', 'GIT_EDITOR')).stdout) + [temp_file]
     shell[editor[0]](*editor[1:], redirect=False)
     with open(temp_file) as fd:
@@ -801,11 +821,7 @@ def pull_request(opts):
     title = title.strip()
     body = body.strip()
     body = re.sub('^#.*', '', body, flags=re.MULTILINE).strip()
-    if not body:
-        err("No pull request message specified")
-
-    pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
-    print("Pull request %d created %s" % (pull.number, pull.html_url))
+    return title, body
 
 @command
 def network(opts):
