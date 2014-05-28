@@ -178,7 +178,7 @@ def err(msg):
     sys.stderr.write(msg + "\n")
     sys.exit(1)
 
-def check(result, must_succeed):
+def check(result, must_succeed=True):
     if result.returncode != 0 and must_succeed:
         print(result.stderr.rstrip())
         sys.exit(result.returncode)
@@ -240,7 +240,7 @@ def github():
     os.umask(old_umask)
     return gh
 
-def get_repo(must_be_in_repo=False):
+def get_repo(must_be_in_repo=True):
     # Find the repo on github by searching for remotes hosted on github in the
     # following order
     # - A remote owned by the current user
@@ -251,7 +251,7 @@ def get_repo(must_be_in_repo=False):
     gh = github()
     me = gh.user().login
     mine = origin = upstream = repo = None
-    if not check(shell.git('rev-parse', '--git-dir'), False):
+    if not check(shell.git('rev-parse', '--git-dir'), must_be_in_repo):
         return
     remotes = shell.git('config', '--get-regexp', 'remote\..*\.url', 'github.com').stdout.strip().splitlines()
     for remote in reversed(remotes):
