@@ -20,6 +20,7 @@ $ git hub add-hook [name] [setting ...]: Add a service hook
 $ git hub add-public-keys [keys]: Adds the keys to your public keys
   (defaults to all keys it can find)
 $ git hub add-remote [user]: Add user's fork as a remote by that name
+$ git hub apply-pr [number]: Apply (not merge) a pull request
 $ git hub browse [--parent]: Browse the repo (or its parent) on github
 $ git hub calendar [user]: Show a timeline of a user's activity
 $ git hub cat [file]: Display a file as present on github
