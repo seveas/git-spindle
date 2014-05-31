@@ -171,7 +171,7 @@ for. A list of all events can be found on the `GitHub API page`_
 
 Edit one or more settings for a hook.
 
-.. describe:: git-hub remove-hook <name>
+.. describe:: git hub remove-hook <name>
 
 Remove a service hook.
 
