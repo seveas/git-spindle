@@ -398,10 +398,10 @@ def clone(opts):
     url = repo.ssh_url
     if gh.user().login != user:
         url = repo.git_url
-        if opts['--ssh'] or repo.private:
-            url = repo.ssh_url
-        elif opts['--http']:
-            url = repo.clone_url
+    if opts['--ssh'] or repo.private:
+        url = repo.ssh_url
+    elif opts['--http']:
+        url = repo.clone_url
 
     rc = shell.git('clone', url, redirect=False).returncode
     if rc:
