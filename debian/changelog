@@ -1,3 +1,9 @@
+git-hub (1.22-1) trusty; urgency=medium
+
+  * New upstream version
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Mon, 21 Jul 2014 21:29:40 +0200
+
 git-hub (1.21-1) trusty; urgency=medium
 
   * New upstream release
