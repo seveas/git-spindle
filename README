@@ -12,6 +12,13 @@ To install the latest development version:
 
     pip install http://seveas.net/git-hub
 
+If you use windows, you'll want to install git and pip via msys2. Download
+msys2 from http://msys2.github.io/ and use pacman to install pip and git:
+
+    pacman -Syu
+    pacman -S git
+    pacman -S mingw-w64-i686-python2-pip
+
 Usage:
 
 (For detailed information, go to http://seveas.github.com/git-hub)
