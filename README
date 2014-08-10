@@ -8,10 +8,6 @@ To install the latest released version:
 
     pip install hub
 
-To install the latest development version:
-
-    pip install http://seveas.net/git-hub
-
 If you use windows, you'll want to install git and pip via msys2. Download
 msys2 from http://msys2.github.io/ and use pacman to install pip and git:
 
