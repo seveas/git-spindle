@@ -1138,8 +1138,8 @@ def calendar(opts):
     rows = [[],[],[],[],[],[],[]]
     commits = []
 
-    data = requests.get('https://github.com/users/%s/contributions_calendar_data' % user).json()
-    y, m, d = [int(x) for x in data[0][0].split('/')]
+    data = requests.get('https://github.com/users/%s/contributions' % user).json()
+    y, m, d = [int(x) for x in data[0][0].split('-')]
     wd = (datetime.date(y,m,d).weekday()+1) % 7
     for i in range(wd):
         rows[i].append((None,None))
@@ -1147,7 +1147,7 @@ def calendar(opts):
         months.append(m)
     for (date, count) in data:
         count = int(count)
-        y, m, d = [int(x) for x in date.split('/')]
+        y, m, d = [int(x) for x in date.split('-')]
         wd = (datetime.date(y,m,d).weekday()+1) % 7
         rows[wd].append((d, count))
         if not wd:
