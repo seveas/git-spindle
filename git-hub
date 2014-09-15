@@ -856,8 +856,13 @@ def apply_pr(opts):
         print("Fetching pull request")
         url = gh.repository(pr.repository[0].replace('repos/', ''), pr.repository[1]).clone_url
         shell.git('fetch', url, 'refs/pull/%d/head:refs/pull/%d/head' % (pr.number, pr.number), redirect=False)
-    print("Cherry-picking %d commit(s): %s..refs/pull/%d/head" % (pr.commits, pr.base.ref, pr.number))
-    shell.git('cherry-pick', '%s..refs/pull/%d/head' % (pr.base.ref, pr.number), redirect=False)
+    head_sha = shell.git('rev-parse', 'HEAD').stdout.strip()
+    if shell.git('merge-base', pr.head.sha, head_sha).stdout.strip() == head_sha:
+        print("Fast-forward merging %d commit(s): %s..refs/pull/%d/head" % (pr.commits, pr.base.ref, pr.number))
+        shell.git('merge', '--ff-only', 'refs/pull/%d/head' % pr.number, redirect=False)
+    else:
+        print("Cherry-picking %d commit(s): %s..refs/pull/%d/head" % (pr.commits, pr.base.ref, pr.number))
+        shell.git('cherry-pick', '%s..refs/pull/%d/head' % (pr.base.ref, pr.number), redirect=False)
 
 @command
 def network(opts):
