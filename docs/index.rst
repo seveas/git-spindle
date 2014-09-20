@@ -141,9 +141,11 @@ Add a users fork as a remote using the user's login as name for the remote.
 Defaults to adding a git url, but this can be overridden. For private repos
 SSH is used.
 
-.. describe:: git hub browse [--parent]
+.. describe:: git hub browse [--parent] [<repo>] [<section>]
 
-Browse the repository (or its parent) on GitHub
+Browse a repository (or its parent) on GitHub. By default the repository's
+homepage is opened, but you can specify a different section, such as issues,
+pulls, wiki, branches, releases, contributors, graphs, releases or settings.
 
 .. describe:: git hub mirror [--ssh|--http] [--goblet] [<repo>]
 

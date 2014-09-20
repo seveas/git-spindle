@@ -120,7 +120,7 @@ Usage:
   git-hub add-public-keys [<key>...]
   git-hub add-remote [--ssh|--http] <user>
   git-hub apply-pr <pr-number>
-  git-hub browse [--parent]
+  git-hub browse [--parent] [<repo>] [<section>]
   git-hub calendar [<user>]
   git-hub cat <file>...
   git-hub clone [--ssh|--http] <repo>
@@ -946,8 +946,14 @@ def ignore(opts):
 @command
 def browse(opts):
     """Open the GitHub page for this repo in a browser"""
+    sections = ['issues', 'pulls', 'wiki', 'branches', 'releases', 'contributors', 'graphs', 'releases', 'settings']
+    if opts['<repo>'] in sections and not opts['<section>']:
+        opts['<repo>'], opts['<section>'] = None, opts['<repo>']
     repo = get_repo(opts)
-    webbrowser.open_new(repo.html_url)
+    url = repo.html_url
+    if opts['<section>']:
+        url += '/' + opts['<section>']
+    webbrowser.open_new(url)
 
 @command
 def cat(opts):
