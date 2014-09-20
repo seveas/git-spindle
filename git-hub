@@ -1003,6 +1003,8 @@ def log(opts):
                     err("Repository %s/%s does not exist" % (user, repo))
         else:
             what = gh.user(opts['<what>'])
+            if what.type == 'Organization':
+                logtype = 'org'
             if not what:
                 err("User %s does not exist" % opts['<what>'])
 
@@ -1029,7 +1031,7 @@ def log(opts):
             ts = wrap(ts.strftime("%Y/%m/%d %H:%M"), attr.faint)
         repo = '/'.join(event.repo)
         repo_ = ' (%s)' % repo
-        if logtype == 'repo':
+        if logtype != 'user':
             repo_ = ''
             ts += ' %s' % event.actor.login
         if event.type == 'CommitCommentEvent':
