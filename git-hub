@@ -681,7 +681,7 @@ def pull_request(opts):
     if not src:
         src = check(shell.git('rev-parse', '--abbrev-ref', 'HEAD')).stdout.strip()
     if not dst:
-        dst = 'master'
+        dst = parent.default_branch
 
     if src == dst and parent == repo:
         err("Cannot file a pull request on the same branch")
