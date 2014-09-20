@@ -439,21 +439,14 @@ def mirror(opts):
         elif opts['--http']:
             url = repo.clone_url
 
-        rc = shell.git('clone', '--mirror', url, redirect=False).returncode
-        if rc:
-            sys.exit(rc)
-
+        check(shell.git('clone', '--mirror', url, redirect=False))
     else:
         # Update the current, mirrored repo
         if shell.git('--git-dir', git_dir, 'config', 'core.bare').stdout.strip() != 'true' or \
            shell.git('--git-dir', git_dir, 'config', 'remote.origin.mirror').stdout.strip() != 'true':
                err("This is not a mirrored repository")
-        rc = shell.git('--git-dir', git_dir, 'fetch', '-q', 'origin', redirect=False).returncode
-        if rc:
-            sys.exit(rc)
-        shell.git('--git-dir', git_dir, 'remote', 'prune', 'origin', redirect=False).returncode
-        if rc:
-            sys.exit(rc)
+        check(shell.git('--git-dir', git_dir, 'fetch', '-q', 'origin', redirect=False))
+        check(shell.git('--git-dir', git_dir, 'remote', 'prune', 'origin', redirect=False))
 
     with open(os.path.join(git_dir, 'description'), 'w') as fd:
         if PY3:
