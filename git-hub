@@ -110,14 +110,6 @@ def _gist_contents(self, path, ref):
         if f.filename == path:
             return Content(f)
 github3.gists.Gist.contents = _gist_contents
-def _iter_gist_forks(self):
-    for fork in self._iter_forks():
-        fork['files'] = []
-        fork['owner'] = fork['user']
-        fork['html_url'] = 'https://gist.github.com/%s/%s' % (fork['user']['login'], fork['id'])
-        yield github3.gists.Gist(fork)
-github3.gists.Gist._iter_forks = github3.gists.Gist.iter_forks
-github3.gists.Gist.iter_forks = _iter_gist_forks
 
 def main():
     usage = """github integration for git
