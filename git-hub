@@ -112,7 +112,7 @@ def _gist_contents(self, path, ref):
 github3.gists.Gist.contents = _gist_contents
 
 def main():
-    usage = """github integration for git
+    usage = """GitHub integration for git
 A full manual can be found on http://seveas.github.com/git-hub
 
 Usage:
@@ -196,7 +196,7 @@ def github():
 
     user = shell.git('config', '--file', config_file, 'github.user').stdout.strip()
     if not user:
-        user = raw_input("Github user: ").strip()
+        user = raw_input("GitHub user: ").strip()
         shell.git('config', '--file', config_file, 'github.user', user)
 
     token = shell.git('config', '--file', config_file, 'github.token').stdout.strip()
