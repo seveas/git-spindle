@@ -1,4 +1,4 @@
-Source: git-hub
+Source: git-spindle
 Section: python
 Priority: extra
 Maintainer: Dennis Kaarsemaker <dennis@kaarsemaker.net>
@@ -6,9 +6,16 @@ Build-Depends: debhelper (>= 7), python-all, python-sphinx, python-cloud-sptheme
 Standards-Version: 3.9.3
 Vcs-Git: http://github.com/seveas/git-hub
 
-Package: git-hub
+Package: git-spindle
 Architecture: all
 Depends: python-whelk (>=1.9), python-github3.py (>=0.8.2), python-docopt (>=0.5.0), git
+Conflicts: git-hub (<2.0)
+Replaces: git-hub (<2.0)
 Description: Github integration for git
  With this git subcommand, you can perform various github actions, such as
  creating or forking a repository from the command line.
+
+Package: git-hub
+Architecture: all
+Depends: git-spindle (>=2.0)
+Description: git-hub was renamed to git-spindle, you may safely remove this package

@@ -1,3 +1,9 @@
+git-spindle (2.0-1) utopic; urgency=medium
+
+  * New upstream release, renamed to git-spindle
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Sat, 15 Nov 2014 21:59:00 +0100
+
 git-hub (1.25-1) trusty; urgency=medium
 
   * New upstream release
