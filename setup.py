@@ -1,12 +1,14 @@
 from distutils.core import setup
 
-setup(name='hub',
-    version="1.25",
-    description='Github integration for git',
+setup(name='git-spindle',
+    version="2.0",
+    description='Git subcommands for integrating with central services like github, gitlab and bitbucket',
     author='Dennis Kaarsemaker',
     author_email='dennis@kaarsemaker.net',
-    url='http://github.com/seveas/git-hub',
-    scripts=['git-hub'],
+    url='http://github.com/seveas/git-spindle',
+    scripts=['bin/git-hub'],
+    packages=['gitspindle'],
+    package_dir={'': 'lib'},
     classifiers=[
         "Intended Audience :: Developers",
         "Topic :: Software Development",

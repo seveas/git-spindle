@@ -1,12 +1,21 @@
-Github integration for git
-==========================
+Integrating git with central services
+=====================================
+
+Many central git hosting services, such as GitHub and GitLab, provide an API to
+perform actions such as creating repositories and filing pull requests.
+git-spindle is a collection of git subcommands to make using these services
+easier.
+
+For example, to fork and clone a repository on GitHub, one can now simply use
+
+    git hub clone seveas/whelk
 
 With this git subcommand, you can perform various github actions, such as
 creating or forking a repository from the command line.
 
 To install the latest released version:
 
-    pip install hub
+    pip install git-spindle
 
 If you use windows, you'll want to install git and pip via msys2. Download
 msys2 from http://msys2.github.io/ and use pacman to install pip and git:
@@ -17,39 +26,39 @@ msys2 from http://msys2.github.io/ and use pacman to install pip and git:
 
 Usage:
 
-(For detailed information, go to http://seveas.github.com/git-hub)
+(For detailed information, go to http://seveas.github.com/git-spindle)
 
-$ git hub add-hook [name] [setting ...]: Add a service hook
-$ git hub add-public-keys [keys]: Adds the keys to your public keys
-  (defaults to all keys it can find)
-$ git hub add-remote [user]: Add user's fork as a remote by that name
-$ git hub apply-pr [number]: Apply (not merge) a pull request
-$ git hub browse [--parent] [repo] [section]: Browse the repo (or its parent) on github
-$ git hub calendar [user]: Show a timeline of a user's activity
-$ git hub cat [file]: Display a file as present on github
-$ git hub clone [repo]: Clone one of your repositories by name
-$ git hub create: Create a repository on github to push to
-$ git hub edit-hook [name] [setting ...]: Edit a service hook
-$ git hub fork [url or user and repo]: Fork a repo and clone it
-$ git hub forks: List all forks of this repository
-$ git hub gist [files]: Create a new gist from files
-$ git hub gists [user]: List a users gists
-$ git hub hooks: List service hooks
-$ git hub issue [issue number ...]: Issue details or create an issue
-$ git hub issues [filters]: List issues
-$ git hub log [what]: Display github action logs for users or repos
-$ git hub mirror [repo]: Mirror a repo or update it
-$ git hub network: Create a graphviz graph of followers and forks
-$ git hub pull-request [branch1:branch2]: Opens a pull request to merge
-  your branch1 to upstream branch2 (defaults are current branch and master)
-$ git hub remove-hook [name]: Remove a service hook
-$ git hub render [file]: Render a markdown page and show it in your browser
-$ git hub repos [user]: List all repos of a user, by default yours
-$ git hub set-origin: Set the remote 'origin' to github.
-  If this is a fork, set the remote 'upstream' to the parent
-$ git hub status: Show the last few GitHub status messages
-$ git hub whoami: Display github user info
-$ git hub whois [user ...]: Display github user info
+  git hub add-hook <name> [<setting>...]
+  git hub add-public-keys [<key>...]
+  git hub add-remote [--ssh|--http] <user>...
+  git hub apply-pr <pr-number>
+  git hub browse [--parent] [<repo>] [<section>]
+  git hub calendar [<user>]
+  git hub cat <file>...
+  git hub clone [--ssh|--http] [--parent] <repo>
+  git hub create [--private] [-d <description>]
+  git hub edit-hook <name> [<setting>...]
+  git hub fork [--ssh|--http] [<repo>]
+  git hub forks [<repo>]
+  git hub gist [--desc <description>] <file>...
+  git hub gists [<user>]
+  git hub hooks 
+  git hub ignore [<language>...]
+  git hub issue [<repo>] [--parent] [<issue>...]
+  git hub issues [<repo>] [--parent] [<filter>...]
+  git hub log [--type=<type>] [<what>]
+  git hub mirror [--ssh|--http] [--goblet] [<repo>]
+  git hub network [<level>]
+  git hub public-keys [<user>]
+  git hub pull-request [--issue=<issue>] [<branch1:branch2>]
+  git hub remove-hook <name>
+  git hub render <file>
+  git hub repos [--no-forks] [<user>]
+  git hub say [<msg>]
+  git hub set-origin [--ssh|--http]
+  git hub status 
+  git hub whoami 
+  git hub whois <user>...
 
 Copyright (C) 2012-2014 Dennis Kaarsemaker <dennis@kaarsemaker.net>
 

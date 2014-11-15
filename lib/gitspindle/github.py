@@ -610,7 +610,7 @@ class GitHub(GitSpindle):
             elif event.type == 'GistHistoryEvent':
                 print("%s committed %s additions, %s deletions" % (ts, event.additions, event.deletions))
             else:
-                print(wrap("Cannot display %s. Please file a bug at github.com/seveas/git-hub\nincluding the following output:" % event.type, attr.bright))
+                print(wrap("Cannot display %s. Please file a bug at github.com/seveas/git-spindle\nincluding the following output:" % event.type, attr.bright))
                 pprint(event.payload)
 
     @command
