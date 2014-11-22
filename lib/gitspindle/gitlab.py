@@ -71,7 +71,8 @@ class GitLab(GitSpindle):
         if not repo_:
             # Name and path don't always match, and we clone using the name
             repo_ = self.find_repo(user, name=os.path.basename(os.getcwd()))
-
+        if repo_ and remote:
+            self.gitm('config', 'remote.%s.gitlab-id' % remote, repo_.id)
         return repo_
 
     def parent_repo(self, repo):
@@ -81,7 +82,7 @@ class GitLab(GitSpindle):
     def find_repo(self, user, name):
         try:
             for repo in self.gl.search_projects(name):
-                if repo.name == name and repo.owner.username == user:
+                if repo.name == name and hasattr(repo, 'owner') and repo.owner.username == user:
                     return repo
         except glapi.GitlabListError:
             pass
