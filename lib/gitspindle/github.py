@@ -984,14 +984,14 @@ class GitHub(GitSpindle):
 
     @command
     def whoami(self, opts):
-        """\nDisplay github user info"""
+        """\nDisplay GitHub user info"""
         opts['<user>'] = [self.me.login]
         self.whois(opts)
 
     @command
     def whois(self, opts):
         """<user>...
-           Display github user info"""
+           Display GitHub user info"""
         for user_ in opts['<user>']:
             user = self.gh.user(user_)
             if not user:
