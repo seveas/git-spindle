@@ -4,6 +4,7 @@ import gitspindle.glapi as glapi
 import getpass
 import os
 import sys
+import webbrowser
 
 hidden_command = lambda fnc: os.getenv('DEBUG') and command(fnc)
 
@@ -113,6 +114,39 @@ class GitLab(GitSpindle):
                 continue
             print("Adding %s" % arg)
             glapi.CurrentUserKey(self.gl, {'title': title, 'key': key}).save()
+
+    @command
+    @needs_repo
+    def add_remote(self, opts):
+        """[--ssh|--http] <user>...
+           Add user's fork as a remote by that name"""
+        dwim = opts['remotes']['.dwim']
+        for user in opts['<user>']:
+            repo = self.find_repo(user, dwim.name)
+            if not repo:
+                err("Repository %s/%s does not exist" % (user, dwim.name))
+            url = repo.http_url_to_repo
+            if opts['--ssh'] or not repo.public:
+                url = repo.ssh_url_to_repo
+            self.gitm('remote', 'add', user, url)
+            self.gitm('config', 'remote.%s.gitlab-id' % user, repo.id)
+            self.gitm('fetch', user, redirect=False)
+
+    @command
+    def browse(self, opts):
+        """[--parent] [<repo>] [<section>]
+           Open the GitLab page for a repository in a browser"""
+        sections = ['issues', 'merge_requests', 'wiki', 'files', 'commits', 'branches', 'graphs', 'settings']
+        if opts['<repo>'] in sections and not opts['<section>']:
+            opts['<repo>'], opts['<section>'] = None, opts['<repo>']
+        repo = self.get_remotes(opts)['.dwim']
+        section_map = {'wiki': 'wikis/home', 'files': 'tree/%s' % repo.default_branch,
+                       'commits': 'commits/%s' % repo.default_branch, 'settings': 'edit',
+                       'graphs': 'graphs/%s' % repo.default_branch}
+        url = repo.web_url
+        if opts['<section>']:
+            url += '/' + section_map.get(opts['<section>'], opts['<section>'])
+        webbrowser.open_new(url)
 
     @command
     def clone(self, opts):
