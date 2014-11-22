@@ -73,7 +73,7 @@ class GitHub(GitSpindle):
             return self.github()
         return gh
 
-    def parse_repo(self, repo):
+    def parse_repo(self, remote, repo):
         if '@' in repo:
             repo = repo[repo.find('@')+1:]
         if ':' in repo:
@@ -99,6 +99,10 @@ class GitHub(GitSpindle):
             repo_ = self.gh.repository(user, repo)
 
         return repo_
+
+    def parent_repo(self, repo):
+        if repo.fork:
+            return repo.parent
 
     # Commands
 

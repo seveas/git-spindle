@@ -38,3 +38,7 @@ def _gist_contents(self, path, ref):
         if f.filename == path:
             return Content(f)
 github3.gists.Gist.contents = _gist_contents
+
+import gitspindle.glapi as glapi
+glapi.Project.spindle = 'gitlab'
+glapi.UserProject.spindle = 'gitlab'

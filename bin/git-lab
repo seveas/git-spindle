@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+from gitspindle.gitlab import GitLab
+
+GitLab().main()
