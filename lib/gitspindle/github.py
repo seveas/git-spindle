@@ -71,7 +71,7 @@ class GitHub(GitSpindle):
             self.me = gh.user()
         except github3.GitHubError:
             # Token obsolete
-            self.git('config', '--file', self.config_file, '--unset', 'github.token')
+            self.gitm('config', '--file', self.config_file, '--unset', 'github.token')
             return self.github()
         return gh
 
@@ -323,13 +323,11 @@ class GitHub(GitSpindle):
         elif opts['--http']:
             url = repo.clone_url
 
-        rc = self.git('clone', url, redirect=False).returncode
-        if rc:
-            sys.exit(rc)
+        self.gitm('clone', url, redirect=False).returncode
         if repo.fork:
             os.chdir(repo.name)
             self.set_origin(opts)
-            self.git('fetch', 'upstream', redirect=False)
+            self.gitm('fetch', 'upstream', redirect=False)
 
     @command
     @needs_repo
@@ -664,9 +662,9 @@ class GitHub(GitSpindle):
                 owner = self.gh.user(repo.parent.owner.login)
             else:
                 owner = self.gh.user(repo.owner.login)
-            self.git('--git-dir', git_dir, 'config', 'goblet.owner', owner.name.encode('utf-8') or owner.login)
-            self.git('--git-dir', git_dir, 'config', 'goblet.cloneurlgit', repo.git_url)
-            self.git('--git-dir', git_dir, 'config', 'goblet.cloneurlhttp', repo.clone_url)
+            self.gitm('--git-dir', git_dir, 'config', 'goblet.owner', owner.name.encode('utf-8') or owner.login)
+            self.gitm('--git-dir', git_dir, 'config', 'goblet.cloneurlgit', repo.git_url)
+            self.gitm('--git-dir', git_dir, 'config', 'goblet.cloneurlhttp', repo.clone_url)
             goblet_dir = os.path.join(git_dir, 'goblet')
             if not os.path.exists(goblet_dir):
                 os.mkdir(goblet_dir, 0o777)
@@ -928,9 +926,9 @@ class GitHub(GitSpindle):
 
         if self.git('config', 'remote.origin.url').stdout.strip() != repo.ssh_url:
             print("Pointing origin to %s" % repo.ssh_url)
-            self.git('config', 'remote.origin.url', repo.ssh_url)
-            self.git('fetch', 'origin', redirect=False)
-        self.git('config', '--replace-all', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
+            self.gitm('config', 'remote.origin.url', repo.ssh_url)
+            self.gitm('fetch', 'origin', redirect=False)
+        self.gitm('config', '--replace-all', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
 
         if repo.fork:
             parent = repo.parent
@@ -941,8 +939,8 @@ class GitHub(GitSpindle):
                 url = parent.clone_url
             if self.git('config', 'remote.upstream.url').stdout.strip() != url:
                 print("Pointing upstream to %s" % url)
-                self.git('config', 'remote.upstream.url', url)
-            self.git('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
+                self.gitm('config', 'remote.upstream.url', url)
+            self.gitm('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
         else:
             # If issues are enabled, fetch pull requests
             try:
@@ -950,15 +948,15 @@ class GitHub(GitSpindle):
             except github3.GitHubError:
                 pass
             else:
-                self.git('config', '--add', 'remote.origin.fetch', '+refs/pull/*/head:refs/pull/*/head')
+                self.gitm('config', '--add', 'remote.origin.fetch', '+refs/pull/*/head:refs/pull/*/head')
 
         for branch in self.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
             branch = branch.split(None, 2)[-1][11:]
             if self.git('for-each-ref', 'refs/remotes/origin/%s' % branch).stdout.strip():
                 if self.git('config', 'branch.%s.remote' % branch).returncode != 0:
                     print("Marking %s as remote-tracking branch" % branch)
-                    self.git('config', 'branch.%s.remote' % branch, 'origin')
-                    self.git('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
+                    self.gitm('config', 'branch.%s.remote' % branch, 'origin')
+                    self.gitm('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
 
     @command
     def status(self, opts):

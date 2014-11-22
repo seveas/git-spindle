@@ -42,7 +42,7 @@ class GitLab(GitSpindle):
                 gl.auth()
             except glapi.GitlabAuthenticationError:
                 # Token obsolete
-                self.git('config', '--file', self.config_file, '--unset', 'gitlab.token')
+                self.gitm('config', '--file', self.config_file, '--unset', 'gitlab.token')
                 return self.gitlab()
         self.me = gl.user
         return gl
@@ -127,14 +127,12 @@ class GitLab(GitSpindle):
         elif opts['--http']:
             url = repo.http_url_ro_repo
 
-        rc = self.git('clone', url, repo.name, redirect=False).returncode
-        if rc:
-            sys.exit(rc)
-        self.git('config', 'remote.origin.gitlab-id', repo.id, cwd=repo.name)
+        self.gitm('clone', url, repo.name, redirect=False).returncode
+        self.gitm('config', 'remote.origin.gitlab-id', repo.id, cwd=repo.name)
         if hasattr(repo, 'forked_from_project'):
             os.chdir(repo.name)
             self.set_origin(opts)
-            self.git('fetch', 'upstream', redirect=False)
+            self.gitm('fetch', 'upstream', redirect=False)
 
     @command
     def public_keys(self, opts):
@@ -168,9 +166,9 @@ class GitLab(GitSpindle):
 
         if self.git('config', 'remote.origin.url').stdout.strip() != repo.ssh_url_to_repo:
             print("Pointing origin to %s" % repo.ssh_url_to_repo)
-            self.git('config', 'remote.origin.url', repo.ssh_url_to_repo)
-            print self.git('config', 'remote.origin.gitlab-id', repo.id)
-            self.git('fetch', 'origin', redirect=False)
+            self.gitm('config', 'remote.origin.url', repo.ssh_url_to_repo)
+            self.gitm('config', 'remote.origin.gitlab-id', repo.id)
+            self.gitm('fetch', 'origin', redirect=False)
 
         parent = self.parent_repo(repo)
         if parent:
@@ -179,17 +177,17 @@ class GitLab(GitSpindle):
                 url = parent.ssh_url_to_repo
             if self.git('config', 'remote.upstream.url').stdout.strip() != url:
                 print("Pointing upstream to %s" % url)
-                self.git('config', 'remote.upstream.url', url)
-                self.git('config', 'remote.upstream.gitlab-id', parent.id)
-            self.git('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
+                self.gitm('config', 'remote.upstream.url', url)
+                self.gitm('config', 'remote.upstream.gitlab-id', parent.id)
+            self.gitm('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
 
         for branch in self.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
             branch = branch.split(None, 2)[-1][11:]
             if self.git('for-each-ref', 'refs/remotes/origin/%s' % branch).stdout.strip():
-                if self.git('config', 'branch.%s.remote' % branch).returncode != 0:
+                if self.gitm('config', 'branch.%s.remote' % branch).returncode != 0:
                     print("Marking %s as remote-tracking branch" % branch)
-                    self.git('config', 'branch.%s.remote' % branch, 'origin')
-                    self.git('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
+                    self.gitm('config', 'branch.%s.remote' % branch, 'origin')
+                    self.gitm('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
 
     @command
     def whoami(self, opts):
