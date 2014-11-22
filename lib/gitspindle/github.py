@@ -56,6 +56,8 @@ class GitHub(GitSpindle):
                             if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
                                 err("An OAuth token for this host already exists, please delete it on https://github.com/settings/applications")
                 raise type.with_traceback(tb)
+            if auth is None:
+                err("Authentication failed")
             token = auth.token
             self.config('github.token', token)
             self.config('github.auth_id', auth.id)
