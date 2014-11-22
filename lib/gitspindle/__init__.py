@@ -123,7 +123,7 @@ Options:
     def get_remotes(self, opts):
         """Return all remotes as their respective objects in a dict {name:
            repo}"""
-        remotes = {'.dwim': None, '.mine': None, '.parent': None}
+        remotes = {'.dwim': None, '.mine': None}
         first = None
         if opts['<repo>']:
             remotes['.dwim'] = remotes['opts'] = self.parse_repo(None, opts['<repo>'])
