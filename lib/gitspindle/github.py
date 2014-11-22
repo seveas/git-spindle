@@ -200,7 +200,7 @@ class GitHub(GitSpindle):
     def browse(self, opts):
         """[--parent] [<repo>] [<section>]
            Open the GitHub page for a repository in a browser"""
-        sections = ['issues', 'pulls', 'wiki', 'branches', 'releases', 'contributors', 'graphs', 'releases', 'settings']
+        sections = ['issues', 'pulls', 'wiki', 'branches', 'releases', 'contributors', 'graphs', 'settings']
         if opts['<repo>'] in sections and not opts['<section>']:
             opts['<repo>'], opts['<section>'] = None, opts['<repo>']
         repo = self.get_remotes(opts)['.dwim']
