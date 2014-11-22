@@ -31,12 +31,14 @@ del pprint
 
 class Repository(object):
     spindle = 'gitspindle'
+    owner = None
     def __init__(self, url):
-        self.name = name
         self.url = url
 
 class GitSpindle(Singleton):
     spindle = 'gitspindle'
+    prog = 'git spindle'
+    what = ''
 
     def __init__(self):
         self.shell = whelk.Shell(encoding='utf-8')
@@ -92,7 +94,7 @@ Options:
         backend = self.git('config', 'remote.%s.spindle' % remote).stdout.strip()
         if not backend:
             if os.path.exists(url):
-                return Repository
+                return GitSpindle()
             if '://' not in url and ':' in url:
                 # SSH url, transform to ssh:// syntax
                 url = 'ssh://' + url.replace(':', '/')
