@@ -150,7 +150,7 @@ class GitLab(GitSpindle):
             for key in user.Key():
                 print("%s %s" % (key.key, key.title or ''))
         except glapi.GitlabListError:
-            # Permission denied, ignore 
+            # Permission denied, ignore
             pass
 
     @command
@@ -228,7 +228,7 @@ class GitLab(GitSpindle):
             try:
                 print user.Key()
             except glapi.GitlabListError:
-                # Permission denied, ignore 
+                # Permission denied, ignore
                 pass
 
     # And debugging

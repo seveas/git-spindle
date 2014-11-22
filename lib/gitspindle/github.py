@@ -294,7 +294,7 @@ class GitHub(GitSpindle):
 
     @command
     def cat(self, opts):
-        """<file>...  
+        """<file>...
            Display the contents of a file on github"""
         for file in opts['<file>']:
             repo, ref, file = ([None, None] + file.split(':',2))[-3:]

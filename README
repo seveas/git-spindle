@@ -42,7 +42,7 @@ Usage:
   git hub forks [<repo>]
   git hub gist [--desc <description>] <file>...
   git hub gists [<user>]
-  git hub hooks 
+  git hub hooks
   git hub ignore [<language>...]
   git hub issue [<repo>] [--parent] [<issue>...]
   git hub issues [<repo>] [--parent] [<filter>...]
@@ -56,8 +56,8 @@ Usage:
   git hub repos [--no-forks] [<user>]
   git hub say [<msg>]
   git hub set-origin [--ssh|--http]
-  git hub status 
-  git hub whoami 
+  git hub status
+  git hub whoami
   git hub whois <user>...
 
 Copyright (C) 2012-2014 Dennis Kaarsemaker <dennis@kaarsemaker.net>
