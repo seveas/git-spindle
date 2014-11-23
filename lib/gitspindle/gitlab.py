@@ -297,7 +297,14 @@ class GitLab(GitSpindle):
                         bio = user.bio
                     print('Bio       %s' % user.bio)
             try:
-                print user.Key()
+                for pkey in user.Key():
+                    algo, key = pkey.key.split()
+                    algo = algo[4:].upper()
+                    if pkey.title:
+                        print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
+                    else:
+                        print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
+
             except glapi.GitlabListError:
                 # Permission denied, ignore
                 pass
