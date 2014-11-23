@@ -453,8 +453,8 @@ class GitHub(GitSpindle):
     def issue(self, opts):
         """[<repo>] [--parent] [<issue>...]
            Show issue details or report an issue"""
-        if opts['<repo>'].isdigit():
-            # Let's assume it's a repo
+        if opts['<repo>'] and opts['<repo>'].isdigit():
+            # Let's assume it's an issue
             opts['<issue>'].insert(0, opts['<repo>'])
         repo = opts['remotes']['.dwim']
         for issue in opts['<issue>']:
