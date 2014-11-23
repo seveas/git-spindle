@@ -1,6 +1,7 @@
 from gitspindle import *
 from gitspindle.ansi import *
 import gitspindle.glapi as glapi
+import base64
 import getpass
 import os
 import sys
@@ -150,6 +151,25 @@ class GitLab(GitSpindle):
         webbrowser.open_new(url)
 
     @command
+    def cat(self, opts):
+        """<file>...
+           Display the contents of a file on github"""
+        for file in opts['<file>']:
+            repo, ref, file = ([None, None] + file.split(':',2))[-3:]
+            user = None
+            if repo:
+                user, repo = ([None] + repo.split('/'))[-2:]
+                repo = self.find_repo(user or self.me.username, repo)
+            else:
+                repo = self.get_remotes(opts)['.dwim']
+
+            try:
+                file = repo.File(ref=ref or repo.default_branch, file_path=file)
+                os.write(sys.stdout.fileno(), base64.b64decode(file.content))
+            except glapi.GitlabGetError:
+                sys.stderr.write("No such file: %s\n" % file)
+
+    @command
     def clone(self, opts):
         """[--ssh|--http] [--parent] <repo>
            Clone a repository by name"""
@@ -168,6 +188,24 @@ class GitLab(GitSpindle):
             os.chdir(repo.name)
             self.set_origin(opts)
             self.gitm('fetch', 'upstream', redirect=False)
+
+    @command
+    @needs_repo
+    def create(self, opts):
+        """[--private|--internal] [-d <description>]
+           Create a repository on github to push to"""
+        root = self.gitm('rev-parse', '--show-toplevel').stdout.strip()
+        name = os.path.basename(root)
+        if name in [x.name for x in self.gl.Project()]:
+            err("Repository already exists")
+        visibility_level = 20 # public
+        if opts['--internal']:
+            visibility_level = 10
+        elif opts['--private']:
+            visibility_level = 10
+        glapi.Project(self.gl, {'name': name, 'description': opts['<description>'] or "", 'visibility_level': visibility_level}).save()
+        opts['remotes'] = self.get_remotes(opts)
+        self.set_origin(opts)
 
     @command
     def public_keys(self, opts):
