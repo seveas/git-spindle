@@ -183,7 +183,10 @@ class Gitlab(object):
         args = _sanitize_dict(parameters)
         url = obj._url % args
         if id_ is not None:
-            url = '%s%s/%s' % (self._url, url, str(id_))
+            if url.endswith('merge_requests'):
+                url = '%s%s/%s' % (self._url, url[:-1], str(id_))
+            else:
+                url = '%s%s/%s' % (self._url, url, str(id_))
         else:
             url = '%s%s' % (self._url, url)
         return url
