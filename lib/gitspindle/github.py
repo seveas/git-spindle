@@ -339,6 +339,7 @@ class GitHub(GitSpindle):
         if name in [x.name for x in self.gh.iter_repos()]:
             err("Repository already exists")
         self.gh.create_repo(name=name, description=opts['<description>'] or "", private=opts['--private'])
+        opts['remotes'] = self.get_remotes(opts)
         self.set_origin(opts)
 
     @command
