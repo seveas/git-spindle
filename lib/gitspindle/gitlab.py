@@ -80,6 +80,7 @@ class GitLab(GitSpindle):
        if getattr(repo, 'forked_from_project', False):
            return self.gl.Project(repo.forked_from_project['id'])
 
+    # There's no way to fetch a repo by name. Abuse search.
     def find_repo(self, user, name):
         try:
             for repo in self.gl.search_projects(name):
@@ -88,6 +89,7 @@ class GitLab(GitSpindle):
         except glapi.GitlabListError:
             pass
 
+    # There's no way to fetch a user by username. Abuse seaarch.
     def find_user(self, username):
         try:
             for user in self.gl.User(search=username):
@@ -98,6 +100,10 @@ class GitLab(GitSpindle):
 
     def profile_url(self, user):
         return 'https://gitlab.com/u/%s' % user.username
+
+    def issue_url(self, issue):
+        repo = self.gl.Project(issue.project_id)
+        return '%s/issues/%d' % (repo.web_url, issue.iid)
 
     # commands
 
@@ -225,6 +231,57 @@ class GitLab(GitSpindle):
             self.clone(opts)
         else:
             self.set_origin(opts)
+
+    @command
+    def issue(self, opts):
+        """[<repo>] [--parent] [<issue>...]
+           Show issue details or report an issue"""
+        if opts['<repo>'] and opts['<repo>'].isdigit():
+            # Let's assume it's an issue
+            opts['<issue>'].insert(0, opts['<repo>'])
+        repo = opts['remotes']['.dwim']
+        # There's no way to fetch an issue by iid. Abuse search.
+        issues = repo.Issue()
+        for issue in opts['<issue>']:
+            issue = int(issue)
+            issue = [x for x in issues if x.iid == issue][0]
+            print(wrap(issue.title, attr.bright, attr.underline))
+            print(issue.description)
+            print(self.issue_url(issue))
+        if not opts['<issue>']:
+            body = """
+# Reporting an issue on %s/%s
+# Please describe the issue as clarly as possible. Lines starting with '#' will
+# be ignored, the first line will be used as title for the issue.
+#""" % (repo.owner.username, repo.name)
+            title, body = self.edit_msg(body, 'ISSUE_EDITMSG')
+            if not body:
+                err("Empty issue message")
+
+            issue = glapi.ProjectIssue(self.gl, {'project_id': repo.id, 'title': title, 'description': body})
+            issue.save()
+            print("Issue %d created %s" % (issue.iid, self.issue_url(issue)))
+
+    @command
+    def issues(self, opts):
+        """[<repo>] [--parent] [<filter>...]
+           List issues in a repository"""
+        repo = opts['remotes']['.dwim']
+        if not repo:
+            repos = list(self.gl.Project())
+        else:
+            repos = [repo]
+        for repo in repos:
+            if hasattr(repo, 'forked_from_project') and opts['--parent']:
+                repo = repo.parent
+            filters = dict([x.split('=', 1) for x in opts['<filter>']])
+            issues = repo.Issue(**filters)
+            if not issues:
+                continue
+            print(wrap("Issues for %s/%s" % (repo.owner.username, repo.name), attr.bright))
+            for issue in issues:
+                print("[%d] %s %s" % (issue.iid, issue.title, self.issue_url(issue)))
+
 
     @command
     def public_keys(self, opts):
