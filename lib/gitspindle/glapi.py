@@ -465,12 +465,12 @@ class Gitlab(object):
 
         return l
 
-    def search_projects(self, query):
+    def search_projects(self, query, per_page=20, page=0):
         """Searches projects by  name.
 
         Returns a list of matching projects.
         """
-        return self._list_projects("/projects/search/" + query)
+        return self._list_projects("/projects/search/" + query, per_page=per_page, page=page)
 
     def all_projects(self, page=None, per_page=None):
         """Lists all the projects (need admin rights)."""

@@ -82,9 +82,11 @@ class GitLab(GitSpindle):
 
     # There's no way to fetch a repo by name. Abuse search.
     def find_repo(self, user, name):
+        luser = user.lower()
+        lname = name.lower()
         try:
-            for repo in self.gl.search_projects(name):
-                if repo.name == name and hasattr(repo, 'owner') and repo.owner.username == user:
+            for repo in self.gl.search_projects(name, per_page=100):
+                if lname in (repo.name.lower(), repo.path.lower()) and luser in (repo.namespace.name.lower(), repo.namespace.path.lower()):
                     return repo
         except glapi.GitlabListError:
             pass
