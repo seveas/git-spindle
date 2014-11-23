@@ -2,6 +2,7 @@ from gitspindle import *
 from gitspindle.ansi import *
 import gitspindle.glapi as glapi
 import base64
+import datetime
 import getpass
 import os
 import sys
@@ -284,6 +285,44 @@ class GitLab(GitSpindle):
             for issue in issues:
                 print("[%d] %s %s" % (issue.iid, issue.title, self.issue_url(issue)))
 
+    @command
+    def log(self, opts):
+        """[<repo>]
+           Display GitHub log for a repository"""
+        repo = opts['remotes']['.dwim']
+        if not repo:
+            return
+        now = datetime.datetime.now()
+        for event in reversed(repo.Event()):
+            ts = datetime.datetime.strptime(event.created_at, '%Y-%m-%dT%H:%M:%S.%fZ')
+            event.data = event.data or {}
+            if ts.year == now.year:
+                if (ts.month, ts.day) == (now.month, now.day):
+                    ts = wrap(ts.strftime("%H:%M"), attr.faint)
+                else:
+                    ts = wrap(ts.strftime("%m/%d %H:%M"), attr.faint)
+            else:
+                ts = wrap(ts.strftime("%Y/%m/%d %H:%M"), attr.faint)
+            if event.action_name == 'joined':
+                print('%s %s joined' % (ts, event.author_username))
+            elif event.target_type == 'Issue':
+                issue = glapi.ProjectIssue(self.gl, event.target_id, project_id=event.project_id)
+                print('%s %s %s issue %s (%s)' % (ts, event.author_username, event.action_name, issue.iid, issue.title))
+            elif event.target_type == 'MergeRequest':
+                issue = glapi.ProjectMergeRequest(self.gl, event.target_id, project_id=event.project_id)
+                print('%s %s %s merge request %s (%s)' % (ts, event.author_username, event.action_name, issue.iid, issue.title))
+            elif event.target_type == 'Note':
+                print('%s %s created a comment' % (ts, event.author_username))
+            elif 'total_commits_count' in event.data:
+                if event.data['total_commits_count'] == 0:
+                    print('%s %s deleted branch %s' % (ts, event.author_username, event.data['ref'][11:]))
+                else:
+                    print('%s %s pushed %s commits to %s' % (ts, event.author_username, event.data['total_commits_count'], event.data['ref'][11:]))
+            elif 'ref' in event.data:
+                print('%s %s created tag %s' % (ts, event.author_username, event.data['ref'][10:]))
+            else:
+                print(wrap("Cannot display event. Please file a bug at github.com/seveas/git-spindle\nincluding the following output:", attr.bright))
+                pprint(event.json())
 
     @command
     def public_keys(self, opts):
