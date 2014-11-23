@@ -306,7 +306,7 @@ class GitHub(GitSpindle):
                 repo = self.get_remotes(opts)['.dwim']
             content = repo.contents(path=file, ref=ref)
             if content:
-                print(content.decoded)
+                os.write(sys.stdout.fileno(), content.decoded)
             else:
                 sys.stderr.write("No such file: %s\n" % file)
 

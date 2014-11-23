@@ -5,18 +5,19 @@ import os
 import re
 import shlex
 import sys
-import urlparse
 import whelk
 
 __all__ = ['GitSpindle', 'command', 'needs_repo', 'needs_worktree']
 
 __builtins__['PY3'] = sys.version_info[0] > 2
 if PY3:
+    import urllib.parse as urlparse
     # On python 3, shell decodes into utf-8 as above
     __builtins__['try_decode'] = lambda x: x
     # On python 3, raw_input has become input
     __builtins__['raw_input'] = input
 else:
+    import urlparse
     # Try decoding as utf-8 only
     __builtins__['try_decode'] = lambda x: x.decode('utf-8')
 
