@@ -301,6 +301,30 @@ class GitLab(GitSpindle):
             pass
 
     @command
+    def repos(self, opts):
+        """[--no-forks]
+           List all your repos"""
+        repos = self.gl.Project()
+        maxlen = max([len(x.name) for x in repos])
+        for repo in repos:
+            color = [attr.normal]
+            if repo.visibility_level == 0:
+                color.append(fgcolor.red)
+            elif repo.visibility_level == 10:
+                color.append(fgcolor.magenta)
+            if hasattr(repo, 'forked_from_project'):
+                if opts['--no-forks']:
+                    continue
+                color.append(attr.faint)
+            name = repo.name
+            if self.me.username != repo.owner.username:
+                name = '%s/%s' % (repo.owner.username, name)
+            msg = wrap(name, *color)
+            if not PY3:
+                msg = msg.encode('utf-8')
+            print(msg)
+
+    @command
     @needs_repo
     def set_origin(self, opts):
         """[--ssh|--http]
