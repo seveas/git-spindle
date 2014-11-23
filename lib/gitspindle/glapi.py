@@ -84,6 +84,8 @@ class GitlabGetError(GitlabOperationError):
 class GitlabCreateError(GitlabOperationError):
     pass
 
+class GitlabForkError(GitlabOperationError):
+    pass
 
 class GitlabUpdateError(GitlabOperationError):
     pass
@@ -1190,6 +1192,13 @@ class Project(GitlabObject):
         r = self.gitlab.rawDelete(url)
         if r.status_code != 200:
             _raiseErrorFromResponse(r, GitlabDeleteError)
+
+    def fork(self):
+        url = "/projects/fork/%s" % self.id
+        r = self.gitlab.rawPost(url)
+        if r.status_code != 201:
+            _raiseErrorFromResponse(r, GitlabForkError)
+        return Project(self.gitlab, r.json())
 
 
 class TeamMember(GitlabObject):

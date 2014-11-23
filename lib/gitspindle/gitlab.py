@@ -208,6 +208,25 @@ class GitLab(GitSpindle):
         self.set_origin(opts)
 
     @command
+    def fork(self, opts):
+        """[--ssh|--http] [<repo>]
+           Fork a repo and clone it"""
+        do_clone = bool(opts['<repo>'])
+        repo = opts['remotes']['.dwim']
+        if repo.owner.username == self.me.username:
+            err("You cannot fork your own repos")
+
+        if repo.name in [x.name for x in self.gl.Project()]:
+            err("Repository already exists")
+
+        opts['remotes']['.dwim'] = repo.fork()
+
+        if do_clone:
+            self.clone(opts)
+        else:
+            self.set_origin(opts)
+
+    @command
     def public_keys(self, opts):
         """[<user>]
            Lists all keys for a user"""
