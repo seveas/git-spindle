@@ -108,6 +108,10 @@ class GitLab(GitSpindle):
         repo = self.gl.Project(issue.project_id)
         return '%s/issues/%d' % (repo.web_url, issue.iid)
 
+    def merge_url(self, merge):
+        repo = self.gl.Project(merge.project_id)
+        return '%s/merge_requests/%d' % (repo.web_url, merge.iid)
+
     # commands
 
     @command
@@ -142,6 +146,48 @@ class GitLab(GitSpindle):
             self.gitm('remote', 'add', user, url)
             self.gitm('config', 'remote.%s.gitlab-id' % user, repo.id)
             self.gitm('fetch', user, redirect=False)
+
+    @command
+    @needs_repo
+    def apply_merge(self, opts):
+        """<merge-request-number>
+           Applies a merge request as a series of cherry-picks"""
+        repo = opts['remotes']['.dwim']
+        mn = int(opts['<merge-request-number>'])
+        for req in repo.MergeRequest():
+            if req.iid == mn:
+                mr = req
+                break
+        else:
+            err("Merge request %s does not exist" % opts['<merge-request-number>'])
+        print("Applying merge request #%d from %s: %s" % (mr.iid, mr.author.name, mr.title))
+        # Warnings
+        warned = False
+        cbr = self.gitm('rev-parse', '--symbolic-full-name', 'HEAD').stdout.strip().replace('refs/heads/','')
+        if cbr != mr.target_branch:
+            print(wrap("Merge request was filed against %s, but you're on the %s branch" % (mr.base.ref, cbr), fgcolor.red))
+            warned = True
+        if mr.state == 'merged':
+            print(wrap("Merge request was already merged", fgcolor.red))
+        if mr.state == 'closed':
+            print(wrap("Merge request has already been closed", fgcolor.red))
+            warned = True
+        if warned:
+            if raw_input("Continue? [y/N] ") not in ['y', 'Y']:
+                sys.exit(1)
+        # Fetch mr if needed
+        sha = self.git('rev-parse', '--verify', 'refs/merge/%d/head' % mr.iid).stdout.strip()
+        if not sha:
+            print("Fetching merge request")
+            url = glapi.Project(self.gl, mr.source_project_id).http_url_to_repo
+            self.gitm('fetch', url, 'refs/heads/%s:refs/merge/%d/head' % (mr.source_branch, mr.iid), redirect=False)
+        head_sha = self.gitm('rev-parse', 'HEAD').stdout.strip()
+        if self.git('merge-base', 'refs/merge/%d/head' % mr.iid, head_sha).stdout.strip() == head_sha:
+            print("Fast-forward merging %s..refs/merge/%d/head" % (mr.target_branch, mr.iid))
+            self.gitm('merge', '--ff-only', 'refs/merge/%d/head' % mr.iid, redirect=False)
+        else:
+            print("Cherry-picking %s..refs/merge/%d/head" % (mr.target_branch, mr.iid))
+            self.gitm('cherry-pick', '%s..refs/merge/%d/head' % (mr.target_branch, mr.iid), redirect=False)
 
     @command
     def browse(self, opts):
@@ -275,8 +321,8 @@ class GitLab(GitSpindle):
         else:
             repos = [repo]
         for repo in repos:
-            if hasattr(repo, 'forked_from_project') and opts['--parent']:
-                repo = repo.parent
+            if opts['--parent']:
+                repo = self.parent_repo(repo) or repo
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
             issues = repo.Issue(**filters)
             if not issues:
@@ -323,6 +369,99 @@ class GitLab(GitSpindle):
             else:
                 print(wrap("Cannot display event. Please file a bug at github.com/seveas/git-spindle\nincluding the following output:", attr.bright))
                 pprint(event.json())
+
+    @command
+    @needs_repo
+    def merge_request(self, opts):
+        """[<branch1:branch2>]
+           Opens a merge request to merge your branch1 to upstream branch2"""
+        repo = opts['remotes']['.dwim']
+        parent = self.parent_repo(repo) or repo
+        # Which branch?
+        src = opts['<branch1:branch2>'] or ''
+        dst = None
+        if ':' in src:
+            src, dst = src.split(':', 1)
+        if not src:
+            src = self.gitm('rev-parse', '--abbrev-ref', 'HEAD').stdout.strip()
+        if not dst:
+            dst = parent.default_branch
+
+        if src == dst and parent == repo:
+            err("Cannot file a merge request on the same branch")
+
+        # Try to get the local commit
+        commit = self.gitm('show-ref', 'refs/heads/%s' % src).stdout.split()[0]
+        # Do they exist on github?
+        srcb = repo.Branch(src)
+        if not srcb:
+            if raw_input("Branch %s does not exist in your gitlab repo, shall I push? [Y/n] " % src).lower() in ['y', 'Y', '']:
+                self.gitm('push', repo.remote, src, redirect=False)
+            else:
+                err("Aborting")
+        elif srcb and srcb.commit.id != commit:
+            # Have we diverged? Then there are commits that are reachable from the github branch but not local
+            diverged = self.gitm('rev-list', srcb.commit.id, '^' + commit)
+            if diverged.stderr or diverged.stdout:
+                if raw_input("Branch %s has diverged from gitlab, shall I push and overwrite? [y/N] " % src) in ['y', 'Y']:
+                    self.gitm('push', '--force', repo.remote, src, redirect=False)
+                else:
+                    err("Aborting")
+            else:
+                if raw_input("Branch %s not up to date on gitlab, but can be fast forwarded, shall I push? [Y/n] " % src) in ['y', 'Y', '']:
+                    self.gitm('push', repo.remote, src, redirect=False)
+                else:
+                    err("Aborting")
+
+        dstb = parent.Branch(dst)
+        if not dstb:
+            err("Branch %s does not exist in %s/%s" % (dst, parent.owner.username, parent.name))
+
+        # Do we have the dst locally?
+        for remote in self.gitm('remote').stdout.strip().split("\n"):
+            url = self.gitm('config', 'remote.%s.url' % remote).stdout.strip()
+            if url in [parent.ssh_url_to_repo, parent.http_url_to_repo]:
+                if not parent.public and url != parent.ssh_url_to_repo:
+                    err("You should configure %s/%s to fetch via ssh, it is a private repo" % (parent.owner.username, parent.name))
+                self.gitm('fetch', remote, redirect=False)
+                break
+        else:
+            err("You don't have %s/%s configured as a remote repository" % (parent.owner.username, parent.name))
+
+        # How many commits?
+        commits = try_decode(self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout).strip().split()
+        commits.reverse()
+        # 1: title/body from commit
+        if not commits:
+            err("Your branch has no commits yet")
+        if len(commits) == 1:
+            title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
+            title = title.strip()
+            body = body.strip()
+
+        # More: title from branchname (titlecased, s/-/ /g), body comments from shortlog
+        else:
+            title = src
+            if '/' in title:
+                title = title[title.rfind('/') + 1:]
+            title = title.title().replace('-', ' ')
+            body = ""
+
+        body += """
+# Requesting a merge from %s/%s into %s/%s
+#
+# Please enter a message to accompany your merge request. Lines starting
+# with '#' will be ignored, and an empty message aborts the request.
+#""" % (repo.owner.username, src, parent.owner.username, dst)
+        body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
+        body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
+        title, body = self.edit_msg("%s\n\n%s" % (title,body), 'merge_REQUEST_EDIT_MSG')
+        if not body:
+            err("No merge request message specified")
+
+        merge = glapi.ProjectMergeRequest(self.gl, {'project_id': repo.id, 'target_project_id': parent.id, 'source_branch': src, 'target_branch': dst, 'title': title, 'description': body})
+        merge.save()
+        print("merge request %d created %s" % (merge.iid, self.merge_url(merge)))
 
     @command
     def mirror(self, opts):

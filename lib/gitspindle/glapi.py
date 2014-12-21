@@ -973,7 +973,7 @@ class ProjectMergeRequest(GitlabObject):
     canDelete = False
     requiredUrlAttrs = ['project_id']
     requiredCreateAttrs = ['source_branch', 'target_branch', 'title']
-    optionalCreateAttrs = ['assignee_id']
+    optionalCreateAttrs = ['assignee_id', 'description', 'target_project_id']
 
     def Note(self, id=None, **kwargs):
         return ProjectMergeRequestNote._getListOrObject(
