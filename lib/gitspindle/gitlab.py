@@ -596,7 +596,7 @@ class GitLab(GitSpindle):
 
     @command
     def whois(self, opts):
-        """[<user>...]
+        """<user>...
            Display GitLab user info"""
         for user in opts['<user>']:
             if not isinstance(user, (glapi.User, glapi.CurrentUser)):

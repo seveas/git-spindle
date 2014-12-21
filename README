@@ -60,6 +60,25 @@ Usage:
   git hub whoami
   git hub whois <user>...
 
+  git lab add-public-keys [<key>...]
+  git lab add-remote [--ssh|--http] <user>...
+  git lab apply-merge <merge-request-number>
+  git lab browse [--parent] [<repo>] [<section>]
+  git lab cat <file>...
+  git lab clone [--ssh|--http] [--parent] <repo>
+  git lab create [--private|--internal] [-d <description>]
+  git lab fork [--ssh|--http] [<repo>]
+  git lab issue [<repo>] [--parent] [<issue>...]
+  git lab issues [<repo>] [--parent] [<filter>...]
+  git lab log [<repo>]
+  git lab merge-request [<branch1:branch2>]
+  git lab mirror [--ssh|--http] [--goblet] [<repo>]
+  git lab public-keys [<user>]
+  git lab repos [--no-forks]
+  git lab set-origin [--ssh|--http]
+  git lab whoami
+  git lab whois <user>...
+
 Copyright (C) 2012-2014 Dennis Kaarsemaker <dennis@kaarsemaker.net>
 
 This program is free software: you can redistribute it and/or modify it under
