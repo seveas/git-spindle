@@ -30,3 +30,4 @@ Contents
    :maxdepth: 1
 
    github
+   gitlab

@@ -248,7 +248,7 @@ class GitLab(GitSpindle):
     @needs_repo
     def create(self, opts):
         """[--private|--internal] [-d <description>]
-           Create a repository on github to push to"""
+           Create a repository on gitlab to push to"""
         root = self.gitm('rev-parse', '--show-toplevel').stdout.strip()
         name = os.path.basename(root)
         if name in [x.name for x in self.gl.Project()]:
