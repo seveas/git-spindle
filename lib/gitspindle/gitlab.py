@@ -325,6 +325,52 @@ class GitLab(GitSpindle):
                 pprint(event.json())
 
     @command
+    def mirror(self, opts):
+        """[--ssh|--http] [--goblet] [<repo>]
+           Mirror a repository, or all your repositories"""
+        if opts['<repo>'] and opts['<repo>'] == '*':
+            opts['<repo>'] = None
+            for repo in self.gl.Project():
+                opts['remotes']['.dwim'] = repo
+                self.mirror(opts)
+            return
+        repo = opts['remotes']['.dwim']
+        git_dir = repo.name + '.git'
+        cur_dir = os.path.basename(os.path.abspath(os.getcwd()))
+        if cur_dir != git_dir and not os.path.exists(git_dir):
+            url = repo.ssh_url_to_repo
+            if repo.owner.username != self.me.username:
+                url = repo.http_url_to_repo
+            if opts['--ssh'] or not repo.public:
+                url = repo.ssh_url_to_repo
+            elif opts['--http']:
+                url = repo.http_url_ro_repo
+            self.gitm('clone', '--mirror', url, git_dir, redirect=False)
+        else:
+            if git_dir == cur_dir:
+                git_dir = '.'
+            # Update the current, mirrored repo
+            if self.git('--git-dir', git_dir, 'config', 'core.bare').stdout.strip() != 'true' or \
+               self.git('--git-dir', git_dir, 'config', 'remote.origin.mirror').stdout.strip() != 'true':
+                   err("This is not a mirrored repository")
+            self.gitm('--git-dir', git_dir, 'fetch', '-q', 'origin', redirect=False)
+            self.gitm('--git-dir', git_dir, 'remote', 'prune', 'origin', redirect=False)
+
+        with open(os.path.join(git_dir, 'description'), 'w') as fd:
+            if PY3:
+                fd.write(repo.description or "")
+            else:
+                fd.write((repo.description or "").encode('utf-8'))
+        if opts['--goblet']:
+            self.gitm('--git-dir', git_dir, 'config', 'goblet.owner', repo.owner.name.encode('utf-8') or repo.owner.login)
+            self.gitm('--git-dir', git_dir, 'config', 'goblet.cloneurlhttp', repo.http_url_to_repo)
+            goblet_dir = os.path.join(git_dir, 'goblet')
+            if not os.path.exists(goblet_dir):
+                os.mkdir(goblet_dir, 0o777)
+                os.chmod(goblet_dir, 0o777)
+
+
+    @command
     def public_keys(self, opts):
         """[<user>]
            Lists all keys for a user"""
