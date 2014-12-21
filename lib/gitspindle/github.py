@@ -921,7 +921,7 @@ class GitHub(GitSpindle):
         repo = opts['remotes']['.dwim']
         # Is this mine? No? Do I have a clone?
         if repo.owner.login != self.me.login:
-            my_repo = gh.repository(self.me, repo.name)
+            my_repo = self.gh.repository(self.me, repo.name)
             if my_repo:
                 repo = my_repo
 
