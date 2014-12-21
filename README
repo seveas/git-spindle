@@ -52,7 +52,7 @@ Usage:
   git hub public-keys [<user>]
   git hub pull-request [--issue=<issue>] [<branch1:branch2>]
   git hub remove-hook <name>
-  git hub render <file>
+  git hub render [--save <outfile>] <file>
   git hub repos [--no-forks] [<user>]
   git hub say [<msg>]
   git hub set-origin [--ssh|--http]

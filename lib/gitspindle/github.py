@@ -402,7 +402,7 @@ class GitHub(GitSpindle):
 
     @command
     def gist(self, opts):
-        """[--desc <description>] <file>...
+        """[--desc=<description>] <file>...
            Create a new gist from files or stdin"""
         files = {}
         description = opts['<description>'] or ''
@@ -861,16 +861,20 @@ class GitHub(GitSpindle):
 
     @command
     def render(self, opts):
-        """<file>
+        """[--save=<outfile>] <file>
            Render a markdown document"""
         with open(opts['<file>'][0]) as fd:
             data = fd.read()
         html = github3.markdown(data)
-        with tempfile.NamedTemporaryFile(suffix='.html') as fd:
-            fd.write(html)
-            fd.flush()
-            webbrowser.open('file://' + fd.name)
-            time.sleep(1)
+        if opts['--save']:
+            with open(opts['--save'], 'w') as fd:
+                fd.write(html)
+        else:
+            with tempfile.NamedTemporaryFile(suffix='.html') as fd:
+                fd.write(html)
+                fd.flush()
+                webbrowser.open('file://' + fd.name)
+                time.sleep(1)
 
     @command
     def repos(self, opts):
