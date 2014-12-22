@@ -6,7 +6,9 @@ perform actions such as creating repositories and filing pull requests.
 git-spindle is a collection of git subcommands to make using these services
 easier.
 
-For example, to fork and clone a repository on GitHub, one can now simply use
+For example, to fork and clone a repository on GitHub, one can now simply use:
+
+.. code-block:: console
 
     git hub clone seveas/whelk
 
@@ -15,10 +17,14 @@ creating or forking a repository from the command line.
 
 To install the latest released version:
 
+.. code-block:: console
+
     pip install git-spindle
 
 If you use windows, you'll want to install git and pip via msys2. Download
 msys2 from http://msys2.github.io/ and use pacman to install pip and git:
+
+.. code-block:: console
 
     pacman -Syu
     pacman -S git
@@ -27,6 +33,8 @@ msys2 from http://msys2.github.io/ and use pacman to install pip and git:
 Usage:
 
 (For detailed information, go to http://seveas.github.com/git-spindle)
+
+.. code-block:: console
 
   git hub add-hook <name> [<setting>...]
   git hub add-public-keys [<key>...]
