@@ -932,7 +932,10 @@ class GitHub(GitSpindle):
     def say(self, opts):
         """[<msg>]
            Let the octocat speak to you"""
-        print(github3.octocat(opts['<msg>'] or None))
+        msg = github3.octocat(opts['<msg>'] or None)
+        if isinstance(msg, bytes):
+            msg = msg.decode('utf-8')
+        print(msg)
 
     @command
     @needs_repo
