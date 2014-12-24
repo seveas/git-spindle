@@ -19,4 +19,7 @@ html_theme_path = [csp.get_theme_dir()]
 html_show_sourcelink = False
 html_show_sphinx = False
 extensions = ['ansicolor']
-man_pages = [('github', 'git-hub', 'GitHub integration', 'Dennis Kaarsemaker', '1')]
+man_pages = [
+    ('github', 'git-hub', 'GitHub integration', 'Dennis Kaarsemaker', '1'),
+    ('gitlab', 'git-lab', 'GitLab integration', 'Dennis Kaarsemaker', '1'),
+]
