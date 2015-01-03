@@ -41,7 +41,7 @@ def process_escape(match):
             }[color]
             return '<span style="color: #%s">' % color
         return '<span style="%s">' % '; '.join([", ".join([': '.join(x) for x in attr.items()]) for attr in attrs])
-    print match.groups()
+    print(match.groups())
 
 def mangle_html(app, exception):
     if app.builder.name != 'html' or exception:
