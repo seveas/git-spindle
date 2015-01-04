@@ -77,6 +77,15 @@ class GitLab(GitSpindle):
             self.gitm('config', 'remote.%s.gitlab-id' % remote, repo_.id)
         return repo_
 
+    def clone_url(self, repo, opts):
+        if opts['--ssh'] or not repo.public:
+            return repo.ssh_url_to_repo
+        if opts['--http']:
+            return repo.http_url_ro_repo
+        if repo.owner.username == self.me.username:
+            return repo.ssh_url_to_repo
+        return repo.http_url_to_repo
+
     def parent_repo(self, repo):
        if getattr(repo, 'forked_from_project', False):
            return self.gl.Project(repo.forked_from_project['id'])
@@ -140,9 +149,7 @@ class GitLab(GitSpindle):
             repo = self.find_repo(user, dwim.name)
             if not repo:
                 err("Repository %s/%s does not exist" % (user, dwim.name))
-            url = repo.http_url_to_repo
-            if opts['--ssh'] or not repo.public:
-                url = repo.ssh_url_to_repo
+            url = self.clone_url(repo, opts)
             self.gitm('remote', 'add', user, url)
             self.gitm('config', 'remote.%s.gitlab-id' % user, repo.id)
             self.gitm('fetch', user, redirect=False)
@@ -229,13 +236,7 @@ class GitLab(GitSpindle):
         """[--ssh|--http] [--parent] <repo>
            Clone a repository by name"""
         repo = opts['remotes']['.dwim']
-        url = repo.ssh_url_to_repo
-        if repo.owner.username != self.me.username:
-            url = repo.http_url_to_repo
-        if opts['--ssh'] or not repo.public:
-            url = repo.ssh_url_to_repo
-        elif opts['--http']:
-            url = repo.http_url_ro_repo
+        url = self.clone_url(repo, opts)
 
         self.gitm('clone', url, repo.name, redirect=False).returncode
         self.gitm('config', 'remote.origin.gitlab-id', repo.id, cwd=repo.name)
@@ -477,13 +478,7 @@ class GitLab(GitSpindle):
         git_dir = repo.name + '.git'
         cur_dir = os.path.basename(os.path.abspath(os.getcwd()))
         if cur_dir != git_dir and not os.path.exists(git_dir):
-            url = repo.ssh_url_to_repo
-            if repo.owner.username != self.me.username:
-                url = repo.http_url_to_repo
-            if opts['--ssh'] or not repo.public:
-                url = repo.ssh_url_to_repo
-            elif opts['--http']:
-                url = repo.http_url_ro_repo
+            url = self.clone_url(repo, opts)
             self.gitm('clone', '--mirror', url, git_dir, redirect=False)
         else:
             if git_dir == cur_dir:
@@ -563,17 +558,16 @@ class GitLab(GitSpindle):
             if my_repo:
                 repo = my_repo
 
-        if self.git('config', 'remote.origin.url').stdout.strip() != repo.ssh_url_to_repo:
-            print("Pointing origin to %s" % repo.ssh_url_to_repo)
-            self.gitm('config', 'remote.origin.url', repo.ssh_url_to_repo)
+        url = self.clone_url(repo, opts)
+        if self.git('config', 'remote.origin.url').stdout.strip() != url:
+            print("Pointing origin to %s" % url)
+            self.gitm('config', 'remote.origin.url', url)
             self.gitm('config', 'remote.origin.gitlab-id', repo.id)
             self.gitm('fetch', 'origin', redirect=False)
 
         parent = self.parent_repo(repo)
         if parent:
-            url = parent.http_url_to_repo
-            if opts['--ssh'] or not parent.public:
-                url = parent.ssh_url_to_repo
+            url = self.clone_url(parent, opts)
             if self.git('config', 'remote.upstream.url').stdout.strip() != url:
                 print("Pointing upstream to %s" % url)
                 self.gitm('config', 'remote.upstream.url', url)
