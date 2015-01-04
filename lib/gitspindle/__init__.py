@@ -107,6 +107,8 @@ Options:
                 backend = 'github'
             elif host in ('gitlab.com', 'www.gitlab.com'):
                 backend = 'gitlab'
+            elif host in ('bitbucket.org', 'www.bitbucket.org'):
+                backend = 'bitbucket'
             elif host:
                 backend = self.config('spindle.%s' % host)
         if backend == 'github':
@@ -115,6 +117,9 @@ Options:
         elif backend == 'gitlab':
             from gitspindle.gitlab import GitLab
             return GitLab()
+        elif backend == 'bitbucket':
+            from gitspindle.bitbucket import BitBucket
+            return BitBucket()
         else:
             return GitSpindle()
 

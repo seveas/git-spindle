@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+
+from gitspindle.bitbucket import BitBucket
+
+BitBucket.prog = 'git bb'
+BitBucket().main()
