@@ -197,6 +197,11 @@ Options:
         for command, func in self.commands.items():
             if opts[command]:
                 opts['command'] = command
+                if isinstance(opts[command], list):
+                    opts['extra-opts'] = opts[command]
+                    opts[command] = True
+                else:
+                    opts['extra-opts'] = []
                 opts.update(func.opts)
                 if func.needs_repo:
                     opts['remotes'] = self.get_remotes(opts)

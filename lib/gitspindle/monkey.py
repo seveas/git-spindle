@@ -42,3 +42,47 @@ github3.gists.Gist.contents = _gist_contents
 import gitspindle.glapi as glapi
 glapi.Project.spindle = 'gitlab'
 glapi.UserProject.spindle = 'gitlab'
+
+import docopt
+known_options = {
+    'clone': (
+        '-q', '--quiet', '-v', '--verbose', '-n', '--no-checkout', '--bare',
+        '--mirror', '--reference=<repository>', '--progress', '-o <oname>', '--origin=<oname>',
+        '-b <name>', '--branch=<name>', '-u <upload-pack>', '--upload-pack=<upload-pack>',
+        '--template=<template-directory>', '-c <key-value>', '--config=<key-value>',
+        '--depth', '--single-branch', '--no-single-branch', '--recursive, --recurse-submodules',
+        '--separate-git-dir=<git_dir>'),
+}
+
+class GitOption(docopt.Option):
+    def match(self, left, collected=None):
+        if isinstance(left[0], docopt.Option) and (self.short == left[0].short or self.long == left[0].long):
+            opt = left.pop(0)
+            # Hijack the command argument to store the data
+            if not isinstance(collected[1].value, list):
+                collected[1].value = []
+            collected[1].value.append(opt.short or opt.long)
+            if opt.argcount:
+                collected[1].value.append(opt.value)
+        return True, left, collected
+
+    def __repr__(self):
+        return 'Git' + super(GitOption, self).__repr__()
+
+
+def parse_atom(tokens, options):
+    if len(tokens) > 3 and (tokens[0], tokens[2]) == ('[', ']') and \
+        tokens[1].startswith('git-') and tokens[1].endswith('-options'):
+            token = tokens[1][4:-8]
+            tokens.move(); tokens.move(); tokens.move()
+            ret = []
+            for opt in known_options[token]:
+                opt = docopt.parse_pattern(opt, []).children[0]
+                opt = GitOption(opt.short, opt.long, opt.argcount, opt.value)
+                ret.append(opt)
+                options.append(opt)
+            return ret
+    return docopt.orig_parse_atom(tokens, options)
+
+docopt.orig_parse_atom = docopt.parse_atom
+docopt.parse_atom = parse_atom

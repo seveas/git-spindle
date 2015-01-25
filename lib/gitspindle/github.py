@@ -319,13 +319,20 @@ class GitHub(GitSpindle):
 
     @command
     def clone(self, opts):
-        """[--ssh|--http|--git] [--parent] <repo>
+        """[--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
         repo = opts['remotes']['.dwim']
         url = self.clone_url(repo, opts)
-        self.gitm('clone', url, redirect=False).returncode
+        args = opts['extra-opts']
+        args.append(url)
+        dir = opts['<dir>'] or repo.name
+        if '--bare' in args:
+            dir += '.git'
+        args.append(dir)
+
+        self.gitm('clone', *args, redirect=False).returncode
         if repo.fork:
-            os.chdir(repo.name)
+            os.chdir(dir)
             self.set_origin(opts)
             self.gitm('fetch', 'upstream', redirect=False)
 
