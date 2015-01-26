@@ -142,9 +142,13 @@ Options:
                 if not first and (repo.spindle == self.spindle):
                     first = repo
                 remotes[remote] = repo
-                if repo.owner.__class__.__module__ == self.me.__class__.__module__ and \
-                   repo.owner == self.me and repo.spindle == self.spindle:
-                    remotes['.mine'] = repo
+                try:
+                    if repo.owner == self.me and repo.spindle == self.spindle:
+                        remotes['.mine'] = repo
+                except AttributeError:
+                    # github3.py throws this when comparing github3.py objects
+                    # against regular ones
+                    pass
 
         if not remotes['.dwim']:
             if remotes['.mine']:
