@@ -774,7 +774,7 @@ class GitHub(GitSpindle):
         # Do they exist on github?
         srcb = repo.branch(src)
         if not srcb:
-            if raw_input("Branch %s does not exist in your github repo, shall I push? [Y/n] " % src).lower() in ['y', 'Y', '']:
+            if raw_input("Branch %s does not exist in your GitHub repo, shall I push? [Y/n] " % src).lower() in ['y', 'Y', '']:
                 self.gitm('push', repo.remote, src, redirect=False)
             else:
                 err("Aborting")
@@ -782,7 +782,7 @@ class GitHub(GitSpindle):
             # Have we diverged? Then there are commits that are reachable from the github branch but not local
             diverged = self.gitm('rev-list', srcb.commit.sha, '^' + commit)
             if diverged.stderr or diverged.stdout:
-                if raw_input("Branch %s has diverged from github, shall I push and overwrite? [y/N] " % src) in ['y', 'Y']:
+                if raw_input("Branch %s has diverged from GitHub, shall I push and overwrite? [y/N] " % src) in ['y', 'Y']:
                     self.gitm('push', '--force', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")
