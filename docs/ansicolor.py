@@ -47,7 +47,7 @@ def mangle_html(app, exception):
     for file in glob.glob(os.path.join(app.builder.outdir, '*.html')):
         with open(file, 'r+') as fd:
             data = fd.read()
-            data2 = re.sub(escape_code_re, process_escape, data)
+            data2 = re.sub(escape_code_re, process_escape_html, data)
             if data2 != data:
                 fd.seek(0, os.SEEK_SET)
                 fd.truncate()
