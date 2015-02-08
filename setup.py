@@ -1,12 +1,12 @@
 from distutils.core import setup
 
 setup(name='git-spindle',
-    version="2.2",
+    version="2.3",
     description='Git subcommands for integrating with central services like github, gitlab and bitbucket',
     author='Dennis Kaarsemaker',
     author_email='dennis@kaarsemaker.net',
     url='http://github.com/seveas/git-spindle',
-    scripts=['bin/git-hub', 'bin/git-lab'],
+    scripts=['bin/git-hub', 'bin/git-lab', 'bin/git-bb', 'bin/git-bucket'],
     packages=['gitspindle'],
     package_dir={'': 'lib'},
     classifiers=[
