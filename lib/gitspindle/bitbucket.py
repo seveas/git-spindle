@@ -491,7 +491,11 @@ class BitBucket(GitSpindle):
                 print("Website:  %s" % user.website)
             if user.location:
                 print("Location: %s" % user.location)
-            for pkey in user.keys():
+            try:
+                keys = user.keys()
+            except BitBucketError:
+                keys = []
+            for pkey in keys:
                 algo, key = pkey.key.split()
                 algo = algo[4:].upper()
                 if pkey.label:
