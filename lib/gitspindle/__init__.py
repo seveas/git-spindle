@@ -51,6 +51,10 @@ class GitSpindle(Singleton):
             self.git_dir = None
         self.in_repo = bool(self.git_dir)
         self.config_file = os.path.join(os.path.expanduser('~'), '.gitspindle')
+        xdg_dir = os.environ.get('XDG_CONFIG_HOME', os.path.join(os.path.expanduser('~'), '.config'))
+        xdg_file = os.path.join(xdg_dir, 'git', 'spindle')
+        if os.path.exists(xdg_file):
+            self.config_file = xdg_file
         self.commands = {}
         self.usage = """%s - %s integration for git
 A full manual can be found on http://seveas.github.com/git-spindle/
