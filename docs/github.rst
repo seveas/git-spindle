@@ -69,7 +69,7 @@ to exclude forked repositories.
 
 Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 
-.. describe:: git hub public-keys <user>
+.. describe:: git hub public-keys [<user>]
 
 Display all public keys of a user, in a format that can be added to
 :file:`~/.authorized_keys`.
@@ -95,7 +95,7 @@ optional description can be given too. After running this command, a repository
 will be created on GitHub and your local repository will have GitHub as remote
 "origin", so :command:`git push origin master` will work.
 
-.. describe:: git hub set-origin [--ssh|--http]
+.. describe:: git hub set-origin [--ssh|--http|--git]
 
 Fix the configuration of your repository's remotes. Remote "origin" will be set
 to your GitHub repository. If that repository is a fork, remote "upstream" will
@@ -104,19 +104,22 @@ be set to the repository you forked from.
 For origin, an SSH url is used. For upstream, set-origin defaults to adding a
 git url, but this can be overridden. For private repos SSH is used.
 
-.. describe:: git hub clone [--ssh|--http] <repo>
+.. describe:: git hub clone [--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
 
 Clone a GitHub repository by name (e.g. seveas/hacks) or URL. If it's a fork,
 the "upstream" origin will be set up too. Defaults to cloning from a git url,
 but this can be overridden. For private repos SSH is used.
 
-.. describe:: git hub cat <file>
+This command accepts all options git clone accepts and will forward those to
+:command:`git clone`.
+
+.. describe:: git hub cat <file>...
 
 Display the contents of a file on GitHub. File can start with repository names
 and refs. For example: `master:bin/git-hub`, `git-spindle:master:bin/git-hub`
 or `seveas/git-spindle:master:bin/git-hub`.
 
-.. describe:: git hub fork [--ssh|--http] [<repo>]
+.. describe:: git hub fork [--ssh|--http|--git] [<repo>]
 
 Fork another person's git repository on GitHub and clone that repository
 locally. Repo can be specified as a (git) url or simply username/repo. Like
@@ -125,11 +128,11 @@ with set-origin, the "origin" and "upstream" remotes will be set up too.
 Calling fork in a previously cloned-but-not-forked repository will create a
 fork of that repository and set up your remotes.
 
-.. describe:: git hub forks
+.. describe:: git hub forks [<repo>]
 
 List all forks of this repository, highlighting the original repository.
 
-.. describe:: git hub add-remote [--ssh|--http] [<user>]
+.. describe:: git hub add-remote [--ssh|--http|--git] [<user>]
 
 Add a users fork as a remote using the user's login as name for the remote.
 Defaults to adding a git url, but this can be overridden. For private repos
@@ -141,7 +144,7 @@ Browse a repository (or its parent) on GitHub. By default the repository's
 homepage is opened, but you can specify a different section, such as issues,
 pulls, wiki, branches, releases, contributors, graphs, releases or settings.
 
-.. describe:: git hub mirror [--ssh|--http] [--goblet] [<repo>]
+.. describe:: git hub mirror [--ssh|--http|--git] [--goblet] [<repo>]
 
 Mirror a repository from GitHub. This is similar to clone, but clones into a
 bare repository and maps all remote refs to local refs. When run without
@@ -188,7 +191,7 @@ can use the :option:`--parent` option to use the parent repository. If you do
 not specify an issue number, you will be prompted for a message that will be
 used to create a new issue.
 
-.. describe:: git hub pull-request [--issue <issue>] <yours:theirs>
+.. describe:: git hub pull-request [--issue <issue>] [<yours:theirs>]
 
 Files a pull request to merge branch "yours" (default: the current branch) into
 the upstream branch "theirs" (default: master). Like for a commit message, your
@@ -237,18 +240,18 @@ look like that on your GitHub profile page::
   F [38;5;237m■ [0m[38;5;28m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;64m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m
     [38;5;65m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;64m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;64m■ [0m[38;5;65m■ [0m[38;5;64m■ [0m[38;5;65m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;65m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m
 
-.. describe:: git hub render [--save <outfile>] <file>
+.. describe:: git hub render [--save=<outfile>] <file>
 
 Lets GitHub render a markdown page and displays the result in your browser or
 save it to a file.
 
-.. describe:: git hub ignore [<lang>...]
+.. describe:: git hub ignore [<language>...]
 
 GitHub provides :file:`.gitignore` templates for various languages and
 environments. This command will let you quickly grab them and add them to your
 :file:`.gitignore`. For example: :command:`git hub ignore Python C`
 
-.. describe:: git hub network
+.. describe:: git hub network [<level>]
 
 Generates a graphviz graph of people following you, people you follow or people
 who's repositories you've forked. For example::

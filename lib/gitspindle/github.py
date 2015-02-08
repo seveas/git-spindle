@@ -409,7 +409,7 @@ class GitHub(GitSpindle):
 
     @command
     def gist(self, opts):
-        """[--desc=<description>] <file>...
+        """[-d <description>] <file>...
            Create a new gist from files or stdin"""
         files = {}
         description = opts['<description>'] or ''

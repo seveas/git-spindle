@@ -89,7 +89,7 @@ class BitBucket(GitSpindle):
     @command(**{'--parent': True})
     @needs_repo
     def add_remote(self, opts):
-        """[--ssh|--http|--git] <user>...
+        """[--ssh|--http] <user>...
            Add user's fork as a remote by that name"""
         for fork in opts['remotes']['.dwim'].forks():
             if fork.owner['username'] in opts['<user>']:
@@ -268,7 +268,7 @@ class BitBucket(GitSpindle):
 
     @command
     def mirror(self, opts):
-        """[--ssh|--http|--git] [--goblet] [<repo>]
+        """[--ssh|--http] [--goblet] [<repo>]
            Mirror a repository, or all repositories for a user"""
         if opts['<repo>'] and opts['<repo>'].endswith('/*'):
             user = opts['<repo>'].rsplit('/', 2)[-2]

@@ -48,7 +48,7 @@ repositories.
 
 Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 
-.. describe:: git lab public-keys <user>
+.. describe:: git lab public-keys [<user>]
 
 Display all public keys of a user, in a format that can be added to
 :file:`~/.authorized_keys`. Note that only admins can see this information for
@@ -78,11 +78,14 @@ be set to the repository you forked from.
 For origin, an SSH url is used. For upstream, set-origin defaults to adding an
 http url, but this can be overridden. For non-public repos SSH is used.
 
-.. describe:: git lab clone [--ssh|--http] <repo>
+.. describe:: git lab clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
 
 Clone a GitLab repository by name (e.g. seveas/hacks) or URL. If it's a fork,
 the "upstream" origin will be set up too. Defaults to cloning from an http url,
 but this can be overridden. For non-public repos SSH is used.
+
+This command accepts all options git clone accepts and will forward those to
+:command:`git clone`.
 
 .. describe:: git lab cat <file>
 
@@ -99,14 +102,10 @@ with set-origin, the "origin" and "upstream" remotes will be set up too.
 Calling fork in a previously cloned-but-not-forked repository will create a
 fork of that repository and set up your remotes.
 
-.. describe:: git lab forks
-
-List all forks of this repository, highlighting the original repository.
-
-.. describe:: git lab add-remote [--ssh|--http] [<user>]
+.. describe:: git lab add-remote [--ssh|--http] <user>...
 
 Add a users fork as a remote using the user's login as name for the remote.
-Defaults to adding a git url, but this can be overridden. For non-public repos
+Defaults to adding an http url, but this can be overridden. For non-public repos
 SSH is used.
 
 .. describe:: git lab browse [--parent] [<repo>] [<section>]
@@ -141,7 +140,7 @@ can use the :option:`--parent` option to use the parent repository. If you do
 not specify an issue number, you will be prompted for a message that will be
 used to create a new issue.
 
-.. describe:: git lab merge-request [--issue <issue>] <yours:theirs>
+.. describe:: git lab merge-request <yours:theirs>
 
 Files a pull request to merge branch "yours" (default: the current branch) into
 the upstream branch "theirs" (default: master). Like for a commit message, your
