@@ -662,17 +662,10 @@ class GitHub(GitSpindle):
             else:
                 fd.write((repo.description or "").encode('utf-8'))
         if opts['--goblet']:
-            if repo.fork:
-                owner = self.gh.user(repo.parent.owner.login)
-            else:
-                owner = self.gh.user(repo.owner.login)
-            self.gitm('--git-dir', git_dir, 'config', 'goblet.owner', owner.name.encode('utf-8') or owner.login)
-            self.gitm('--git-dir', git_dir, 'config', 'goblet.cloneurlgit', repo.git_url)
-            self.gitm('--git-dir', git_dir, 'config', 'goblet.cloneurlhttp', repo.clone_url)
-            goblet_dir = os.path.join(git_dir, 'goblet')
-            if not os.path.exists(goblet_dir):
-                os.mkdir(goblet_dir, 0o777)
-                os.chmod(goblet_dir, 0o777)
+            cwd = os.getcwd()
+            os.chdir(git_dir)
+            self.setup_goblet(opts)
+            os.chdir(cwd)
 
     @command
     def network(self, opts):
@@ -939,6 +932,24 @@ class GitHub(GitSpindle):
         if isinstance(msg, bytes):
             msg = msg.decode('utf-8')
         print(msg)
+
+
+    @command(**{'--parent': True})
+    @needs_repo
+    def setup_goblet(self, opts):
+        """\nSet up goblet config based on GitHub config"""
+        repo = opts['remotes']['.dwim']
+        repo = self.parent_repo(repo) or repo
+        owner = self.gh.user(repo.owner.login)
+        self.gitm('config', 'goblet.owner-name', owner.name.encode('utf-8') or owner.login)
+        if owner.email:
+            self.gitm('config', 'goblet.owner-mail', owner.email.encode('utf-8'))
+        self.gitm('config', 'goblet.git-url', repo.git_url)
+        self.gitm('config', 'goblet.http-url', repo.clone_url)
+        goblet_dir = os.path.join(self.gitm('rev-parse', '--git-dir').stdout.strip(), 'goblet')
+        if not os.path.exists(goblet_dir):
+            os.mkdir(goblet_dir, 0o777)
+            os.chmod(goblet_dir, 0o777)
 
     @command
     @needs_repo
