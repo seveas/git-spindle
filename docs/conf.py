@@ -22,4 +22,6 @@ extensions = ['ansicolor']
 man_pages = [
     ('github', 'git-hub', 'GitHub integration', 'Dennis Kaarsemaker', '1'),
     ('gitlab', 'git-lab', 'GitLab integration', 'Dennis Kaarsemaker', '1'),
+    ('bitbucket', 'git-bb', 'BitBucket integration', 'Dennis Kaarsemaker', '1'),
+    ('bitbucket', 'git-bucket', 'BitBucket integration', 'Dennis Kaarsemaker', '1'),
 ]
