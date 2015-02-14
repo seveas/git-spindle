@@ -5,6 +5,7 @@ import os
 import re
 import shlex
 import sys
+import tempfile
 import whelk
 
 __all__ = ['GitSpindle', 'command', 'needs_repo', 'needs_worktree']
@@ -183,13 +184,18 @@ Options:
         return None
 
     def edit_msg(self, msg, filename):
-        temp_file = os.path.join(self.gitm('rev-parse', '--git-dir').stdout.strip(), filename)
+        if self.git('rev-parse'):
+            temp_file = os.path.join(self.gitm('rev-parse', '--git-dir').stdout.strip(), filename)
+        else:
+            fd, temp_file = tempfile.mkstemp(prefix=filename)
+            os.close(fd)
         with open(temp_file, 'w') as fd:
             fd.write(msg.encode('utf-8'))
         editor = shlex.split(self.gitm('var', 'GIT_EDITOR').stdout) + [temp_file]
         self.shell[editor[0]](*editor[1:], redirect=False)
         with open(temp_file) as fd:
             title, body = (try_decode(fd.read()) +'\n').split('\n', 1)
+        os.unlink(temp_file)
         title = title.strip()
         body = body.strip()
         body = re.sub('^#.*', '', body, flags=re.MULTILINE).strip()
