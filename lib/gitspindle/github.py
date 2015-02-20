@@ -303,19 +303,26 @@ class GitHub(GitSpindle):
     def cat(self, opts):
         """<file>...
            Display the contents of a file on github"""
-        for file in opts['<file>']:
-            repo, ref, file = ([None, None] + file.split(':',2))[-3:]
+        for arg in opts['<file>']:
+            repo, ref, file = ([None, None] + arg.split(':',2))[-3:]
             user = None
             if repo:
                 user, repo = ([None] + repo.split('/'))[-2:]
                 repo = self.gh.repository(user or self.me.login, repo)
             else:
                 repo = self.get_remotes(opts)['.dwim']
-            content = repo.contents(path=file, ref=ref)
-            if content:
-                os.write(sys.stdout.fileno(), content.decoded)
+            if '/' in file:
+                dir, file = file.rsplit('/', 1)
             else:
-                sys.stderr.write("No such file: %s\n" % file)
+                dir = ''
+            content = repo.contents(path=dir, ref=ref)
+            if not content or file not in content:
+                err("No such file: %s" % arg)
+            if content[file].type != 'file':
+                err("Not a regular file: %s" % arg)
+            resp = self.gh._session.get(content[file]._json_data['download_url'], stream=True)
+            for chunk in resp.iter_content(4096):
+                os.write(sys.stdout.fileno(), chunk)
 
     @command
     def clone(self, opts):
@@ -624,6 +631,30 @@ class GitHub(GitSpindle):
             else:
                 print(wrap("Cannot display %s. Please file a bug at github.com/seveas/git-spindle\nincluding the following output:" % event.type, attr.bright))
                 pprint(event.payload)
+
+    @command
+    def ls(self, opts):
+        """<file>...
+           Display the contents of a file on github"""
+        for arg in opts['<file>']:
+            repo, ref, file = ([None, None] + arg.split(':',2))[-3:]
+            user = None
+            if repo:
+                user, repo = ([None] + repo.split('/'))[-2:]
+                repo = self.gh.repository(user or self.me.login, repo)
+            else:
+                repo = self.get_remotes(opts)['.dwim']
+            content = repo.contents(path=file, ref=ref)
+            if not content:
+                err("No such directory: %s" % arg)
+            if not isinstance(content, dict):
+                err("Not a directory: %s" % arg)
+            content = sorted(content.values(), key=lambda file: file.name)
+            mt = max([len(file.type) for file in content])
+            ms = max([len(str(file.size)) for file in content])
+            fmt = "%%(type)-%ds %%(size)-%ds %%(sha).7s %%(path)s" % (mt, ms)
+            for file in content:
+                print(fmt % file._json_data)
 
     @command
     def mirror(self, opts):
