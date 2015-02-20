@@ -996,9 +996,9 @@ class GitHub(GitSpindle):
                 repo = my_repo
 
         url = self.clone_url(repo, opts)
-        if self.git('config', 'remote.origin.url').stdout.strip() != repo.url:
-            print("Pointing origin to %s" % repo.url)
-            self.gitm('config', 'remote.origin.url', repo.url)
+        if self.git('config', 'remote.origin.url').stdout.strip() != url:
+            print("Pointing origin to %s" % url)
+            self.gitm('config', 'remote.origin.url', url)
             self.gitm('fetch', 'origin', redirect=False)
         self.gitm('config', '--replace-all', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
 
