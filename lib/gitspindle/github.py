@@ -302,7 +302,7 @@ class GitHub(GitSpindle):
     @command
     def cat(self, opts):
         """<file>...
-           Display the contents of a file on github"""
+           Display the contents of a file on GitHub"""
         for arg in opts['<file>']:
             repo, ref, file = ([None, None] + arg.split(':',2))[-3:]
             user = None
@@ -634,9 +634,9 @@ class GitHub(GitSpindle):
 
     @command
     def ls(self, opts):
-        """<file>...
-           Display the contents of a file on github"""
-        for arg in opts['<file>']:
+        """<dir>...
+           Display the contents of a directory on GitHub"""
+        for arg in opts['<dir>']:
             repo, ref, file = ([None, None] + arg.split(':',2))[-3:]
             user = None
             if repo:

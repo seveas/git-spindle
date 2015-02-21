@@ -215,7 +215,7 @@ class GitLab(GitSpindle):
     @command
     def cat(self, opts):
         """<file>...
-           Display the contents of a file on github"""
+           Display the contents of a file on GitLab"""
         for file in opts['<file>']:
             repo, ref, file = ([None, None] + file.split(':',2))[-3:]
             user = None
@@ -342,7 +342,7 @@ class GitLab(GitSpindle):
     @command
     def log(self, opts):
         """[<repo>]
-           Display GitHub log for a repository"""
+           Display GitLab log for a repository"""
         repo = opts['remotes']['.dwim']
         if not repo:
             return
@@ -400,23 +400,23 @@ class GitLab(GitSpindle):
 
         # Try to get the local commit
         commit = self.gitm('show-ref', 'refs/heads/%s' % src).stdout.split()[0]
-        # Do they exist on github?
+        # Do they exist on GitLab?
         srcb = repo.Branch(src)
         if not srcb:
-            if raw_input("Branch %s does not exist in your gitlab repo, shall I push? [Y/n] " % src).lower() in ['y', 'Y', '']:
+            if raw_input("Branch %s does not exist in your GitLab repo, shall I push? [Y/n] " % src).lower() in ['y', 'Y', '']:
                 self.gitm('push', repo.remote, src, redirect=False)
             else:
                 err("Aborting")
         elif srcb and srcb.commit.id != commit:
-            # Have we diverged? Then there are commits that are reachable from the github branch but not local
+            # Have we diverged? Then there are commits that are reachable from the GitLab branch but not local
             diverged = self.gitm('rev-list', srcb.commit.id, '^' + commit)
             if diverged.stderr or diverged.stdout:
-                if raw_input("Branch %s has diverged from gitlab, shall I push and overwrite? [y/N] " % src) in ['y', 'Y']:
+                if raw_input("Branch %s has diverged from GitLab, shall I push and overwrite? [y/N] " % src) in ['y', 'Y']:
                     self.gitm('push', '--force', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")
             else:
-                if raw_input("Branch %s not up to date on gitlab, but can be fast forwarded, shall I push? [Y/n] " % src) in ['y', 'Y', '']:
+                if raw_input("Branch %s not up to date on GitLab, but can be fast forwarded, shall I push? [Y/n] " % src) in ['y', 'Y', '']:
                     self.gitm('push', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")
