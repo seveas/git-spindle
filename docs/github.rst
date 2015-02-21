@@ -119,6 +119,12 @@ Display the contents of a file on GitHub. File can start with repository names
 and refs. For example: `master:bin/git-hub`, `git-spindle:master:bin/git-hub`
 or `seveas/git-spindle:master:bin/git-hub`.
 
+.. describe:: git hub ls <dir>...
+
+Display the contents of a directory on GitHub. Directory can start with
+repository names and refs. For example: `master:bin/git-hub`,
+`git-spindle:master:bin/git-hub` or `seveas/git-spindle:master:bin/git-hub`.
+
 .. describe:: git hub fork [--ssh|--http|--git] [<repo>]
 
 Fork another person's git repository on GitHub and clone that repository

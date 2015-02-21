@@ -74,6 +74,18 @@ but this can be overridden. For private repos SSH is used.
 This command accepts all options git clone accepts and will forward those to
 :command:`git clone`.
 
+.. describe:: git bb cat <file>...
+
+Display the contents of a file on BitBucket. File can start with repository
+names and refs. For example: `master:bin/git-bb`,
+`git-spindle:master:bin/git-bb` or `seveas/git-spindle:master:bin/git-bb`.
+
+.. describe:: git bb ls <dir>...
+
+Display the contents of a directory on BitBucket. Directory can start with
+repository names and refs. For example: `master:bin/git-bb`,
+`git-spindle:master:bin/git-bb` or `seveas/git-spindle:master:bin/git-bb`.
+
 .. describe:: git bb fork [--ssh|--http] [<repo>]
 
 Fork another person's git repository on BitBucket and clone that repository

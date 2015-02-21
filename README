@@ -47,6 +47,7 @@ Usage:
   git hub issue [<repo>] [--parent] [<issue>...]
   git hub issues [<repo>] [--parent] [<filter>...]
   git hub log [--type=<type>] [<what>]
+  git hub ls <dir>...
   git hub mirror [--ssh|--http|--git] [--goblet] [<repo>]
   git hub network [<level>]
   git hub public-keys [<user>]
@@ -72,6 +73,7 @@ Usage:
   git lab issue [<repo>] [--parent] [<issue>...]
   git lab issues [<repo>] [--parent] [<filter>...]
   git lab log [<repo>]
+  git lab ls <dir>...
   git lab merge-request [<branch1:branch2>]
   git lab mirror [--ssh|--http] [--goblet] [<repo>]
   git lab public-keys [<user>]
@@ -84,12 +86,14 @@ Usage:
   git bb add-remote [--ssh|--http] <user>...
   git bb apply-pr <pr-number>
   git bb browse [--parent] [<repo>] [<section>]
+  git bb cat <file>...
   git bb clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
   git bb create [--private] [-d <description>]
   git bb fork [--ssh|--http] [<repo>]
   git bb forks [<repo>]
   git bb issue [<repo>] [--parent] [<issue>...]
   git bb issues [<repo>] [--parent] [<filter>...]
+  git bb ls <dir>...
   git bb mirror [--ssh|--http] [--goblet] [<repo>]
   git bb public-keys [<user>]
   git bb pull-request [<branch1:branch2>]

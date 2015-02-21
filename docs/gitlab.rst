@@ -93,6 +93,12 @@ Display the contents of a file on GitLab. File can start with repository names
 and refs. For example: `master:bin/git-lab`, `git-spindle:master:bin/git-lab`
 or `seveas/git-spindle:master:bin/git-lab`.
 
+.. describe:: git lab ls <dir>...
+
+Display the contents of a directory on GitLab. Directory can start with
+repository names and refs. For example: `master:bin/git-lab`,
+`git-spindle:master:bin/git-lab` or `seveas/git-spindle:master:bin/git-lab`.
+
 .. describe:: git lab fork [--ssh|--http] [<repo>]
 
 Fork another person's git repository on GitLab and clones that repository
