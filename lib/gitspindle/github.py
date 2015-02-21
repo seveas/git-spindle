@@ -71,7 +71,7 @@ class GitHub(GitSpindle):
             self.me = gh.user()
         except github3.GitHubError:
             # Token obsolete
-            self.gitm('config', '--file', self.config_file, '--unset', 'github.token')
+            self.config('github.token', None)
             return self.github()
         return gh
 

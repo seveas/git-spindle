@@ -9,6 +9,7 @@ import tempfile
 import whelk
 
 __all__ = ['GitSpindle', 'command', 'needs_repo', 'needs_worktree']
+NO_VALUE_SENTINEL = 'NO_VALUE_SENTINEL'
 
 __builtins__['PY3'] = sys.version_info[0] > 2
 if PY3:
@@ -87,14 +88,17 @@ Options:
             sys.exit(result.returncode)
         return result
 
-    def config(self, key, value=None):
-        if value is not None:
+    def config(self, key, value=NO_VALUE_SENTINEL):
+        if value is NO_VALUE_SENTINEL:
+            return self.git('config', '--file', self.config_file, key).stdout.strip()
+        elif value is None:
+            self.git('config', '--file', self.config_file, '--unset', key)
+        else:
             try:
                 umask = os.umask(63) # 0x077
                 return self.git('config', '--file', self.config_file, key, value)
             finally:
                 os.umask(umask)
-        return self.git('config', '--file', self.config_file, key).stdout.strip()
 
     def backend_for_remote(self, remote, url):
         backend = self.git('config', 'remote.%s.spindle' % remote).stdout.strip()

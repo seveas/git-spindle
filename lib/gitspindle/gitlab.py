@@ -45,7 +45,7 @@ class GitLab(GitSpindle):
                 gl.auth()
             except glapi.GitlabAuthenticationError:
                 # Token obsolete
-                self.gitm('config', '--file', self.config_file, '--unset', 'gitlab.token')
+                self.config('gitlab.token', None)
                 return self.gitlab()
         self.me = gl.user
         return gl
