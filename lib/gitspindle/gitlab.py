@@ -518,8 +518,7 @@ class GitLab(GitSpindle):
             if self.git('--git-dir', git_dir, 'config', 'core.bare').stdout.strip() != 'true' or \
                self.git('--git-dir', git_dir, 'config', 'remote.origin.mirror').stdout.strip() != 'true':
                    err("This is not a mirrored repository")
-            self.gitm('--git-dir', git_dir, 'fetch', '-q', 'origin', redirect=False)
-            self.gitm('--git-dir', git_dir, 'remote', 'prune', 'origin', redirect=False)
+            self.gitm('--git-dir', git_dir, 'fetch', '-q', '--prune', 'origin', redirect=False)
 
         with open(os.path.join(git_dir, 'description'), 'w') as fd:
             if PY3:
