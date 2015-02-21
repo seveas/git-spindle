@@ -5,6 +5,7 @@ import getpass
 import os
 import sys
 import webbrowser
+import binascii
 
 hidden_command = lambda fnc: os.getenv('DEBUG') and command(fnc)
 
@@ -150,6 +151,29 @@ class BitBucket(GitSpindle):
         if opts['<section>']:
             url += '/' + opts['<section>']
         webbrowser.open_new(url)
+
+    @command
+    def cat(self, opts):
+        """<file>...
+           Display the contents of a file on BitBucket"""
+        for arg in opts['<file>']:
+            repo, ref, file = ([None, None] + arg.split(':',2))[-3:]
+            user = None
+            if repo:
+                user, repo = ([None] + repo.split('/'))[-2:]
+                repo = self.bb.repository(user or self.me.username, repo)
+            else:
+                repo = self.get_remotes(opts)['.dwim']
+            try:
+                content = repo.src(path=file, revision=ref)
+            except BitBucketError:
+                err("No such file: %s" % arg)
+            if not hasattr(content, '_data'):
+                err("Not a regular file: %s" % arg)
+            if getattr(content, 'encoding', None) == 'base64':
+                os.write(sys.stdout.fileno(), binascii.a2b_base64(content._data))
+            else:
+                print(content._data)
 
     @command
     def clone(self, opts):

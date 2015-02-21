@@ -64,7 +64,10 @@ class BBobject(object):
         else:
             self.data = kwargs
         for datum in self.data:
-            setattr(self, datum, self.data[datum])
+            if datum == 'data':
+                setattr(self, '_' + datum, self.data[datum])
+            else:
+                setattr(self, datum, self.data[datum])
 
     @classmethod
     def create(klass, bb, **kwargs):
@@ -171,6 +174,9 @@ class Repository(BBobject):
         issue['repo'] = self
         return Issue(self.bb, mode=None, **issue)
 
+    def src(self, revision, path):
+        return Source(self.bb, owner=self.owner['username'], slug=self.slug, revision=revision, path=path.split('/'))
+
 class Branch(BBobject):
     uri = None
 
@@ -184,3 +190,6 @@ class Issue(BBobject):
         return 'https://bitbucket.org/%s/%s/issue/%s/' % (self.repo.owner['username'], self.repo.slug, self.local_id)
 
     html_url = property(get_url)
+
+class Source(BBobject):
+    uri = 'https://bitbucket.org/api/1.0/repositories/{owner}/{slug}/src/{revision}{/path*}'
