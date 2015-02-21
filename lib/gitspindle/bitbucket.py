@@ -431,7 +431,7 @@ class BitBucket(GitSpindle):
                 if opts['--no-forks']:
                     continue
                 color.append(attr.faint)
-            print wrap(fmt % (repo.name, '(%s)' % repo.scm, repo.description), *color)
+            print(wrap(fmt % (repo.name, '(%s)' % repo.scm, repo.description), *color))
 
     @command
     @needs_repo
