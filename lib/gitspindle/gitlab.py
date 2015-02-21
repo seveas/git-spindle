@@ -379,6 +379,30 @@ class GitLab(GitSpindle):
                 pprint(event.json())
 
     @command
+    def ls(self, opts):
+        """<dir>...
+           Display the contents of a directory on GitLab"""
+        for arg in opts['<dir>']:
+            repo, ref, file = ([None, None] + arg.split(':',2))[-3:]
+            user = None
+            if repo:
+                user, repo = ([None] + repo.split('/'))[-2:]
+                repo = self.find_repo(user or self.me.username, repo)
+            else:
+                repo = self.get_remotes(opts)['.dwim']
+
+            try:
+                content = repo.tree(ref_name=ref or repo.default_branch, path=file)
+            except glapi.GitlabGetError:
+                err("No such file: %s" % arg)
+            if not content:
+                err("Not a directory: %s" % arg)
+            mt = max([len(file['type']) for file in content])
+            fmt = "%%(mode)s %%(type)-%ds %%(id).7s %%(name)s" % (mt, )
+            for file in content:
+                print(fmt % file)
+
+    @command
     @needs_repo
     def merge_request(self, opts):
         """[<branch1:branch2>]
