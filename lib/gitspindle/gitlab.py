@@ -15,40 +15,39 @@ class GitLab(GitSpindle):
     what = 'GitLab'
     spindle = 'gitlab'
 
-    def __init__(self):
-        super(GitLab, self).__init__()
-        self.gl = self.gitlab()
-
     # Support functions
-    def gitlab(self):
-        gl = None
-        user = self.config('gitlab.user')
+    def login(self):
+        self.gl = None
+        host = self.config('host') or 'https://gitlab.com'
+        if not host.startswith(('http://', 'https://')):
+            host = 'https://' + host
+
+        user = self.config('user')
         if not user:
             user = raw_input("GitLab user: ").strip()
-            self.config('gitlab.user', user)
+            self.config('user', user)
 
-        token = self.config('gitlab.token')
+        token = self.config('token')
         if not token:
             password = getpass.getpass("GitLab password: ")
-            gl = glapi.Gitlab('https://gitlab.com/', email=user, password=password)
-            gl.auth()
-            token = gl.user.private_token
-            self.config('gitlab.token', token)
+            self.gl = glapi.Gitlab(host, email=user, password=password)
+            self.gl.auth()
+            token = self.gl.user.private_token
+            self.config('token', token)
             print("Your GitLab authentication token is now cached in ~/.gitspindle - do not share this file")
 
         if not user or not token:
             err("No user or token specified")
 
-        if not gl:
-            gl = glapi.Gitlab('https://gitlab.com', email=user, private_token=token)
+        if not self.gl:
+            self.gl = glapi.Gitlab(host, email=user, private_token=token)
             try:
-                gl.auth()
+                self.gl.auth()
             except glapi.GitlabAuthenticationError:
                 # Token obsolete
-                self.config('gitlab.token', None)
-                return self.gitlab()
-        self.me = gl.user
-        return gl
+                self.config('token', None)
+                self.login()
+        self.me = self.gl.user
 
     def parse_repo(self, remote, repo):
         if remote:

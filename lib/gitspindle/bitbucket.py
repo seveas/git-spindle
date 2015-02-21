@@ -14,30 +14,25 @@ class BitBucket(GitSpindle):
     what = 'BitBucket'
     spindle = 'bitbucket'
 
-    def __init__(self):
-        super(BitBucket, self).__init__()
-        self.bb = self.bitbucket()
-
     # Support functions
-    def bitbucket(self):
-        user = self.config('bitbucket.user')
+    def login(self):
+        user = self.config('user')
         if not user:
             user = raw_input("BitBucket user: ").strip()
-            self.config('bitbucket.user', user)
+            self.config('user', user)
 
-        password = self.config('bitbucket.password')
+        password = self.config('password')
         if not password:
             password = getpass.getpass("BitBucket password: ")
             try:
                 Bitbucket(user, password).user(user)
             except:
                 err("Authentication failed")
-            self.config('bitbucket.password', password)
+            self.config('password', password)
             print("Your BitBucket authentication password is now cached in ~/.gitspindle - do not share this file")
 
-        bb = Bitbucket(user, password)
-        self.me = bb.user(user)
-        return bb
+        self.bb = Bitbucket(user, password)
+        self.me = self.bb.user(user)
 
     def parse_repo(self, remote, repo):
         if '@' in repo:

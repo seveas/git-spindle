@@ -32,6 +32,25 @@ import pprint
 __builtins__['pprint'] = pprint.pprint
 del pprint
 
+def command(fnc=None, **kwargs):
+    if not fnc:
+        return lambda func: command(func, **kwargs)
+    fnc.opts = kwargs
+    fnc.is_command = True
+    if not hasattr(fnc, 'needs_repo'):
+        fnc.needs_repo = '<repo>' in fnc.__doc__
+    if not hasattr(fnc, 'needs_worktree'):
+        fnc.needs_worktree = False
+    return fnc
+
+def needs_repo(fnc):
+    fnc.needs_repo = True
+    return fnc
+
+def needs_worktree(fnc):
+    fnc.needs_worktree = True
+    return fnc
+
 class Repository(object):
     spindle = 'gitspindle'
     owner = None
@@ -68,16 +87,18 @@ Usage:\n""" % (self.prog, self.what)
                 continue
             name = name.replace('_', '-')
             self.commands[name] = fnc
-            self.usage += ('  %s %s %s\n' % (self.prog, name, fnc.__doc__.split('\n', 1)[0].strip()))
+            self.usage += ('  %s %s %s %s\n' % (self.prog, '[options]', name, fnc.__doc__.split('\n', 1)[0].strip()))
         self.usage += """
 Options:
   -h --help              Show this help message and exit
   --desc=<description>   Description for the new gist/repo
   --parent               Use the parent of a forked repo
   --issue=<issue>        Turn this issue into a pull request
-  --ssh                  Use SSH for cloning 3rd party repos
-  --http                 Use https for cloning 3rd party repos
-  --goblet               When mirroring, set up goblet configuration\n"""
+  --http                 Use https:// urls for cloning 3rd party repos
+  --ssh                  Use ssh:// urls for cloning 3rd party repos
+  --git                  Use git:// urls for cloning 3rd party repos
+  --goblet               When mirroring, set up goblet configuration
+  --account=<account>    Use another account than the default\n"""
 
     def gitm(self, *args, **kwargs):
         """A git command thas must be succesfull"""
@@ -89,6 +110,10 @@ Options:
         return result
 
     def config(self, key, value=NO_VALUE_SENTINEL):
+        section = self.spindle
+        if self.account:
+            section = '%s.%s' % (self.spindle, self.account)
+        key = '%s.%s' % (section, key)
         if value is NO_VALUE_SENTINEL:
             return self.git('config', '--file', self.config_file, key).stdout.strip()
         elif value is None:
@@ -208,8 +233,13 @@ Options:
     def main(self):
         argv = self.prog.split()[1:] + sys.argv[1:]
         opts = docopt.docopt(self.usage, argv)
+        self.account = opts['--account']
+        if self.account and not self.config('user'):
+            err("%s does not yet know about %s. Use %s add-account to configure it" % (self.prog, self.account, self.prog))
         for command, func in self.commands.items():
             if opts[command]:
+                if command != 'add-account':
+                    self.login()
                 opts['command'] = command
                 if isinstance(opts[command], list):
                     opts['extra-opts'] = opts[command]
@@ -227,21 +257,11 @@ Options:
                     sys.exit(1)
                 break
 
-def command(fnc=None, **kwargs):
-    if not fnc:
-        return lambda func: command(func, **kwargs)
-    fnc.opts = kwargs
-    fnc.is_command = True
-    if not hasattr(fnc, 'needs_repo'):
-        fnc.needs_repo = '<repo>' in fnc.__doc__
-    if not hasattr(fnc, 'needs_worktree'):
-        fnc.needs_worktree = False
-    return fnc
-
-def needs_repo(fnc):
-    fnc.needs_repo = True
-    return fnc
-
-def needs_worktree(fnc):
-    fnc.needs_worktree = True
-    return fnc
+    @command
+    def add_account(self, opts):
+        """[--host=<host>] <alias>
+           Add an account to the configuration"""
+        self.account = opts['<alias>']
+        if opts['--host']:
+            self.config('host', opts['--host'])
+        self.login()

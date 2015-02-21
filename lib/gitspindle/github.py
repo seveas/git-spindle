@@ -21,59 +21,57 @@ class GitHub(GitSpindle):
     what = 'GitHub'
     spindle = 'github'
 
-    def __init__(self):
-        super(GitHub, self).__init__()
-        self.gh = self.github()
-
     # Support functions
-    def github(self):
-        gh = github3.GitHub()
+    def login(self):
+        host = self.config('host')
+        if host and host not in ('https://api.github.com', 'api.github.com'):
+            if not hosts.startswith(('http://', 'https://')):
+                host = 'https://' + host
+            self.gh = github3.GitHubEnterprise(url=host)
+        else:
+            self.gh = github3.GitHub()
 
-        user = self.config('github.user')
+        user = self.config('user')
         if not user:
             user = raw_input("GitHub user: ").strip()
-            self.config('github.user', user)
+            self.config('user', user)
 
-        token = self.config('github.token')
+        token = self.config('token')
         if not token:
             def prompt_for_2fa():
                 """Callback for github3.py's 2FA support."""
                 return raw_input("Two-Factor Authentication Code: ").strip()
             password = getpass.getpass("GitHub password: ")
-            # The extra gh object is needed for possible two-factor authentication to avoid the
-            # main gh object having a username/password and thus getting into a 2fa loop
-            gh2 = github3.GitHub()
-            gh2.login(user, password, two_factor_callback=prompt_for_2fa)
+            self.gh.login(user, password, two_factor_callback=prompt_for_2fa)
             try:
-                auth = gh2.authorize(user, password, ['user', 'repo', 'gist', 'admin:public_key', 'admin:repo_hook', 'admin:org'],
+                auth = self.gh.authorize(user, password, ['user', 'repo', 'gist', 'admin:public_key', 'admin:repo_hook', 'admin:org'],
                         "GitSpindle on %s" % socket.gethostname(), "http://seveas.github.com/git-spindle")
             except github3.GitHubError:
-                type, exc, tb = sys.exc_info()
+                type, exc = sys.exc_info()[:2]
                 if hasattr(exc, 'response'):
                     response = exc.response
                     if response.status_code == 422:
                         for error in response.json()['errors']:
                             if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
                                 err("An OAuth token for this host already exists, please delete it on https://github.com/settings/applications")
-                raise type.with_traceback(tb)
+                raise
             if auth is None:
                 err("Authentication failed")
             token = auth.token
-            self.config('github.token', token)
-            self.config('github.auth_id', auth.id)
+            self.config('token', token)
+            self.config('auth_id', auth.id)
             print("A GitHub authentication token is now cached in ~/.gitspindle - do not share this file")
             print("To revoke access, visit https://github.com/settings/applications")
 
         if not user or not token:
             err("No user or token specified")
-        gh.login(username=user, token=token)
+        self.gh.login(username=user, token=token)
         try:
-            self.me = gh.user()
+            self.me = self.gh.user()
         except github3.GitHubError:
             # Token obsolete
-            self.config('github.token', None)
-            return self.github()
-        return gh
+            self.config('token', None)
+            self.login()
 
     def parse_repo(self, remote, repo):
         if '@' in repo:
