@@ -291,6 +291,34 @@ class BitBucket(GitSpindle):
                 print("[%d] %s https://bitbucket.org/%s/issue/%d/" % (issue.local_id, issue.title, repo.full_name, issue.local_id))
 
     @command
+    def ls(self, opts):
+        """<dir>...
+           Display the contents of a directory on BitBucket"""
+        for arg in opts['<dir>']:
+            repo, ref, file = ([None, None] + arg.split(':',2))[-3:]
+            user = None
+            if repo:
+                user, repo = ([None] + repo.split('/'))[-2:]
+                repo = self.bb.repository(user or self.me.username, repo)
+            else:
+                repo = self.get_remotes(opts)['.dwim']
+            try:
+                content = repo.src(path=file, revision=ref)
+            except BitBucketError:
+                err("No such file: %s" % arg)
+            if hasattr(content, '_data'):
+                err("Not a directory: %s" % arg)
+            content = content.files + [{'path': x, 'size': 0, 'revision': '', 'type': 'dir'} for x in content.directories]
+            content.sort(key=lambda x: x['path'])
+            mt = max([len(file.get(type, 'file')) for file in content])
+            ms = max([len(str(file['size'])) for file in content])
+            fmt = "%%(type)-%ds %%(size)-%ds %%(revision)7.7s %%(path)s" % (mt, ms)
+            for file in content:
+                if 'type' not in file:
+                    file['type'] = 'file'
+                print(fmt % file)
+
+    @command
     def mirror(self, opts):
         """[--ssh|--http] [--goblet] [<repo>]
            Mirror a repository, or all repositories for a user"""
