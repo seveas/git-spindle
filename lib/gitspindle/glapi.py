@@ -17,11 +17,21 @@
 
 from __future__ import print_function, division, absolute_import
 
-import six
-
 import json
 import requests
 import sys
+
+class six:
+    PY2 = sys.version_info[0] == 2
+    PY3 = sys.version_info[0] == 3
+    if PY3:
+        string_types = str,
+        text_type = str
+        integer_types = int,
+    else:
+        string_types = basestring,
+        text_type = unicode
+        integer_types = (int, long)
 
 from itertools import chain
 
