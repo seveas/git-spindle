@@ -115,13 +115,17 @@ Options:
             section = '%s.%s' % (self.spindle, self.account)
         key = '%s.%s' % (section, key)
         if value is NO_VALUE_SENTINEL:
-            return self.git('config', '--file', self.config_file, key).stdout.strip()
+            result = self.git('config', '--file', self.config_file, key)
+            if result.returncode not in (0, 1): # 128 is returned for parse errors
+                print(result.stderr.rstrip())
+                sys.exit(result.returncode)
+            return result.stdout.strip()
         elif value is None:
-            self.git('config', '--file', self.config_file, '--unset', key)
+            self.gitm('config', '--file', self.config_file, '--unset', key)
         else:
             try:
                 umask = os.umask(63) # 0x077
-                return self.git('config', '--file', self.config_file, key, value)
+                return self.gitm('config', '--file', self.config_file, key, value)
             finally:
                 os.umask(umask)
 
