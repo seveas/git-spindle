@@ -14,13 +14,12 @@ import tempfile
 import time
 import webbrowser
 
-hidden_command = lambda fnc: os.getenv('DEBUG') and command(fnc)
-
 class GitHub(GitSpindle):
     prog = 'git hub'
     what = 'GitHub'
     spindle = 'github'
     hosts = ['github.com', 'www.github.com', 'gist.github.com']
+    api = github3
 
     # Support functions
     def login(self):
@@ -1069,27 +1068,3 @@ class GitHub(GitSpindle):
                 for member in self.gh.organization(user.login).iter_members():
                     print(" - %s" % member.login)
 
-    # And debugging
-
-    @hidden_command
-    def run_shell(self, opts):
-        """\nDebug method to run a shell"""
-        import code
-        import readline
-        import rlcompleter
-        try:
-            repo = self.repository(opts)
-        except SystemExit:
-            repo = None
-
-        data = {
-            'self':    self,
-            'github3': github3,
-            'opts':    opts,
-            'repo':    repo,
-        }
-        readline.set_completer(rlcompleter.Completer(data).complete)
-        readline.parse_and_bind("tab: complete")
-        shl = code.InteractiveConsole(data)
-        shl.interact()
-        sys.exit(1)

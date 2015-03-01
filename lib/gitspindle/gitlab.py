@@ -8,13 +8,13 @@ import os
 import sys
 import webbrowser
 
-hidden_command = lambda fnc: os.getenv('DEBUG') and command(fnc)
 
 class GitLab(GitSpindle):
     prog = 'git lab'
     what = 'GitLab'
     spindle = 'gitlab'
     hosts = ['gitlab.com', 'www.gitlab.com']
+    api = glapi
 
     # Support functions
     def login(self):
@@ -642,28 +642,3 @@ class GitLab(GitSpindle):
             except glapi.GitlabListError:
                 # Permission denied, ignore
                 pass
-
-    # And debugging
-
-    @hidden_command
-    def run_shell(self, opts):
-        """\nDebug method to run a shell"""
-        import code
-        import readline
-        import rlcompleter
-        try:
-            repo = self.repository(opts)
-        except SystemExit:
-            repo = None
-
-        data = {
-            'self':    self,
-            'gitlab':  glapi,
-            'opts':    opts,
-            'repo':    repo,
-        }
-        readline.set_completer(rlcompleter.Completer(data).complete)
-        readline.parse_and_bind("tab: complete")
-        shl = code.InteractiveConsole(data)
-        shl.interact()
-        sys.exit(1)

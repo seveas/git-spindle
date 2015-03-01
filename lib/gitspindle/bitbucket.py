@@ -7,13 +7,12 @@ import sys
 import webbrowser
 import binascii
 
-hidden_command = lambda fnc: os.getenv('DEBUG') and command(fnc)
-
 class BitBucket(GitSpindle):
     prog = 'git bucket'
     what = 'BitBucket'
     spindle = 'bitbucket'
     hosts = ['bitbucket.org', 'www.bitbucket.org']
+    api = bbapi
 
     # Support functions
     def login(self):
@@ -534,26 +533,3 @@ class BitBucket(GitSpindle):
                     print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.label))
                 else:
                     print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
-
-    @hidden_command
-    def run_shell(self, opts):
-        """\nDebug method to run a shell"""
-        import code
-        import readline
-        import rlcompleter
-        try:
-            repo = self.repository(opts)
-        except SystemExit:
-            repo = None
-
-        data = {
-            'self':      self,
-            'bitbucket': bbapi
-            'opts':      opts,
-            'repo':      repo,
-        }
-        readline.set_completer(rlcompleter.Completer(data).complete)
-        readline.parse_and_bind("tab: complete")
-        shl = code.InteractiveConsole(data)
-        shl.interact()
-        sys.exit(1)

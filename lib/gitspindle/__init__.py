@@ -37,6 +37,7 @@ def command(fnc=None, **kwargs):
     fnc.opts = kwargs
     fnc.is_command = True
     return fnc
+hidden_command = lambda fnc: os.getenv('DEBUG') and command(fnc)
 
 class GitSpindle(object):
 
@@ -239,3 +240,30 @@ Options:
         if opts['--host']:
             self.config('host', opts['--host'])
         self.login()
+
+    # And debugging
+    @hidden_command
+    def run_shell(self, opts):
+        """[-c <command>]
+           Debug method to run a shell"""
+        import code
+        import readline
+        import rlcompleter
+        repo = None
+        if self.in_repo or opts['<repo>']:
+            repo = self.repository(opts)
+
+        data = {
+            'self':    self,
+            'opts':    opts,
+            'repo':    repo,
+        }
+        readline.set_completer(rlcompleter.Completer(data).complete)
+        readline.parse_and_bind("tab: complete")
+        shl = code.InteractiveConsole(data)
+        if opts['<command>']:
+            shl.runsource(opts['<command>'])
+            sys.exit(0)
+        else:
+            shl.interact()
+        sys.exit(1)
