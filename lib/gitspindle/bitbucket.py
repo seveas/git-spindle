@@ -2,6 +2,7 @@ from gitspindle import *
 from gitspindle.ansi import *
 import gitspindle.bbapi as bbapi
 import getpass
+import glob
 import os
 import sys
 import webbrowser
@@ -453,6 +454,8 @@ class BitBucket(GitSpindle):
         """[--no-forks] [<user>]
            List all repos of a user, by default yours"""
         repos = self.bb.user(opts['<user>'] or self.my_login).repositories()
+        if not repos:
+            return
         maxlen = max([len(x.name) for x in repos])
         fmt = u"%%-%ds %%5s %%s" % maxlen
         for repo in repos:

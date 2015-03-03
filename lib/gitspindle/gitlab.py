@@ -4,6 +4,7 @@ import gitspindle.glapi as glapi
 import base64
 import datetime
 import getpass
+import glob
 import os
 import sys
 import webbrowser
@@ -541,6 +542,8 @@ class GitLab(GitSpindle):
         """[--no-forks]
            List all your repos"""
         repos = self.gl.Project()
+        if not repos:
+            return
         maxlen = max([len(x.name) for x in repos])
         for repo in repos:
             color = [attr.normal]

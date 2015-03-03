@@ -906,6 +906,8 @@ class GitHub(GitSpindle):
         else:
             repos = list(self.gh.iter_repos(type='all'))
             opts['<user>'] = [self.gh.user().login]
+        if not repos:
+            return
         maxlen = max([len(x.name) for x in repos])
         # XXX github3.py PR 193
         # maxstar = len(str(max([x.stargazers for x in repos])))
