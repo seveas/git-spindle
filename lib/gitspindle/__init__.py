@@ -85,7 +85,7 @@ Options:
         result = self.git(*args, **kwargs)
         if not result:
             if result.stderr:
-                print(result.stderr.rstrip())
+                sys.stderr.write(result.stderr)
             sys.exit(result.returncode)
         return result
 
