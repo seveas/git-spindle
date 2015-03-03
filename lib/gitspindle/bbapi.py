@@ -4,7 +4,7 @@ import requests
 import uritemplate
 
 def check(resp):
-    if resp.status_code not in (200, 201):
+    if resp.status_code not in (200, 201, 204):
         try:
             message = resp.json()['error']['message']
         except (KeyError, ValueError):
@@ -13,6 +13,8 @@ def check(resp):
         if resp.status_code == 401:
             raise BitBucketAuthenticationError(message)
         raise BitBucketError(message)
+    if not resp.content:
+        return None
     return resp.json()
 
 class Bitbucket(object):
@@ -58,7 +60,9 @@ class BBobject(object):
             for instance in self.get(self.url[0]):
                 kw = kwargs.copy()
                 kw.update(instance)
-                self.instances.append(type(self)(self.bb, mode=None, **kw))
+                instance = type(self)(self.bb, mode=None, **kw)
+                instance.url = [uritemplate.expand(x, **kw) for x in instance.uri]
+                self.instances.append(instance)
         else:
             self.data = kwargs
         for datum in self.data:
@@ -78,6 +82,10 @@ class BBobject(object):
     def post(self, *args, **kwargs):
         kwargs.update({'auth': (self.bb.username, self.bb.passwd)})
         return check(requests.post(*args, **kwargs))
+
+    def delete_(self, *args, **kwargs):
+        kwargs.update({'auth': (self.bb.username, self.bb.passwd)})
+        return check(requests.delete(*args, **kwargs))
 
 class User(BBobject):
     uri = 'https://bitbucket.org/api/2.0/users/{username}'
@@ -177,11 +185,22 @@ class Repository(BBobject):
     def src(self, revision, path):
         return Source(self.bb, owner=self.owner['username'], slug=self.slug, revision=revision, path=path.split('/'))
 
+    def delete(self):
+        if not hasattr(self, 'url'):
+            data = {'owner': self.owner['username'], 'slug': self.name}
+            self.url = [uritemplate.expand(x, **data) for x in self.uri]
+        return self.delete_(self.url[1])
+
 class Branch(BBobject):
     uri = None
 
 class Key(BBobject):
     uri = 'https://bitbucket.org/api/1.0/users/{user}/ssh-keys'
+
+    def delete(self):
+        if not hasattr(self, 'url'):
+            self.url = [uritemplate.expand(x, user=self.owner['username']) for x in self.uri]
+        self.delete_(self.url[0] + '/%d' % self.pk)
 
 class Issue(BBobject):
     uri = 'https://bitbucket.org/api/1.0/repositories/{owner}/{slug}/issues/{id}'

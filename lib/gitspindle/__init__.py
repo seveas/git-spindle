@@ -267,3 +267,32 @@ Options:
         else:
             shl.interact()
         sys.exit(1)
+
+    @hidden_command
+    def test_cleanup(self, opts):
+        """\nDelete all keys and repos of an account, used in tests"""
+        if 'test' not in self.my_login:
+            raise RuntimeError("Can only clean up test accounts")
+
+        if self.api.__name__ == 'github3':
+            for key in self.gh.iter_keys():
+                key.delete()
+            for repo in self.gh.iter_repos():
+                if repo.owner.login == self.my_login:
+                    if not repo.delete():
+                        raise RuntimeError("Deleting repository failed")
+
+        elif self.api.__name__ == 'gitspindle.bbapi':
+            for key in self.me.keys():
+                key.delete()
+            for repo in self.me.repositories():
+                repo.delete()
+
+        elif self.api.__name__ == 'gitspindle.glapi':
+            for key in self.me.Key():
+                key.delete()
+            for repo in self.gl.Project():
+                repo.delete()
+
+        else:
+            raise UtterConfusion()
