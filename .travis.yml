@@ -1,0 +1,16 @@
+language: erlang # no shell language support; use least-loaded worker(s)
+
+env:
+  - TEST_OPTS=-v
+  - DEFAULT_TEST_TARGET=prove
+
+install:
+  - sudo make install prefix=/usr/local
+
+script:
+  - make test
+  - sudo make -C /usr/local/share/doc/sharness/examples
+
+branches:
+  only:
+    - master
