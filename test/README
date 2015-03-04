@@ -1,0 +1,60 @@
+git-spindle testsuite
+=====================
+This is the testsuite for git-spindle. It is not easy to use, as it requires at
+least ten accounts on various different services. If you still want to have a
+go at it, these instructions should help.
+
+
+Accounts
+--------
+You will need 3 accounts on each of gitlab.com, bitbucket.org and github.com.
+The word 'test' must appear in their name. You will also need a local GitLab
+instance, where a user 'Seveas' must exist and have a public repo 'whelk'.
+
+All these accounts must be added to a .gitspindle file in this directory. It's
+probably easiest to add them to your local .gitspindle file with the
+add-account command and then copy them over.
+
+Note that for GitHub accounts you must manually grant the delete_repo scope
+after creating the account. This can be done on
+https://github.com/settings/applications
+
+The git-spindle account names are hardcoded as below:
+
+[gitlab "gitlab-test-1"]
+[gitlab "gitlab-test-2"]
+[gitlab "gitlab-test-3"]
+[gitlab "gitlab-test-local"]
+
+[github "github-test-1"]
+[github "github-test-2"]
+[github "github-test-3"]
+
+[bitbucket "bitbucket-test-1"]
+[bitbucket "bitbucket-test-2"]
+[bitbucket "bitbucket-test-3"]
+
+After creating the .gitspindle file, copy over the [github "github-test-1"]
+section to a [github] section. Same for gitlab and bitbucket.
+
+
+Running the testsuite
+---------------------
+While setting up tests is difficult, running them is as easy as 'make test' and
+grabbing a cup of coffee. Each individual test can be run by simply running it
+from the test directory. But beware that quite a few tests depend on each
+other, so make sure any failures you get when doing this are not the result of
+this fact.
+
+
+Adding to the testsuite
+-----------------------
+The testsuite is divided in sections for different functionality. When you add
+a test, add it to the right section.
+
+0xx: basics, cleanups and users
+1xx: repo creation (create, clone, fork, forks, parent, set_origin, add_remote)
+2xx: repo inspection (browse, cat, ls)
+3xx: issues (issue, issues, pull requests, apply)
+4xx: misc goodies (mirroring, log, hooks/services)
+9xx: github goodies (gists, calendar, ignore, say, status, network, render)
