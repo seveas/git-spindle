@@ -47,9 +47,7 @@ class BBobject(object):
         if mode:
             self.url = [uritemplate.expand(x, **kwargs) for x in self.uri]
         self.data = {}
-        if mode == 'create':
-            self.data = self.post(self.url[0], data=kwargs)
-        elif mode == 'fetch':
+        if mode == 'fetch':
             for arg in kwargs:
                 setattr(self, arg, kwargs[arg])
             self.data = {}
@@ -68,10 +66,6 @@ class BBobject(object):
                 setattr(self, '_' + datum, self.data[datum])
             else:
                 setattr(self, datum, self.data[datum])
-
-    @classmethod
-    def create(klass, bb, **kwargs):
-        return klass(bb, mode="create", **kwargs)
 
     @classmethod
     def list(klass, bb, **kwargs):
@@ -99,10 +93,14 @@ class User(BBobject):
         return Repository(self.bb, owner=self.username, slug=slug)
 
     def create_repository(self, slug, description, is_private):
-        return Repository.create(self.bb, owner=self.username, slug=slug, description=description, is_private=is_private)
+        data = {'owner': self.username, 'slug': slug, 'description': description, 'is_private': is_private, 'scm': 'git'}
+        repo = self.post(uritemplate.expand(Repository.uri[1], slug=slug, owner=self.username), data=json.dumps(data), headers={'content-type': 'application/json'})
+        return Repository(self.bb, mode=None, **repo)
 
     def create_key(self, key, label):
-        return Key.create(self.bb, user=self.username, key=key, label=label)
+        url = uritemplate.expand(Key.uri, user=self.username)
+        data = self.post(url, data={'user': self.username, 'key': key, 'label': label})
+        return Key(self.bb, mode=None, **data)
 
     def keys(self):
         return Key.list(self.bb, user=self.username)
@@ -126,6 +124,8 @@ class Repository(BBobject):
 
     def __init__(self, *args, **kwargs):
         super(Repository, self).__init__(*args, **kwargs)
+        if not hasattr(self, 'links'):
+            return
         links, self.links['clone'] = self.links['clone'], {}
         for link in links:
             self.links['clone'][link['name']] = ssh_fix(link['href'])
