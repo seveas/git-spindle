@@ -73,7 +73,7 @@ class GitLab(GitSpindle):
         if opts['--ssh'] or not repo.public:
             return repo.ssh_url_to_repo
         if opts['--http']:
-            return repo.http_url_ro_repo
+            return repo.http_url_to_repo
         if repo.owner.username == self.my_login:
             return repo.ssh_url_to_repo
         return repo.http_url_to_repo
@@ -230,7 +230,7 @@ class GitLab(GitSpindle):
 
         args = opts['extra-opts']
         args.append(url)
-        dir = opts['<dir>'] or repo.name
+        dir = opts['<dir>'] and opts['<dir>'][0] or repo.name
         if '--bare' in args:
             dir += '.git'
         args.append(dir)

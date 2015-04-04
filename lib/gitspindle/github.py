@@ -318,7 +318,7 @@ class GitHub(GitSpindle):
         url = self.clone_url(repo, opts)
         args = opts['extra-opts']
         args.append(url)
-        dir = opts['<dir>'] or repo.name
+        dir = opts['<dir>'] and opts['<dir>'][0] or repo.name
         if '--bare' in args:
             dir += '.git'
         args.append(dir)
