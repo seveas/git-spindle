@@ -21,6 +21,10 @@ for spindle in hub lab bb; do test_expect_success "Add and retrieve keys ($spind
     test_cmp expected actual
 "; done
 
+# Keep the keys for later
+rm -rf "$SHARNESS_TEST_DIRECTORY/.ssh"
+mv .ssh "$SHARNESS_TEST_DIRECTORY"
+
 test_done
 
 # vim: set syntax=sh:

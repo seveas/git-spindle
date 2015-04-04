@@ -1,5 +1,6 @@
 *.py?
 .gitspindle
+.ssh
 MANIFEST
 __pycache__
 _build

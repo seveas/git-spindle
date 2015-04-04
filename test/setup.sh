@@ -1,5 +1,7 @@
 . ./sharness.sh
 
+unset SSH_AUTH_SOCK
+
 if [ ! -e "$SHARNESS_TEST_DIRECTORY/.gitspindle" ]; then
     echo "No .gitspindle found in test directory, aborting">&2
     exit 1
@@ -9,6 +11,7 @@ cp "$SHARNESS_TEST_DIRECTORY/.gitspindle" .
 export PYTHONPATH="$SHARNESS_BUILD_DIRECTORY/lib"
 export PATH="$SHARNESS_TEST_DIRECTORY/bin:$PATH"
 export GIT_CEILING_DIRECTORIES="$SHARNESS_BUILD_DIRECTORY"
+export GIT_SSH="$SHARNESS_TEST_DIRECTORY/bin/ssh"
 
 if [ x"$PYTHON" = x ]; then
     PYTHON=python
