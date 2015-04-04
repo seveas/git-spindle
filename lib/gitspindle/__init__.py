@@ -151,15 +151,12 @@ Options:
                 if first:
                     host, user, repo = first
 
-        if not repo:
-            err("Could not find a %s repository in .git/config" % self.what)
-
-        if repo.endswith('.git'):
-            repo = repo[:-4]
-
         if hostname_only:
             return host
-
+        if repo and repo.endswith('.git'):
+            repo = repo[:-4]
+        if not repo:
+            remote, user, repo  = None, self.my_login, os.path.basename(os.getcwd())
         repo_ = self.get_repo(remote, user, repo)
 
         if not repo_:
