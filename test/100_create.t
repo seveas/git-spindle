@@ -19,7 +19,6 @@ for spindle in hub lab bb; do
         test_cmp expected actual &&
         git push -u origin refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
     "
-
 done;
 
 test_expect_failure "Create repo with a description" "false"

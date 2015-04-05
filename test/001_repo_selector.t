@@ -95,6 +95,10 @@ test_expect_success "Test outside repo" "
 
     test_cmp expected actual
 "
+
+test_expect_failure "Test fake GHE by pointing another name to GitHub" "false"
+test_expect_failure "Test BitBucket CNAMEs" "false"
+
 test_done
 
 # vim: set syntax=sh:

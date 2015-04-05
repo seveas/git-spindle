@@ -19,6 +19,9 @@ test_expect_success "Clone with extra args" "
     test -d whelk.git
 "
 
+test_expect_failure "Test cloning where name != slug" "false"
+test_expect_failure "Test cloning with --parent" "false"
+
 test_done
 
 # vim: set syntax=sh:
