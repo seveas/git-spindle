@@ -138,11 +138,11 @@ class Repository(BBobject):
         for link in links:
             self.links['clone'][link['name']] = ssh_fix(link['href'])
 
-    def fork(self, data):
+    def fork(self):
         self.post(self.url[0] + '/fork', data={'name': self.name})
         for _ in range(5):
             try:
-                return self.bb.repository(data['owner'], data['slug'])
+                return self.bb.repository(self.bb.username, self.name)
             except BitBucketError:
                 print("Waiting for repository to be forked...")
 
