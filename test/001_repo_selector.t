@@ -38,9 +38,9 @@ test_expect_success "Specifying a repo on the command line" "
     echo seveas/python-hpilo >> expected &&
     echo seveas/python-hpilo >> expected &&
 
-    git_hub run-shell -c \"self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False})\" > actual &&
-    git_lab run-shell -c \"r = self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False}); print('%s/%s' % (r.owner.username, r.name))\" >> actual &&
-    git_bb run-shell -c \"r = self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False}); print('%s/%s' % (r.owner['username'], r.name))\" >> actual &&
+    git_hub run-shell -c \"self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False, '--maybe-parent': False})\" > actual &&
+    git_lab run-shell -c \"r = self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False, '--maybe-parent': False}); print('%s/%s' % (r.owner.username, r.name))\" >> actual &&
+    git_bb run-shell -c \"r = self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False, '--maybe-parent': False}); print('%s/%s' % (r.owner['username'], r.name))\" >> actual &&
 
     test_cmp expected actual
 "

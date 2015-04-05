@@ -163,7 +163,8 @@ class GitHub(GitSpindle):
             print("Cherry-picking %d commit(s): %s..refs/pull/%d/head" % (pr.commits, pr.base.ref, pr.number))
             self.gitm('cherry-pick', '%s..refs/pull/%d/head' % (pr.base.ref, pr.number), redirect=False)
 
-    @command(**{'--parent': True})
+    @command
+    @wants_parent
     def add_remote(self, opts):
         """[--ssh|--http|--git] <user>...
            Add user's fork as a remote by that name"""
@@ -387,7 +388,8 @@ class GitHub(GitSpindle):
         else:
             self.set_origin(opts)
 
-    @command(**{'--parent': True})
+    @command
+    @wants_parent
     def forks(self, opts):
         """[<repo>]
            List all forks of this repository"""
@@ -943,7 +945,8 @@ class GitHub(GitSpindle):
         print(msg)
 
 
-    @command(**{'--parent': True})
+    @command
+    @wants_parent
     def setup_goblet(self, opts):
         """\nSet up goblet config based on GitHub config"""
         repo = self.repository(opts)

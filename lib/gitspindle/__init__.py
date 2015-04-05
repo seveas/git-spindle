@@ -7,7 +7,7 @@ import sys
 import tempfile
 import whelk
 
-__all__ = ['GitSpindle', 'command']
+__all__ = ['GitSpindle', 'command', 'wants_parent']
 NO_VALUE_SENTINEL = 'NO_VALUE_SENTINEL'
 
 __builtins__['PY3'] = sys.version_info[0] > 2
@@ -31,13 +31,14 @@ import pprint
 __builtins__['pprint'] = pprint.pprint
 del pprint
 
-def command(fnc=None, **kwargs):
-    if not fnc:
-        return lambda func: command(func, **kwargs)
-    fnc.opts = kwargs
+def command(fnc):
     fnc.is_command = True
     return fnc
 hidden_command = lambda fnc: os.getenv('DEBUG') and command(fnc)
+
+def wants_parent(fnc):
+    fnc.wants_parent = True
+    return fnc
 
 class GitSpindle(object):
 
@@ -162,11 +163,12 @@ Options:
         if not repo_:
             err("Repository %s/%s could not be found on %s" % (user, repo, self.what))
 
-        if opts['--parent']:
+        if opts['--parent'] or opts['--maybe-parent']:
             parent = self.parent_repo(repo_)
-            if not parent:
+            if parent:
+                repo_ = parent
+            elif opts['--parent']:
                 err("No parent repo found for %s/%s" % (user, repo))
-            repo_ = parent
 
         return repo_
 
@@ -222,7 +224,7 @@ Options:
                     opts[command] = True
                 else:
                     opts['extra-opts'] = []
-                opts.update(func.opts)
+                opts['--maybe-parent'] = getattr(func, 'wants_parent', False)
                 try:
                     func(opts)
                 except KeyboardInterrupt:

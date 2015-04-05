@@ -75,7 +75,8 @@ class BitBucket(GitSpindle):
             print("Adding %s" % arg)
             self.me.create_key(label=title, key=key)
 
-    @command(**{'--parent': True})
+    @command
+    @wants_parent
     def add_remote(self, opts):
         """[--ssh|--http] <user>...
            Add user's fork as a remote by that name"""
@@ -85,7 +86,8 @@ class BitBucket(GitSpindle):
                 self.gitm('remote', 'add', fork.owner['username'], url)
                 self.gitm('fetch', fork.owner['username'], redirect=False)
 
-    @command(**{'--parent': True})
+    @command
+    @wants_parent
     def apply_pr(self, opts):
         """<pr-number>
            Applies a pull request as a series of cherry-picks"""
@@ -218,7 +220,8 @@ class BitBucket(GitSpindle):
         else:
             self.set_origin(opts)
 
-    @command(**{'--parent': True})
+    @command
+    @wants_parent
     def forks(self, opts):
         """[<repo>]
            List all forks of this repository"""
