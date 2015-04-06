@@ -28,6 +28,7 @@ Usage:
 
 (For detailed information, go to http://seveas.github.com/git-spindle)
 
+  git hub add-account [--host=<host>] <alias>
   git hub add-hook <name> [<setting>...]
   git hub add-public-keys [<key>...]
   git hub add-remote [--ssh|--http|--git] <user>...
@@ -63,6 +64,7 @@ Usage:
   git hub whoami
   git hub whois <user>...
 
+  git lab add-account [--host=<host>] <alias>
   git lab add-public-keys [<key>...]
   git lab add-remote [--ssh|--http] <user>...
   git lab apply-merge <merge-request-number>
@@ -84,6 +86,7 @@ Usage:
   git lab whoami
   git lab whois <user>...
 
+  git bb add-account [--host=<host>] <alias>
   git bb add-public-keys [<key>...]
   git bb add-remote [--ssh|--http] <user>...
   git bb apply-pr <pr-number>
