@@ -46,6 +46,12 @@ Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 Display all public keys of a user, in a format that can be added to
 :file:`~/.authorized_keys`.
 
+.. describe:: git bb config [--unset] <key> [<value>]
+
+Set, get or unset a configuration variable in :file:`~/.gitspindle`. Similar to
+:command:`git config`, but only single-level keys are allowed, and the section
+is hardcoded to be the current account.
+
 Interacting with repositories
 -----------------------------
 

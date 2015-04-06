@@ -59,6 +59,12 @@ other users.
 Displays a log of actions done to a repository, such as pushes and issue
 comments.
 
+.. describe:: git lab config [--unset] <key> [<value>]
+
+Set, get or unset a configuration variable in :file:`~/.gitspindle`. Similar to
+:command:`git config`, but only single-level keys are allowed, and the section
+is hardcoded to be the current account.
+
 Interacting with repositories
 -----------------------------
 

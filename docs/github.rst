@@ -83,7 +83,14 @@ instead of yours.
 If you are only interested in events of a specific type, you can filter for it,
 e.g. :option:`--type=push`.
 
+.. describe:: git hub config [--unset] <key> [<value>]
+
+Set, get or unset a configuration variable in :file:`~/.gitspindle`. Similar to
+:command:`git config`, but only single-level keys are allowed, and the section
+is hardcoded to be the current account.
+
 .. _`profile page`: https://github.com/settings/applications
+
 
 Interacting with repositories
 -----------------------------

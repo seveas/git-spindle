@@ -67,6 +67,8 @@ Usage:\n""" % (self.prog, self.what)
             fnc = getattr(self, name)
             if not getattr(fnc, 'is_command', False):
                 continue
+            if name.endswith('_'):
+                name = name[:-1]
             name = name.replace('_', '-')
             self.commands[name] = fnc
             self.usage += ('  %s %s %s %s\n' % (self.prog, '[options]', name, fnc.__doc__.split('\n', 1)[0].strip()))
@@ -239,6 +241,21 @@ Options:
         if opts['--host']:
             self.config('host', opts['--host'])
         self.login()
+
+    @command
+    def config_(self, opts):
+        """[--unset] <key> [<value>]
+           Configure git-spindle, similar to git-config"""
+        key = opts['<key>'][0]
+        value = opts['<value>']
+        if '.' in key:
+            err("Keys should be single-level only, the section is always the current account")
+        if opts['--unset']:
+            self.config(key, None)
+        elif value is not None:
+            self.config(key, value)
+        else:
+            print(self.config(key))
 
     # And debugging
     @hidden_command
