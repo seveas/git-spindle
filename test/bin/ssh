@@ -1,2 +1,3 @@
-#!/bin/sh
-exec /usr/bin/ssh -i "$SHARNESS_TEST_DIRECTORY/.ssh/id_rsa" "$@"
+#!/bin/bash
+NUM=${GITSPINDLE_ACCOUNT/*-/}
+exec /usr/bin/ssh -i "$SHARNESS_TEST_DIRECTORY/.ssh/id_rsa-$NUM" "$@"

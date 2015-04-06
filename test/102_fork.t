@@ -14,7 +14,7 @@ for spindle in hub lab bb; do
     test_expect_success "Create repo ($spindle)" "
         ( cd python-hpilo &&
         git_${spindle}_1 create &&
-        git push -u origin refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
+        git_1 push -u origin refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
     "
 done
 
@@ -32,6 +32,9 @@ for spindle in hub lab bb; do
         src=\$(export DEBUG=1; git_${spindle}_1 run-shell -c 'print self.my_login') &&
         git_${spindle}_2 fork \$src/whelk &&
         git_${spindle}_2 repos | grep whelk &&
+        (cd whelk &&
+        test_commit &&
+        git_2 push) &&
         rm -rf whelk
     "
 done
@@ -48,6 +51,7 @@ for spindle in hub bb; do
 done
 
 test_expect_failure "Testing fork with extra clone options" "false"
+test_expect_failure "Testing fork of a forked repo" "false"
 
 test_done
 

@@ -195,7 +195,7 @@ Options:
     def main(self):
         argv = self.prog.split()[1:] + sys.argv[1:]
         opts = docopt.docopt(self.usage, argv)
-        self.account = opts['--account']
+        self.account = opts['--account'] or os.environ.get('GITSPINDLE_ACCOUNT', None)
         if self.account and not self.config('user'):
             err("%s does not yet know about %s. Use %s add-account to configure it" % (self.prog, self.account, self.prog))
         hosts = self.git('config', '--file', self.config_file, '--get-regexp', '%s.*host' % self.spindle).stdout.strip()
@@ -215,6 +215,8 @@ Options:
             if host in self.accounts:
                 self.account = self.accounts[host]
                 self.hosts = [host]
+
+        os.environ['GITSPINDLE_ACCOUNT'] = self.account or self.spindle
 
         for command, func in self.commands.items():
             if opts[command]:

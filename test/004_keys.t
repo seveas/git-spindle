@@ -5,10 +5,9 @@ test_description="User information display test"
 . ./setup.sh
 
 test_expect_success "Generating keys" "
-    ssh-keygen -trsa -N '' -f id_rsa -C git-spindle-test-key-1 -q &&
     mkdir .ssh &&
-    ssh-keygen -trsa -N '' -f .ssh/id_rsa -C git-spindle-test-key-2 -q &&
-
+    ssh-keygen -trsa -N '' -f .ssh/id_rsa -C git-spindle-1-test-key-1 -q &&
+    ssh-keygen -trsa -N '' -f id_rsa -C git-spindle-1-test-key-2 &&
     cat id_rsa.pub .ssh/id_rsa.pub | sort > expected
 "
 
@@ -21,7 +20,20 @@ for spindle in hub lab bb; do test_expect_success "Add and retrieve keys ($spind
     test_cmp expected actual
 "; done
 
+
+test_expect_success "Generating more keys" "
+    ssh-keygen -trsa -N '' -f .ssh/id_rsa-2 -C git-spindle-2-test-key-1 -q &&
+    ssh-keygen -trsa -N '' -f .ssh/id_rsa-3 -C git-spindle-3-test-key-1 -q
+"
+
+for spindle in hub lab bb; do test_expect_success "Adding keys for other users ($spindle)" "
+    git_${spindle}_2 add-public-keys .ssh/id_rsa-2.pub &&
+    git_${spindle}_3 add-public-keys .ssh/id_rsa-3.pub
+"; done
+
 # Keep the keys for later
+mv .ssh/id_rsa .ssh/id_rsa-1
+mv .ssh/id_rsa.pub .ssh/id_rsa-1.pub
 rm -rf "$SHARNESS_TEST_DIRECTORY/.ssh"
 mv .ssh "$SHARNESS_TEST_DIRECTORY"
 

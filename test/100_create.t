@@ -17,7 +17,7 @@ for spindle in hub lab bb; do
         git_${spindle}_1 create &&
         git_${spindle}_1 repos | sed -e 's/ .*//' > actual &&
         test_cmp expected actual &&
-        git push -u origin refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
+        git_1 push -u origin refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
     "
 done;
 
