@@ -60,7 +60,7 @@ class GitHub(GitSpindle):
             token = auth.token
             self.config('token', token)
             self.config('auth_id', auth.id)
-            print("A GitHub authentication token is now cached in ~/.gitspindle - do not share this file")
+            print("A GitHub authentication token is now cached in %s - do not share this file" % self.config_file)
             print("To revoke access, visit https://github.com/settings/applications")
 
         if not user or not token:

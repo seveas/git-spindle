@@ -37,7 +37,7 @@ class GitLab(GitSpindle):
             self.gl.auth()
             token = self.gl.user.private_token
             self.config('token', token)
-            print("Your GitLab authentication token is now cached in ~/.gitspindle - do not share this file")
+            print("Your GitLab authentication token is now cached in %s - do not share this file" % self.config_file)
 
         if not user or not token:
             err("No user or token specified")

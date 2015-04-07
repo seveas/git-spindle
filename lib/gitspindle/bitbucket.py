@@ -30,7 +30,7 @@ class BitBucket(GitSpindle):
             except:
                 err("Authentication failed")
             self.config('password', password)
-            print("Your BitBucket authentication password is now cached in ~/.gitspindle - do not share this file")
+            print("Your BitBucket authentication password is now cached in %s - do not share this file" % self.config_file)
 
         self.bb = bbapi.Bitbucket(user, password)
         self.me = self.bb.user(user)
