@@ -328,7 +328,6 @@ class GitHub(GitSpindle):
         if repo.fork:
             os.chdir(dir)
             self.set_origin(opts)
-            self.gitm('fetch', 'upstream', redirect=False)
 
     @command
     def create(self, opts):
@@ -339,7 +338,11 @@ class GitHub(GitSpindle):
         if name in [x.name for x in self.gh.iter_repos()]:
             err("Repository already exists")
         self.gh.create_repo(name=name, description=opts['<description>'] or "", private=opts['--private'])
-        self.set_origin(opts)
+        if 'origin' in self.remotes():
+            print("Remote 'origin' already exists, adding the GitHub repository as 'github'")
+            self.set_origin(opts, 'github')
+        else:
+            self.set_origin(opts)
 
     @command
     def edit_hook(self, opts):
@@ -963,7 +966,7 @@ class GitHub(GitSpindle):
             os.chmod(goblet_dir, 0o777)
 
     @command
-    def set_origin(self, opts):
+    def set_origin(self, opts, remote='origin'):
         """[--ssh|--http|--git]
            Set the remote 'origin' to github.
            If this is a fork, set the remote 'upstream' to the parent"""
@@ -975,11 +978,10 @@ class GitHub(GitSpindle):
                 repo = my_repo
 
         url = self.clone_url(repo, opts)
-        if self.git('config', 'remote.origin.url').stdout.strip() != url:
-            print("Pointing origin to %s" % url)
-            self.gitm('config', 'remote.origin.url', url)
-            self.gitm('fetch', 'origin', redirect=False)
-        self.gitm('config', '--replace-all', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
+        if self.git('config', 'remote.%s.url' % remote).stdout.strip() != url:
+            print("Pointing %s to %s" % (remote, url))
+            self.gitm('config', 'remote.%s.url' % remote, url)
+        self.gitm('config', '--replace-all', 'remote.%s.fetch' % remote, '+refs/heads/*:refs/remotes/%s/*' % remote)
 
         if repo.fork:
             parent = repo.parent
@@ -995,7 +997,15 @@ class GitHub(GitSpindle):
             except github3.GitHubError:
                 pass
             else:
-                self.gitm('config', '--add', 'remote.origin.fetch', '+refs/pull/*/head:refs/pull/*/head')
+                self.gitm('config', '--add', 'remote.%s.fetch' % remote, '+refs/pull/*/head:refs/pull/*/head')
+
+        if self.git('ls-remote', remote).stdout.strip():
+            self.gitm('fetch', remote, redirect=False)
+        if repo.fork:
+            self.gitm('fetch', 'upstream', redirect=False)
+
+        if remote != 'origin':
+            return
 
         for branch in self.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
             branch = branch.split(None, 2)[-1][11:]

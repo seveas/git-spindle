@@ -196,7 +196,11 @@ class BitBucket(GitSpindle):
             pass
 
         self.me.create_repository(slug=name, description=opts['-d'], is_private=opts['--private'])
-        self.set_origin(opts)
+        if 'origin' in self.remotes():
+            print("Remote 'origin' already exists, adding the BitBucket repository as 'bitbucket'")
+            self.set_origin(opts, 'bitbucket')
+        else:
+            self.set_origin(opts)
 
     @command
     def fork(self, opts):
@@ -472,7 +476,7 @@ class BitBucket(GitSpindle):
             print(wrap(fmt % (repo.name, '(%s)' % repo.scm, repo.description), *color))
 
     @command
-    def set_origin(self, opts):
+    def set_origin(self, opts, remote='origin'):
         """[--ssh|--http]
            Set the remote 'origin' to github.
            If this is a fork, set the remote 'upstream' to the parent"""
@@ -485,11 +489,10 @@ class BitBucket(GitSpindle):
                 pass
 
         url = self.clone_url(repo, opts)
-        if self.git('config', 'remote.origin.url').stdout.strip() != url:
-            print("Pointing origin to %s" % url)
-            self.gitm('config', 'remote.origin.url', url)
-            self.gitm('fetch', 'origin', redirect=False)
-        self.gitm('config', '--replace-all', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*')
+        if self.git('config', 'remote.%s.url' % remote).stdout.strip() != url:
+            print("Pointing %s to %s" % (remote, url))
+            self.gitm('config', 'remote.%s.url' % remote, url)
+        self.gitm('config', '--replace-all', 'remote.%s.fetch' % remote, '+refs/heads/*:refs/remotes/origin/*')
 
         if repo.is_fork:
             parent = self.bb.repository(repo.fork_of['owner'], repo.fork_of['slug'])
@@ -498,6 +501,14 @@ class BitBucket(GitSpindle):
                 print("Pointing upstream to %s" % url)
                 self.gitm('config', 'remote.upstream.url', url)
             self.gitm('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
+
+        if self.git('ls-remote', remote).stdout.strip():
+            self.gitm('fetch', remote, redirect=False)
+        if repo.is_fork:
+            self.gitm('fetch', 'upstream', redirect=False)
+
+        if remote != 'origin':
+            return
 
         for branch in self.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
             branch = branch.split(None, 2)[-1][11:]

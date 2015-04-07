@@ -122,6 +122,15 @@ Options:
             return [None, None, None]
         return [url.hostname] + self.parse_url(url)
 
+    def remotes(self):
+        confremotes = self.git('config', '--get-regexp', 'remote\..*\.url').stdout.strip().splitlines()
+        ret = {}
+        for remote in confremotes:
+            remote, url = remote.split()
+            remote = remote.split('.')[1]
+            ret[remote] = url
+        return ret
+
     def repository(self, opts, hostname_only=False):
         # How do we select a repo?
         # - Did we request one with --repo?

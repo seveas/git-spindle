@@ -240,7 +240,6 @@ class GitLab(GitSpindle):
         if hasattr(repo, 'forked_from_project'):
             os.chdir(dir)
             self.set_origin(opts)
-            self.gitm('fetch', 'upstream', redirect=False)
 
     @command
     def create(self, opts):
@@ -256,7 +255,11 @@ class GitLab(GitSpindle):
         elif opts['--private']:
             visibility_level = 10
         glapi.Project(self.gl, {'name': name, 'description': opts['<description>'] or "", 'visibility_level': visibility_level}).save()
-        self.set_origin(opts)
+        if 'origin' in self.remotes():
+            print("Remote 'origin' already exists, adding the GitLab repository as 'gitlab'")
+            self.set_origin(opts, 'gitlab')
+        else:
+            self.set_origin(opts)
 
     @command
     def fork(self, opts):
@@ -564,7 +567,7 @@ class GitLab(GitSpindle):
             print(msg)
 
     @command
-    def set_origin(self, opts):
+    def set_origin(self, opts, remote='origin'):
         """[--ssh|--http]
            Set the remote 'origin' to gitlab.
            If this is a fork, set the remote 'upstream' to the parent"""
@@ -576,11 +579,11 @@ class GitLab(GitSpindle):
                 repo = my_repo
 
         url = self.clone_url(repo, opts)
-        if self.git('config', 'remote.origin.url').stdout.strip() != url:
-            print("Pointing origin to %s" % url)
-            self.gitm('config', 'remote.origin.url', url)
-            self.gitm('config', 'remote.origin.gitlab-id', repo.id)
-            self.gitm('fetch', 'origin', redirect=False)
+        if self.git('config', 'remote.%s.url' % remote).stdout.strip() != url:
+            print("Pointing %s to %s" % (remote, url))
+            self.gitm('config', 'remote.%s.url' % remote, url)
+            self.gitm('config', 'remote.%s.gitlab-id' % remote, repo.id)
+        self.gitm('config', '--replace-all', 'remote.%s.fetch' % remote, '+refs/heads/*:refs/remotes/%s/*' % remote)
 
         parent = self.parent_repo(repo)
         if parent:
@@ -590,6 +593,14 @@ class GitLab(GitSpindle):
                 self.gitm('config', 'remote.upstream.url', url)
                 self.gitm('config', 'remote.upstream.gitlab-id', parent.id)
             self.gitm('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
+
+        if self.git('ls-remote', remote).stdout.strip():
+            self.gitm('fetch', remote, redirect=False)
+        if parent:
+            self.gitm('fetch', 'upstream', redirect=False)
+
+        if remote != 'origin':
+            return
 
         for branch in self.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
             branch = branch.split(None, 2)[-1][11:]
