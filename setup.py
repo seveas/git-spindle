@@ -1,7 +1,7 @@
 from distutils.core import setup
 
 setup(name='git-spindle',
-    version="2.3",
+    version="2.4",
     description='Git subcommands for integrating with central services like github, gitlab and bitbucket',
     author='Dennis Kaarsemaker',
     author_email='dennis@kaarsemaker.net',
