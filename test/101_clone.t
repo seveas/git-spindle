@@ -6,7 +6,7 @@ test_description="Clone repositories"
 
 for spindle in hub lab bb; do 
     test_expect_success "Clone repo ($spindle)" "
-        src=\$(export DEBUG=1; git_${spindle}_1 run-shell -c 'print self.my_login') &&
+        src=\$(export DEBUG=1; git_${spindle}_1 run-shell -c 'print(self.my_login)') &&
         git_${spindle}_2 clone --ssh \$src/whelk whelk-$spindle-ssh &&
         test -d whelk-$spindle-ssh &&
         git_${spindle}_2 clone --http \$src/whelk whelk-$spindle-http &&

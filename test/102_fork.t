@@ -29,7 +29,7 @@ done
 
 for spindle in hub lab bb; do 
     test_expect_success "Forking not-yet cloned repo ($spindle)" "
-        src=\$(export DEBUG=1; git_${spindle}_1 run-shell -c 'print self.my_login') &&
+        src=\$(export DEBUG=1; git_${spindle}_1 run-shell -c 'print(self.my_login)') &&
         git_${spindle}_2 fork \$src/whelk &&
         git_${spindle}_2 repos | grep whelk &&
         (cd whelk &&
@@ -41,8 +41,8 @@ done
 
 for spindle in hub bb; do 
     test_expect_success "Listing forks" "
-        dst=\$(export DEBUG=1; git_${spindle}_1 run-shell -c 'print self.my_login') &&
-        dst=\$(export DEBUG=1; git_${spindle}_2 run-shell -c 'print self.my_login') &&
+        dst=\$(export DEBUG=1; git_${spindle}_1 run-shell -c 'print(self.my_login)') &&
+        dst=\$(export DEBUG=1; git_${spindle}_2 run-shell -c 'print(self.my_login)') &&
         git_${spindle}_1 forks whelk >actual &&
         grep \$dst actual &&
         git_${spindle}_2 forks whelk >actual &&
