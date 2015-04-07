@@ -23,6 +23,7 @@ class GitLab(GitSpindle):
         host = self.config('host') or 'https://gitlab.com'
         if not host.startswith(('http://', 'https://')):
             host = 'https://' + host
+        self.host = host
 
         user = self.config('user')
         if not user:
@@ -103,7 +104,7 @@ class GitLab(GitSpindle):
             pass
 
     def profile_url(self, user):
-        return 'https://gitlab.com/u/%s' % user.username
+        return '%s/u/%s' % (self.host, user.username)
 
     def issue_url(self, issue):
         repo = self.gl.Project(issue.project_id)
