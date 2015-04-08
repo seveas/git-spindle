@@ -25,7 +25,7 @@ class GitHub(GitSpindle):
     def login(self):
         host = self.config('host')
         if host and host not in ('https://api.github.com', 'api.github.com'):
-            if not hosts.startswith(('http://', 'https://')):
+            if not host.startswith(('http://', 'https://')):
                 host = 'https://' + host
             self.gh = github3.GitHubEnterprise(url=host)
         else:
