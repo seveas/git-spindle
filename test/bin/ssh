@@ -1,3 +1,4 @@
 #!/bin/bash
-NUM=${GITSPINDLE_ACCOUNT/*-/}
+NUM=${GITSPINDLE_ACCOUNT//[-a-z]}
+NUM=${NUM:-1}
 exec /usr/bin/ssh -i "$SHARNESS_TEST_DIRECTORY/.ssh/id_rsa-$NUM" "$@"

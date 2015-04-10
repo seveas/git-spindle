@@ -38,6 +38,17 @@ EOF
     test_cmp expected actual
 "
 
+test_expect_success "Create a repo with a GitLab local install set as default" "
+    host=\$(git_lab_local config host) &&
+    user=\$(git_lab_local config user) &&
+    token=\$(git_lab_local config token) &&
+    echo \"\$host \$user \$token\" &&
+    git_lab config host \$host &&
+    git_lab config user \$user &&
+    git_lab config token \$token &&
+    (cd whelk && git_lab create)
+"
+
 test_expect_failure "Create repo with a description" "false"
 test_expect_failure "Create private repo" "false"
 

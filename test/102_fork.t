@@ -14,7 +14,7 @@ for spindle in hub lab bb; do
     test_expect_success "Create repo ($spindle)" "
         ( cd python-hpilo &&
         git_${spindle}_1 create &&
-        git_1 push -u origin refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
+        git_1 push \$(echo $spindle | sed -e 's/^/git/' -e 's/gitbb/bitbucket/') refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
     "
 done
 
