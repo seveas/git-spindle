@@ -6,19 +6,19 @@ test_description="Deletes repos and keys for the test users"
 
 export DEBUG=1
 
-for spindle in hub lab bb; do for account in 1 2 3; do
-    test_expect_success "Clean up git${spindle} account ${account} (cleanup)" "
-        git_${spindle}_${account} test-cleanup
+for spindle in $all_spindles; do
+    test_expect_success "Clean up $spindle (cleanup)" "
+        $spindle test-cleanup
     "
-done; done
-for spindle in hub lab bb; do for account in 1 2 3; do
-    test_expect_success "Clean up git${spindle} account ${account} (verify)" "
+done
+for spindle in $all_spindles; do
+    test_expect_success "Clean up $spindle (verify)" "
         : > expected &&
-        git_${spindle}_${account} repos > actual &&
-        git_${spindle}_${account} public-keys >> actual &&
+        $spindle repos > actual &&
+        $spindle public-keys >> actual &&
         test_cmp expected actual
     "
-done; done
+done
 
 test_done
 
