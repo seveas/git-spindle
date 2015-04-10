@@ -148,7 +148,7 @@ Options:
         #   - Is it mine? Yes -> return it('s parent), No -> remember it
         #   - Return the first rememered one(s parent)
         #  FIXME: errors should mention account if available
-        remote = None
+        remote = host = None
         if opts['<repo>']:
             host, user, repo = self._parse_url(opts['<repo>'])
             if not repo:
@@ -218,13 +218,15 @@ Options:
         hosts = self.git('config', '--file', self.config_file, '--get-regexp', '%s.*host' % self.spindle).stdout.strip()
 
         for (account, host) in [x.split() for x in hosts.splitlines()]:
-            account = account.split('.')[1]
+            account = account.split('.')
             if host.startswith(('http://', 'https://')):
                 host = urlparse.urlparse(host).hostname
-            if self.account == account:
+            if len(account) == 2: # User has set a host for the default account
+                self.hosts = [host]
+            if self.account == account[1]:
                 self.hosts = [host]
                 break
-            self.accounts[host] = account
+            self.accounts[host] = account[1]
             self.hosts.append(host)
 
         if not self.account and (self.in_repo or opts['<repo>']):
