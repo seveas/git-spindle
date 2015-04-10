@@ -50,7 +50,7 @@ known_options = {
         '--mirror', '--reference=<repository>', '--progress', '-o <oname>', '--origin=<oname>',
         '-b <name>', '--branch=<name>', '-u <upload-pack>', '--upload-pack=<upload-pack>',
         '--template=<template-directory>', '-c <key-value>', '--config=<key-value>',
-        '--depth', '--single-branch', '--no-single-branch', '--recursive, --recurse-submodules',
+        '--depth=<depth>', '--single-branch', '--no-single-branch', '--recursive, --recurse-submodules',
         '--separate-git-dir=<git_dir>'),
 }
 
