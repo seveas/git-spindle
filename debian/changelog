@@ -1,3 +1,9 @@
+git-spindle (2.5-1) vivid; urgency=medium
+
+  * New upstream release
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Wed, 29 Apr 2015 18:51:42 +0200
+
 git-spindle (2.4-1) utopic; urgency=medium
 
   * New upstream release
