@@ -271,7 +271,8 @@ class GitLab(GitSpindle):
         if repo.owner.username == self.my_login:
             err("You cannot fork your own repos")
 
-        if repo.name in [x.name for x in self.gl.Project()]:
+        my_repo = self.find_repo(self.my_login, repo.name)
+        if my_repo:
             err("Repository already exists")
 
         opts['<repo>'] = repo.fork().name
