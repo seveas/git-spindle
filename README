@@ -71,7 +71,7 @@ Usage:
   git lab browse [--parent] [<repo>] [<section>]
   git lab cat <file>...
   git lab clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
-  git hub config [--unset] <key> [<value>]
+  git lab config [--unset] <key> [<value>]
   git lab create [--private|--internal] [-d <description>]
   git lab fork [--ssh|--http] [<repo>]
   git lab issue [<repo>] [--parent] [<issue>...]
@@ -93,7 +93,7 @@ Usage:
   git bb browse [--parent] [<repo>] [<section>]
   git bb cat <file>...
   git bb clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
-  git hub config [--unset] <key> [<value>]
+  git bb config [--unset] <key> [<value>]
   git bb create [--private] [-d <description>]
   git bb fork [--ssh|--http] [<repo>]
   git bb forks [<repo>]
