@@ -60,6 +60,7 @@ class GitHub(GitSpindle):
             token = auth.token
             self.config('token', token)
             self.config('auth_id', auth.id)
+            self.config('empty-body-allowed', "N")
             print("A GitHub authentication token is now cached in %s - do not share this file" % self.config_file)
             print("To revoke access, visit https://github.com/settings/applications")
 
@@ -853,7 +854,9 @@ class GitHub(GitSpindle):
         body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
         body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
         title, body = self.edit_msg("%s\n\n%s" % (title,body), 'PULL_REQUEST_EDIT_MSG')
-        if not body:
+
+        empty_body_allowed = self.config('empty-body-allowed') == "Y"
+        if not body and not empty_body_allowed:
             err("No pull request message specified")
 
         pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
@@ -1082,4 +1085,3 @@ class GitHub(GitSpindle):
                 print('Members:')
                 for member in self.gh.organization(user.login).iter_members():
                     print(" - %s" % member.login)
-
