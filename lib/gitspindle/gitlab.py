@@ -549,6 +549,7 @@ class GitLab(GitSpindle):
         if not repos:
             return
         maxlen = max([len(x.name) for x in repos])
+        fmt = u"%%-%ds %%s" % maxlen
         for repo in repos:
             color = [attr.normal]
             if repo.visibility_level == 0:
@@ -562,7 +563,8 @@ class GitLab(GitSpindle):
             name = repo.name
             if self.my_login != repo.owner.username:
                 name = '%s/%s' % (repo.owner.username, name)
-            msg = wrap(name, *color)
+            desc = ' '.join((repo.description or '').splitlines())
+            msg = wrap(fmt % (name, desc), *color)
             if not PY3:
                 msg = msg.encode('utf-8')
             print(msg)

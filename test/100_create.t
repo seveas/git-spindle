@@ -4,8 +4,9 @@ test_description="Create new repos"
 
 . ./setup.sh
 
-test_expect_success "Clone source repo" "
+test_expect_success "Clone source repos" "
     git clone https://github.com/seveas/whelk.git
+    git clone https://github.com/seveas/hacks.git
 "
 
 test -d whelk || test_done
@@ -49,7 +50,16 @@ test_expect_success "Create a repo with a GitLab local install set as default" "
     (cd whelk && git_lab create)
 "
 
-test_expect_failure "Create repo with a description" "false"
+for spindle in hub lab bb; do
+    test_expect_success "Create repo with description ($spindle)" "
+        ( cd hacks &&
+        echo 'Hacks repo' > expected &&
+        git_${spindle}_1 create -d 'Hacks repo' &&
+        git_${spindle}_1 repos | sed -ne 's/.*H/H/p' > actual &&
+        test_cmp expected actual )
+    "
+done;
+
 test_expect_failure "Create private repo" "false"
 
 test_done

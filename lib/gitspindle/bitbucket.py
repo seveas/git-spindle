@@ -195,7 +195,7 @@ class BitBucket(GitSpindle):
         except bbapi.BitBucketError:
             pass
 
-        self.me.create_repository(slug=name, description=opts['-d'], is_private=opts['--private'])
+        self.me.create_repository(slug=name, description=opts['<description>'], is_private=opts['--private'])
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the BitBucket repository as 'bitbucket'")
             self.set_origin(opts, 'bitbucket')
