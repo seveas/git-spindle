@@ -492,7 +492,7 @@ class BitBucket(GitSpindle):
         if self.git('config', 'remote.%s.url' % remote).stdout.strip() != url:
             print("Pointing %s to %s" % (remote, url))
             self.gitm('config', 'remote.%s.url' % remote, url)
-        self.gitm('config', '--replace-all', 'remote.%s.fetch' % remote, '+refs/heads/*:refs/remotes/origin/*')
+        self.gitm('config', '--replace-all', 'remote.%s.fetch' % remote, '+refs/heads/*:refs/remotes/%s/*' % remote)
 
         if repo.is_fork:
             parent = self.bb.repository(repo.fork_of['owner'], repo.fork_of['slug'])
