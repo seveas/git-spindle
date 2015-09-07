@@ -104,7 +104,7 @@ class GitHub(GitSpindle):
             return repo.git_url
         if self.my_login == repo.owner.login:
             return repo.ssh_url
-        return repo.git_url
+        return repo.clone_url
 
     # Commands
 
