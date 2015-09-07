@@ -153,7 +153,7 @@ class BitBucket(GitSpindle):
             else:
                 repo = self.repository(opts)
             try:
-                content = repo.src(path=file, revision=ref)
+                content = repo.src(path=file, revision=ref or 'master') # BitBucket has no API to retrieve the default branch
             except bbapi.BitBucketError:
                 err("No such file: %s" % arg)
             if not hasattr(content, '_data'):
@@ -161,7 +161,7 @@ class BitBucket(GitSpindle):
             if getattr(content, 'encoding', None) == 'base64':
                 os.write(sys.stdout.fileno(), binascii.a2b_base64(content._data))
             else:
-                print(content._data)
+                os.write(sys.stdout.fileno(), content._data)
 
     @command
     def clone(self, opts):

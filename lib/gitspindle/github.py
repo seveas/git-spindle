@@ -302,7 +302,7 @@ class GitHub(GitSpindle):
                 dir, file = file.rsplit('/', 1)
             else:
                 dir = ''
-            content = repo.contents(path=dir, ref=ref)
+            content = repo.contents(path=dir, ref=ref or repo.default_branch)
             if not content or file not in content:
                 err("No such file: %s" % arg)
             if content[file].type != 'file':
