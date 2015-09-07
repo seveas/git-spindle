@@ -12,15 +12,23 @@ for spindle in hub lab bb; do
         git_${spindle}_2 clone --http \$src/whelk whelk-$spindle-http &&
         test -d whelk-$spindle-http
     "
+
+    test_expect_success "Clone with extra args ($spindle)" "
+        git_${spindle}_1 clone --bare whelk &&
+        test -d whelk.git &&
+        rm -rf whelk.git
+    "
+
+    test_expect_success "Clone parent repo ($spindle)" "
+        src=\$(export DEBUG=1; git_${spindle}_2 run-shell -c 'print(self.my_login)') &&
+        git_${spindle}_1 clone --parent \$src/whelk &&
+        ! grep \$src whelk/.git/config &&
+        rm -rf whelk
+    "
 done;
 
-test_expect_success "Clone with extra args" "
-    git_${spindle}_1 clone --bare whelk &&
-    test -d whelk.git
-"
 
 test_expect_failure "Test cloning where name != slug" "false"
-test_expect_failure "Test cloning with --parent" "false"
 
 test_done
 
