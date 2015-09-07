@@ -148,7 +148,7 @@ Options:
         #   - Is it mine? Yes -> return it('s parent), No -> remember it
         #   - Return the first rememered one(s parent)
         #  FIXME: errors should mention account if available
-        remote = host = None
+        remote = host = repo = None
         if opts['<repo>']:
             host, user, repo = self._parse_url(opts['<repo>'])
             if not repo:

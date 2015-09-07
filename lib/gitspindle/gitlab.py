@@ -608,7 +608,7 @@ class GitLab(GitSpindle):
         for branch in self.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
             branch = branch.split(None, 2)[-1][11:]
             if self.git('for-each-ref', 'refs/remotes/origin/%s' % branch).stdout.strip():
-                if self.gitm('config', 'branch.%s.remote' % branch).returncode != 0:
+                if self.git('config', 'branch.%s.remote' % branch).returncode != 0:
                     print("Marking %s as remote-tracking branch" % branch)
                     self.gitm('config', 'branch.%s.remote' % branch, 'origin')
                     self.gitm('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
