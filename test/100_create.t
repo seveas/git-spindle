@@ -5,20 +5,22 @@ test_description="Create new repos"
 . ./setup.sh
 
 test_expect_success "Clone source repos" "
-    git clone https://github.com/seveas/whelk.git
+    git clone https://github.com/seveas/whelk.git &&
+    # Contains a tree that has a .git directory
+    git -C whelk update-ref -d refs/remotes/origin/gh-pages &&
     git clone https://github.com/seveas/hacks.git
 "
 
 test -d whelk || test_done
 
-for spindle in hub lab bb; do 
+for spindle in hub lab bb; do
     test_expect_success "Create repo ($spindle)" "
         ( cd whelk &&
         echo whelk > expected &&
         git_${spindle}_1 create &&
         git_${spindle}_1 repos | sed -e 's/ .*//' > actual &&
         test_cmp expected actual &&
-        git_1 push $(echo $spindle | sed -e 's/^/git/' -e 's/gitbb/bitbucket/') refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
+        git_1 push $(spindle_remote git_${spindle}_1) refs/remotes/origin/*:refs/heads/* refs/tags/*:refs/tags/* )
     "
 done;
 
@@ -61,6 +63,7 @@ for spindle in hub lab bb; do
 done;
 
 test_expect_failure "Create private repo" "false"
+test_expect_failure "Create with --name" "false # upsets set-origin"
 
 test_done
 

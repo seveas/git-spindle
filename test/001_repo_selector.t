@@ -20,7 +20,7 @@ test_expect_success "Test prep" "
     git remote add gitlab http://gitlab.com/seveas/whelk &&
     git remote add local http://gitlab.kaarsemaker.net/seveas2/whelk
 "
- 
+
 test_expect_success "Selecting the right repo from the config" "
     echo '<Repository [seveas/whelk]>' > expected &&
     echo 'seveas/whelk' >> expected &&

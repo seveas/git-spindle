@@ -10,15 +10,15 @@ test_expect_success "Clone extra repository" "
 
 test -d python-hpilo || test_done
 
-for spindle in hub lab bb; do 
+for spindle in hub lab bb; do
     test_expect_success "Create repo ($spindle)" "
         ( cd python-hpilo &&
         git_${spindle}_1 create &&
-        git_1 push \$(echo $spindle | sed -e 's/^/git/' -e 's/gitbb/bitbucket/') refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
+        git_1 push \$(spindle_remote git_${spindle}_1) refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
     "
 done
 
-for spindle in hub lab bb; do 
+for spindle in hub lab bb; do
     test_expect_success "Forking already cloned repo ($spindle)" "
         ( cd python-hpilo &&
         git_${spindle}_1 set-origin &&
@@ -27,9 +27,9 @@ for spindle in hub lab bb; do
     "
 done
 
-for spindle in hub lab bb; do 
+for spindle in hub lab bb; do
     test_expect_success "Forking not-yet cloned repo ($spindle)" "
-        src=\$(export DEBUG=1; git_${spindle}_1 run-shell -c 'print(self.my_login)') &&
+        src=\$(username git_${spindle}_1) &&
         git_${spindle}_2 fork \$src/whelk &&
         git_${spindle}_2 repos | grep whelk &&
         (cd whelk &&
@@ -39,10 +39,10 @@ for spindle in hub lab bb; do
     "
 done
 
-for spindle in hub bb; do 
+for spindle in hub bb; do
     test_expect_success "Listing forks" "
-        dst=\$(export DEBUG=1; git_${spindle}_1 run-shell -c 'print(self.my_login)') &&
-        dst=\$(export DEBUG=1; git_${spindle}_2 run-shell -c 'print(self.my_login)') &&
+        dst=\$(username git_${spindle}_1) &&
+        dst=\$(username git_${spindle}_2) &&
         git_${spindle}_1 forks whelk >actual &&
         grep \$dst actual &&
         git_${spindle}_2 forks whelk >actual &&

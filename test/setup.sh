@@ -46,6 +46,31 @@ git_lab_local() { "$PYTHON" "$SHARNESS_BUILD_DIRECTORY/bin/git-lab" --account gi
 
 all_spindles="git_hub_1 git_lab_1 git_bb_1 git_lab_local git_hub_2 git_lab_2 git_bb_2 git_hub_3 git_lab_3 git_bb_3"
 
+spindle_host() {
+    case $1 in
+        git_lab_local)
+            echo gitlab.kaarsemaker.net
+            ;;
+        git_hub_*)
+            echo github.com
+            ;;
+        git_lab_*)
+            echo gitlab.com
+            ;;
+        git_bb_*)
+            echo bitbucket.org
+            ;;
+    esac
+}
+spindle_remote() {
+    echo $(spindle_host $1) | sed -e 's/\..*//'
+}
+
+username() {(
+    export DEBUG=1
+    $1 run-shell -c 'print(self.my_login)'
+)}
+
 test_commit() {
     fortune >testfile &&
     git add testfile &&
