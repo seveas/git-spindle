@@ -5,7 +5,9 @@ import base64
 import datetime
 import getpass
 import glob
+import json
 import os
+import requests
 import sys
 import webbrowser
 
@@ -202,6 +204,90 @@ class GitLab(GitSpindle):
         if opts['<section>']:
             url += '/' + section_map.get(opts['<section>'], opts['<section>'])
         webbrowser.open_new(url)
+
+    @command
+    def calendar(self, opts):
+        """[<user>]
+           Show a timeline of a user's activity"""
+        user = (opts['<user>'] or [self.my_login])[0]
+        user = self.find_user(user)
+        months = []
+        rows = [[],[],[],[],[],[],[]]
+        commits = []
+
+        data = requests.get(user.web_url + '/calendar').text
+        data = data[data.find('<script>')+8:data.find('</script>')]
+        data = data[data.find('{')+1:data.find('}')].replace('"', '')
+        data = [(datetime.datetime.fromtimestamp(int(key)), int(value)) for (key,value) in [item.split(':') for item in data.split(',')]]
+
+        wd = (data[0][0].weekday()+1) % 7
+        for i in range(wd):
+            rows[i].append((None,None))
+        if wd:
+            months.append(data[0][0].month)
+        for (date, count) in data:
+            wd = (date.weekday()+1) % 7
+            rows[wd].append((date.day, count))
+            if not wd:
+                months.append(date.month)
+            if count:
+                commits.append(count)
+
+        # Print months
+        sys.stdout.write("  ")
+        last = -1
+        skip = months[2] != months[0]
+        monthtext = ('', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
+        for month in months:
+            if month != last:
+                sys.stdout.write(monthtext[month] + ' ')
+                skip = True
+                last = month
+            elif not skip:
+                sys.stdout.write('  ')
+            else:
+                skip = False
+        print("")
+
+        # Print commits
+        days = 'SMTWTFS'
+        commits.sort()
+        p5  = commits[int(round(len(commits) * 0.95))]
+        p15 = commits[int(round(len(commits) * 0.85))]
+        p35 = commits[int(round(len(commits) * 0.65))]
+        blob1 = b'\xe2\x96\xa0'.decode('utf-8')
+        blob2 = b'\xe2\x97\xbc'.decode('utf-8')
+        for rnum, row in enumerate(rows):
+            if rnum % 2:
+                sys.stdout.write(days[rnum] + " ")
+            else:
+                sys.stdout.write("  ")
+            for (day, count) in row:
+                if count is None:
+                    color = attr.conceal
+                elif count > p5:
+                    color = fgcolor.xterm(22)
+                elif count > p15:
+                    color = fgcolor.xterm(28)
+                elif count > p35:
+                    color = fgcolor.xterm(64)
+                elif count:
+                    color = fgcolor.xterm(65)
+                else:
+                    color = fgcolor.xterm(237)
+                if day == 1:
+                    msg = wrap(blob2, attr.underline, color)
+                    if not PY3:
+                        msg = msg.encode('utf-8')
+                    sys.stdout.write(msg)
+                else:
+                    msg = wrap(blob1, color)
+                    if not PY3:
+                        msg = msg.encode('utf-8')
+                    sys.stdout.write(msg)
+                sys.stdout.write(' ')
+            print("")
+
 
     @command
     def cat(self, opts):
