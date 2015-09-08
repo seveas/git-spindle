@@ -315,11 +315,10 @@ class GitLab(GitSpindle):
     def issues(self, opts):
         """[<repo>] [--parent] [<filter>...]
            List issues in a repository"""
-        repo = self.repository(opts)
-        if not repo:
+        if not opts['<repo>'] and not self.in_repo:
             repos = list(self.gl.Project())
         else:
-            repos = [repo]
+            repos = [self.repository(opts)]
         for repo in repos:
             if opts['--parent']:
                 repo = self.parent_repo(repo) or repo

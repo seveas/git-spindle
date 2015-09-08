@@ -195,7 +195,8 @@ class BitBucket(GitSpindle):
         except bbapi.BitBucketError:
             pass
 
-        self.me.create_repository(slug=name, description=opts['<description>'], is_private=opts['--private'])
+        self.me.create_repository(slug=name, description=opts['<description>'], is_private=opts['--private'],
+                                  has_issues=True, has_wiki=True)
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the BitBucket repository as 'bitbucket'")
             self.set_origin(opts, 'bitbucket')
@@ -264,11 +265,10 @@ class BitBucket(GitSpindle):
     def issues(self, opts):
         """[<repo>] [--parent] [<filter>...]
            List issues in a repository"""
-        repo = self.repository(opts)
-        if not repo:
+        if not opts['<repo>'] and not self.in_repo:
             repos = self.me.repositories()
         else:
-            repos = [repo]
+            repos = [self.repository(opts)]
         for repo in repos:
             if repo.fork and opts['--parent']:
                 repo = self.parent_repo(repo) or repo

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+die() {
+    echo $1 >&2
+    exit 1
+}
+
+filename=$1
+test -n "$filename" || die "No filename given"
+test -e "$filename" || die "File $filename does not exist"
+
+echo "$FAKE_EDITOR_DATA" > $filename

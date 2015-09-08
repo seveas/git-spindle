@@ -479,11 +479,10 @@ class GitHub(GitSpindle):
     def issues(self, opts):
         """[<repo>] [--parent] [<filter>...]
            List issues in a repository"""
-        repo = self.repository(opts)
-        if not repo:
+        if not opts['<repo>'] and not self.in_repo:
             repos = list(self.gh.iter_repos(type='all'))
         else:
-            repos = [repo]
+            repos = [self.repository(opts)]
         for repo in repos:
             if repo.fork and opts['--parent']:
                 repo = repo.parent

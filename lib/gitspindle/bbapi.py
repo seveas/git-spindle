@@ -100,8 +100,9 @@ class User(BBobject):
     def repository(self, slug):
         return Repository(self.bb, owner=self.username, slug=slug)
 
-    def create_repository(self, slug, description, is_private):
-        data = {'owner': self.username, 'slug': slug, 'description': description, 'is_private': is_private, 'scm': 'git'}
+    def create_repository(self, slug, description, is_private, has_issues, has_wiki):
+        data = {'owner': self.username, 'slug': slug, 'description': description, 'is_private': is_private,
+                'scm': 'git', 'has_issues': has_issues, 'has_wiki': has_wiki}
         repo = self.post(uritemplate.expand(Repository.uri[1], slug=slug, owner=self.username), data=json.dumps(data), headers={'content-type': 'application/json'})
         return Repository(self.bb, mode=None, **repo)
 
