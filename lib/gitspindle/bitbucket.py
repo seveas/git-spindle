@@ -283,9 +283,9 @@ class BitBucket(GitSpindle):
 
     @command
     def ls(self, opts):
-        """<dir>...
+        """[<dir>...]
            Display the contents of a directory on BitBucket"""
-        for arg in opts['<dir>']:
+        for arg in opts['<dir>'] or ['']:
             repo, ref, file = ([None, None] + arg.split(':',2))[-3:]
             user = None
             if repo:
@@ -294,7 +294,7 @@ class BitBucket(GitSpindle):
             else:
                 repo = self.repository(opts)
             try:
-                content = repo.src(path=file, revision=ref)
+                content = repo.src(path=file or '/', revision=ref or 'master') # BitBucket has no API to retrieve the default branch
             except bbapi.BitBucketError:
                 err("No such file: %s" % arg)
             if hasattr(content, '_data'):

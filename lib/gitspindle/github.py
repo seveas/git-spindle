@@ -620,9 +620,9 @@ class GitHub(GitSpindle):
 
     @command
     def ls(self, opts):
-        """<dir>...
+        """[<dir>...]
            Display the contents of a directory on GitHub"""
-        for arg in opts['<dir>']:
+        for arg in opts['<dir>'] or ['']:
             repo, ref, file = ([None, None] + arg.split(':',2))[-3:]
             user = None
             if repo:
@@ -630,7 +630,7 @@ class GitHub(GitSpindle):
                 repo = self.gh.repository(user or self.my_login, repo)
             else:
                 repo = self.repository(opts)
-            content = repo.contents(path=file, ref=ref)
+            content = repo.contents(path=file, ref=ref or repo.default_branch)
             if not content:
                 err("No such directory: %s" % arg)
             if not isinstance(content, dict):
