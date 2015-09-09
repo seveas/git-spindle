@@ -5,12 +5,12 @@ test_description="Testing set_origin"
 . ./setup.sh
 
 test_expect_success "Cloning repository" "
-    git_hub_1 clone whelk &&
+    git clone https://github.com/seveas/whelk &&
     git -C whelk remote remove origin
 "
 
 for spindle in lab hub bb; do
-    test_expect_success "Setting origin to $spindle" "
+    test_expect_success $spindle "Setting origin to $spindle" "
         (cd whelk &&
         host=\$(spindle_host git_${spindle}_2) &&
         git_${spindle}_2 set-origin &&
@@ -34,7 +34,7 @@ for spindle in lab hub bb; do
            *-git)
                 scheme=git://;;
         esac
-        test_expect_success "Setting origin to $spindle ($protocol)" "
+        test_expect_success $spindle "Setting origin to $spindle ($protocol)" "
             (cd whelk &&
             host=\$(spindle_host git_${spindle}_2) &&
             git_${spindle}_2 set-origin --$protocol &&

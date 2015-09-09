@@ -11,7 +11,7 @@ test_expect_success "Generating keys" "
     cat id_rsa.pub .ssh/id_rsa.pub | sort > expected
 "
 
-for spindle in hub lab bb; do test_expect_success "Add and retrieve keys ($spindle)" "
+for spindle in hub lab bb; do test_expect_success $spindle "Add and retrieve keys ($spindle)" "
     git_${spindle}_1 add-public-keys &&
     git_${spindle}_1 public-keys > actual &&
     test_cmp .ssh/id_rsa.pub actual &&
@@ -26,7 +26,7 @@ test_expect_success "Generating more keys" "
     ssh-keygen -trsa -N '' -f .ssh/id_rsa-3 -C git-spindle-3-test-key-1 -q
 "
 
-for spindle in hub lab bb; do test_expect_success "Adding keys for other users ($spindle)" "
+for spindle in hub lab bb; do test_expect_success $spindle "Adding keys for other users ($spindle)" "
     git_${spindle}_2 add-public-keys .ssh/id_rsa-2.pub &&
     git_${spindle}_3 add-public-keys .ssh/id_rsa-3.pub
 "; done

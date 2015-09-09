@@ -12,6 +12,10 @@ if [ x"$PYTHON" = x ]; then
     PYTHON=python
 fi
 
+test -z "$NO_GITHUB" && test_set_prereq hub
+test -z "$NO_GITLAB" && test_set_prereq lab
+test -z "$NO_BITBUCKET" && test_set_prereq bb
+
 # Make sure git doesn't think we're in a repo
 git rev-parse >/dev/null 2>&1 && { echo "Yikes, git sees an outer repo!"; exit 1; }
 
@@ -45,6 +49,19 @@ git_bb_3()  { "$PYTHON" "$SHARNESS_BUILD_DIRECTORY/bin/git-bb"  --account bitbuc
 git_lab_local() { "$PYTHON" "$SHARNESS_BUILD_DIRECTORY/bin/git-lab" --account gitlab-test-local "$@"; }
 
 all_spindles="git_hub_1 git_lab_1 git_bb_1 git_lab_local git_hub_2 git_lab_2 git_bb_2 git_hub_3 git_lab_3 git_bb_3"
+
+req() {
+    case $1 in
+        git_lab_local)
+            ;;
+        git_lab_*)
+            echo lab;;
+        git_hub_*)
+            echo hub;;
+        git_bb_*)
+            echo bb;;
+    esac
+}
 
 spindle_host() {
     case $1 in

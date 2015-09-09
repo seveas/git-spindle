@@ -4,41 +4,30 @@ test_description="Test the browse functionality"
 
 . ./setup.sh
 
-test_expect_success "Launch browsers for repo homepage" "
-    cat >expected <<EOF &&
-https://github.com/seveas/whelk
-https://gitlab.com/seveas/whelk
-https://bitbucket.org/seveas/whelk
+for spindle in hub lab bb; do
+    test_expect_success $spindle "Launch browsers for repo homepage ($spindle)" "
+        echo https://$(spindle_host git_${spindle}_1)/seveas/whelk > expected
+        git_${spindle}_1 browse seveas/whelk > actual
+        test_cmp expected actual
+    "
+    test_expect_success $spindle "Launch browsers for repo homepage ($spindle)" "
+        echo https://$(spindle_host git_${spindle}_1)/seveas/whelk/issues > expected
+        git_${spindle}_1 browse seveas/whelk issues > actual
+        test_cmp expected actual
+    "
+    test_expect_success $spindle "Launch browser from within a repo ($spindle)" "
+        rm -rf whelk &&
+        git_${spindle}_1 clone seveas/whelk &&
+        (cd whelk &&
+        cat >expected <<EOF &&
+https://$(spindle_host git_${spindle}_1)/seveas/whelk
+https://$(spindle_host git_${spindle}_1)/seveas/whelk/issues
 EOF
-    git_hub_1 browse seveas/whelk >actual &&
-    git_lab_1 browse seveas/whelk >>actual &&
-    git_bb_1 browse seveas/whelk >>actual &&
-    test_cmp expected actual
-"
-
-test_expect_success "Launch browsers for repo issues page" "
-    cat >expected <<EOF &&
-https://github.com/seveas/whelk/issues
-https://gitlab.com/seveas/whelk/issues
-https://bitbucket.org/seveas/whelk/issues
-EOF
-    git_hub_1 browse seveas/whelk issues >actual &&
-    git_lab_1 browse seveas/whelk issues >>actual &&
-    git_bb_1 browse seveas/whelk issues >>actual &&
-    test_cmp expected actual
-"
-
-test_expect_success "Launch browser from within a repo" "
-    git_hub_1 clone seveas/whelk &&
-    (cd whelk &&
-    cat >expected <<EOF &&
-https://github.com/seveas/whelk
-https://github.com/seveas/whelk/issues
-EOF
-    git_hub_1 browse >actual &&
-    git_hub_1 browse issues >>actual &&
-    test_cmp expected actual )
-"
+        git_${spindle}_1 browse >actual &&
+        git_${spindle}_1 browse issues >>actual &&
+        test_cmp expected actual)
+    "
+done
 
 test_done
 

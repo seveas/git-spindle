@@ -21,44 +21,62 @@ test_expect_success "Test prep" "
     git remote add local http://gitlab.kaarsemaker.net/seveas2/whelk
 "
 
-test_expect_success "Selecting the right repo from the config" "
+test_expect_success hub "Selecting the right repo from the config (hub)" "
     echo '<Repository [seveas/whelk]>' > expected &&
-    echo 'seveas/whelk' >> expected &&
-    echo 'seveas/whelk' >> expected &&
-
     git_hub run-shell -c repo > actual &&
+    test_cmp expected actual
+"
+
+test_expect_success lab "Selecting the right repo from the config (lab)" "
+    echo 'seveas/whelk' >> expected &&
     git_lab run-shell -c \"print('%s/%s' % (repo.owner.username, repo.name))\" >> actual &&
+    test_cmp expected actual
+"
+
+test_expect_success bb "Selecting the right repo from the config (bb)" "
+    echo 'seveas/whelk' >> expected &&
     git_bb run-shell -c \"print('%s/%s' % (repo.owner['username'], repo.name))\" >> actual &&
-
     test_cmp expected actual
 "
 
-test_expect_success "Specifying a repo on the command line" "
+test_expect_success hub "Specifying a repo on the command line (hub)" "
     echo '<Repository [seveas/python-hpilo]>' > expected &&
-    echo seveas/python-hpilo >> expected &&
-    echo seveas/python-hpilo >> expected &&
-
     git_hub run-shell -c \"self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False, '--maybe-parent': False})\" > actual &&
-    git_lab run-shell -c \"r = self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False, '--maybe-parent': False}); print('%s/%s' % (r.owner.username, r.name))\" >> actual &&
-    git_bb run-shell -c \"r = self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False, '--maybe-parent': False}); print('%s/%s' % (r.owner['username'], r.name))\" >> actual &&
-
     test_cmp expected actual
 "
 
-test_expect_success "Repository not found" "
+test_expect_success lab "Specifying a repo on the command line (lab)" "
+    echo seveas/python-hpilo >> expected &&
+    git_lab run-shell -c \"r = self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False, '--maybe-parent': False}); print('%s/%s' % (r.owner.username, r.name))\" >> actual &&
+    test_cmp expected actual
+"
+
+test_expect_success bb "Specifying a repo on the command line (bb)" "
+    echo seveas/python-hpilo >> expected &&
+    git_bb run-shell -c \"r = self.repository({'<repo>': 'seveas/python-hpilo', '--parent': False, '--maybe-parent': False}); print('%s/%s' % (r.owner['username'], r.name))\" >> actual &&
+    test_cmp expected actual
+"
+
+git remote rm local
+
+test_expect_success hub "Repository not found (hub)" "
     git remote set-url origin http://github.com/seveas/whelk.broken &&
-    git remote set-url gitlab http://gitlab.com/seveas/whelk.broken &&
-    git remote set-url bitbucket http://bitbucket.org/seveas/whelk.broken &&
-    git remote rm local &&
-
     echo 'Repository seveas/whelk.broken could not be found on GitHub' > expected &&
-    echo 'Repository seveas/whelk.broken could not be found on GitLab' >> expected &&
-    echo 'Repository seveas/whelk.broken could not be found on BitBucket' >> expected &&
-
     test_must_fail git_hub run-shell -c repo 2> actual &&
-    test_must_fail git_lab run-shell -c repo 2>> actual &&
-    test_must_fail git_bb run-shell -c repo 2>> actual &&
+    test_cmp expected actual
+"
 
+test_expect_success lab "Repository not found (lab)" "
+    git remote set-url origin http://gitlab.com/seveas/whelk.broken &&
+    echo 'Repository seveas/whelk.broken could not be found on GitLab' > expected &&
+    test_must_fail git_lab run-shell -c repo 2> actual &&
+    test_cmp expected actual
+"
+
+test_expect_success bb "Repository not found (bb)" "
+    git remote set-url origin http://bitbucket.org/seveas/whelk.broken &&
+    echo 'Repository seveas/whelk.broken could not be found on BitBucket' > expected &&
+    test_must_fail git_bb run-shell -c repo 2> actual &&
     test_cmp expected actual
 "
 
@@ -75,26 +93,16 @@ test_expect_success "GitLab local install" "
     test_cmp expected actual
 "
 
-test_expect_success "Test outside repo" "
-    rm -rf .git &&
-    echo None > expected &&
-    echo None >> expected &&
-    echo None >> expected &&
-
-    echo 'fatal: Not a git repository (or any of the parent directories): .git' >> expected &&
-    echo 'fatal: Not a git repository (or any of the parent directories): .git' >> expected &&
-    echo 'fatal: Not a git repository (or any of the parent directories): .git' >> expected &&
-
-    git_hub run-shell -c 'print(repo)' > actual &&
-    git_lab run-shell -c 'print(repo)' >> actual &&
-    git_bb run-shell -c 'print(repo)' >> actual &&
-
-    test_must_fail git_hub run-shell -c \"self.repository({'<repo>': None})\" 2>> actual &&
-    test_must_fail git_lab run-shell -c \"self.repository({'<repo>': None})\" 2>> actual &&
-    test_must_fail git_bb run-shell -c \"self.repository({'<repo>': None})\" 2>> actual &&
-
-    test_cmp expected actual
-"
+for spindle in hub lab bb; do
+    test_expect_success $spindle "Test outside repo ($spindle)" "
+        rm -rf .git &&
+        echo None > expected &&
+        echo 'fatal: Not a git repository (or any of the parent directories): .git' >> expected &&
+        git_${spindle} run-shell -c 'print(repo)' > actual &&
+        test_must_fail git_${spindle} run-shell -c \"self.repository({'<repo>': None})\" 2>> actual &&
+        test_cmp expected actual
+    "
+done
 
 test_expect_failure "Test fake GHE by pointing another name to GitHub" "false"
 test_expect_failure "Test BitBucket CNAMEs" "false"

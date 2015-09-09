@@ -11,7 +11,7 @@ test_expect_success "Clone extra repository" "
 test -d python-hpilo || test_done
 
 for spindle in hub lab bb; do
-    test_expect_success "Create repo ($spindle)" "
+    test_expect_success $spindle "Create repo ($spindle)" "
         ( cd python-hpilo &&
         git_${spindle}_1 create &&
         git_1 push \$(spindle_remote git_${spindle}_1) refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
@@ -19,7 +19,7 @@ for spindle in hub lab bb; do
 done
 
 for spindle in hub lab bb; do
-    test_expect_success "Forking already cloned repo ($spindle)" "
+    test_expect_success $spindle "Forking already cloned repo ($spindle)" "
         ( cd python-hpilo &&
         git_${spindle}_1 set-origin &&
         git_${spindle}_2 fork &&
@@ -28,7 +28,7 @@ for spindle in hub lab bb; do
 done
 
 for spindle in hub lab bb; do
-    test_expect_success "Forking not-yet cloned repo ($spindle)" "
+    test_expect_success $spindle "Forking not-yet cloned repo ($spindle)" "
         src=\$(username git_${spindle}_1) &&
         git_${spindle}_2 fork \$src/whelk &&
         git_${spindle}_2 repos | grep whelk &&
@@ -40,7 +40,7 @@ for spindle in hub lab bb; do
 done
 
 for spindle in hub bb; do
-    test_expect_success "Listing forks" "
+    test_expect_success $spindle "Listing forks" "
         dst=\$(username git_${spindle}_1) &&
         dst=\$(username git_${spindle}_2) &&
         git_${spindle}_1 forks whelk >actual &&

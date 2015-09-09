@@ -14,7 +14,7 @@ test_expect_success "Clone source repos" "
 test -d whelk || test_done
 
 for spindle in hub lab bb; do
-    test_expect_success "Create repo ($spindle)" "
+    test_expect_success $spindle "Create repo ($spindle)" "
         ( cd whelk &&
         echo whelk > expected &&
         git_${spindle}_1 create &&
@@ -24,7 +24,7 @@ for spindle in hub lab bb; do
     "
 done;
 
-test_expect_success "Creating a repo does not overwrite 'origin'" "
+test_expect_success hub,lab,bb "Creating a repo does not overwrite 'origin'" "
     cat >expected <<EOF &&
 bitbucket	git@bitbucket.org:XXX/whelk.git (fetch)
 bitbucket	git@bitbucket.org:XXX/whelk.git (push)
@@ -53,7 +53,7 @@ test_expect_success "Create a repo with a GitLab local install set as default" "
 "
 
 for spindle in hub lab bb; do
-    test_expect_success "Create repo with description ($spindle)" "
+    test_expect_success $spindle "Create repo with description ($spindle)" "
         ( cd hacks &&
         echo 'Hacks repo' > expected &&
         git_${spindle}_1 create -d 'Hacks repo' &&

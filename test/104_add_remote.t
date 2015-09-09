@@ -22,7 +22,7 @@ for spindle in hub lab bb; do
            *-git)
                 scheme=git://;;
         esac
-        test_expect_success "Adding a $spindle/$proto remote" "
+        test_expect_success $spindle "Adding a $spindle/$proto remote" "
             (cd whelk &&
             src=\$(username git_${spindle}_2) &&
             { git remote remove \$src 2>&1 || true; } &&

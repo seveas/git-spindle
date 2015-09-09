@@ -7,12 +7,12 @@ test_description="Deletes repos and keys for the test users"
 export DEBUG=1
 
 for spindle in $all_spindles; do
-    test_expect_success "Clean up $spindle (cleanup)" "
+    test_expect_success $(req $spindle) "Clean up $spindle (cleanup)" "
         $spindle test-cleanup
     "
 done
 for spindle in $all_spindles; do
-    test_expect_success "Clean up $spindle (verify)" "
+    test_expect_success $(req $spindle) "Clean up $spindle (verify)" "
         : > expected &&
         $spindle repos > actual &&
         $spindle public-keys >> actual &&
