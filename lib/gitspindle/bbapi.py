@@ -154,6 +154,11 @@ class Repository(BBobject):
         branches = self.get(self.url[0] + '/branches')
         return dict([(key, Branch(self.bb, mode=None, repository=self, **val)) for (key, val) in branches.items()])
 
+    def pull_requests(self, **params):
+        url = 'https://bitbucket.org/api/2.0/repositories/%s/pullrequests?state=OPEN' % self.full_name
+        data = self.get(url)['values']
+        return [PullRequest(self.bb, mode=None, **pr) for pr in data]
+
     def pull_request(self, number):
         owner, slug = self.full_name.split('/')
         return PullRequest(self.bb, owner=owner, slug=slug, id=number)

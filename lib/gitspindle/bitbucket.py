@@ -276,10 +276,21 @@ class BitBucket(GitSpindle):
             try:
                 issues = repo.issues(**filters)
             except bbapi.BitBucketError:
-                continue
-            print(wrap("Issues for %s" % repo.full_name, attr.bright))
-            for issue in issues:
-                print("[%d] %s https://bitbucket.org/%s/issue/%d/" % (issue.local_id, issue.title, repo.full_name, issue.local_id))
+                issues = None
+            try:
+                pullrequests = repo.pull_requests()
+            except bbapi.BitBucketError:
+                pullrequests = None
+
+            if issues:
+                print(wrap("Issues for %s" % repo.full_name, attr.bright))
+                for issue in issues:
+                    print("[%d] %s https://bitbucket.org/%s/issue/%d/" % (issue.local_id, issue.title, repo.full_name, issue.local_id))
+            if pullrequests:
+                print(wrap("Pull requests for %s" % repo.full_name, attr.bright))
+                for pr in pullrequests:
+                    print("[%d] %s https://bitbucket.org/%s/pull-requests/%d/" % (pr.id, pr.title, repo.full_name, pr.id))
+
 
     @command
     def ls(self, opts):

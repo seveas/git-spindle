@@ -410,11 +410,17 @@ class GitLab(GitSpindle):
                 repo = self.parent_repo(repo) or repo
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
             issues = repo.Issue(**filters)
-            if not issues:
+            mergerequests = repo.MergeRequest(state='opened')
+            if not issues and not mergerequests:
                 continue
-            print(wrap("Issues for %s/%s" % (repo.owner.username, repo.name), attr.bright))
-            for issue in issues:
-                print("[%d] %s %s" % (issue.iid, issue.title, self.issue_url(issue)))
+            if issues:
+                print(wrap("Issues for %s/%s" % (repo.namespace.name, repo.name), attr.bright))
+                for issue in issues:
+                    print("[%d] %s %s" % (issue.iid, issue.title, self.issue_url(issue)))
+            if mergerequests:
+                print(wrap("Merge requests for %s/%s" % (repo.namespace.name, repo.name), attr.bright))
+                for mr in mergerequests:
+                    print("[%d] %s %s" % (mr.iid, mr.title, self.merge_url(mr)))
 
     @command
     def log(self, opts):
