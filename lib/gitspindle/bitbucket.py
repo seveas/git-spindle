@@ -110,7 +110,7 @@ class BitBucket(GitSpindle):
             print(wrap("Pull request has already been declined: %s" % pr.reason, fgcolor.red))
             warned = True
         if warned:
-            if raw_input("Continue? [y/N] ") not in ['y', 'Y']:
+            if not self.question("Continue?"):
                 sys.exit(1)
 
         # Fetch PR if needed
@@ -387,7 +387,7 @@ class BitBucket(GitSpindle):
         # Do they exist on bitbucket?
         srcb = repo.branches().get(src, None)
         if not srcb:
-            if raw_input("Branch %s does not exist in your BitBucket repo, shall I push? [Y/n] " % src).lower() in ['y', 'Y', '']:
+            if self.question("Branch %s does not exist in your BitBucket repo, shall I push?" % src):
                 self.gitm('push', repo.remote, src, redirect=False)
                 srcb = repo.branches().get(src, None)
             else:
@@ -396,12 +396,12 @@ class BitBucket(GitSpindle):
             # Have we diverged? Then there are commits that are reachable from the github branch but not local
             diverged = self.gitm('rev-list', srcb.raw_node, '^' + commit)
             if diverged.stderr or diverged.stdout:
-                if raw_input("Branch %s has diverged from github, shall I push and overwrite? [y/N] " % src) in ['y', 'Y']:
+                if self.question("Branch %s has diverged from github, shall I push and overwrite?" % src, default=False):
                     self.gitm('push', '--force', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")
             else:
-                if raw_input("Branch %s not up to date on github, but can be fast forwarded, shall I push? [Y/n] " % src) in ['y', 'Y', '']:
+                if self.question("Branch %s not up to date on github, but can be fast forwarded, shall I push?" % src):
                     self.gitm('push', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")

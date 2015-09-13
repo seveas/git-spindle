@@ -85,6 +85,7 @@ Options:
   -h --help              Show this help message and exit
   --desc=<description>   Description for the new gist/repo
   --parent               Use the parent of a forked repo
+  --yes                  Automatically answer yes to questions
   --issue=<issue>        Turn this issue into a pull request
   --http                 Use https:// urls for cloning 3rd party repos
   --ssh                  Use ssh:// urls for cloning 3rd party repos
@@ -191,6 +192,16 @@ Options:
 
         return repo_
 
+    def question(self, question, default=True):
+        yn = ['y/N', 'Y/n'][default or self.assume_yes]
+        if self.assume_yes:
+            print("%s [%s] Y" % (question, yn))
+            return True
+        answer = raw_input("%s [%s] " % (question, yn))
+        if not answer:
+            return default
+        return answer.lower() == 'y'
+
     def edit_msg(self, msg, filename):
         if self.git('rev-parse'):
             temp_file = os.path.join(self.gitm('rev-parse', '--git-dir').stdout.strip(), filename)
@@ -213,6 +224,7 @@ Options:
         argv = self.prog.split()[1:] + sys.argv[1:]
         opts = docopt.docopt(self.usage, argv)
         self.account = opts['--account'] or os.environ.get('GITSPINDLE_ACCOUNT', None)
+        self.assume_yes = opts['--yes']
         if self.account and not self.config('user'):
             err("%s does not yet know about %s. Use %s add-account to configure it" % (self.prog, self.account, self.prog))
         hosts = self.git('config', '--file', self.config_file, '--get-regexp', '%s.*host' % self.spindle).stdout.strip()

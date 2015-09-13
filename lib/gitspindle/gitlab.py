@@ -173,7 +173,7 @@ class GitLab(GitSpindle):
             print(wrap("Merge request has already been closed", fgcolor.red))
             warned = True
         if warned:
-            if raw_input("Continue? [y/N] ") not in ['y', 'Y']:
+            if not self.question("Continue?", default=False):
                 sys.exit(1)
         # Fetch mr if needed
         sha = self.git('rev-parse', '--verify', 'refs/merge/%d/head' % mr.iid).stdout.strip()
@@ -503,7 +503,7 @@ class GitLab(GitSpindle):
         # Do they exist on GitLab?
         srcb = repo.Branch(src)
         if not srcb:
-            if raw_input("Branch %s does not exist in your GitLab repo, shall I push? [Y/n] " % src).lower() in ['y', 'Y', '']:
+            if self.question("Branch %s does not exist in your GitLab repo, shall I push?" % src):
                 self.gitm('push', repo.remote, src, redirect=False)
             else:
                 err("Aborting")
@@ -511,12 +511,12 @@ class GitLab(GitSpindle):
             # Have we diverged? Then there are commits that are reachable from the GitLab branch but not local
             diverged = self.gitm('rev-list', srcb.commit.id, '^' + commit)
             if diverged.stderr or diverged.stdout:
-                if raw_input("Branch %s has diverged from GitLab, shall I push and overwrite? [y/N] " % src) in ['y', 'Y']:
+                if self.question("Branch %s has diverged from GitLab, shall I push and overwrite?" % src, default=False):
                     self.gitm('push', '--force', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")
             else:
-                if raw_input("Branch %s not up to date on GitLab, but can be fast forwarded, shall I push? [Y/n] " % src) in ['y', 'Y', '']:
+                if self.question("Branch %s not up to date on GitLab, but can be fast forwarded, shall I push?" % src):
                     self.gitm('push', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")

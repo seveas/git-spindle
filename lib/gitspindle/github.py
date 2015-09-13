@@ -147,7 +147,7 @@ class GitHub(GitSpindle):
             print(wrap("Pull request has already been closed", fgcolor.red))
             warned = True
         if warned:
-            if raw_input("Continue? [y/N] ") not in ['y', 'Y']:
+            if not self.question("Continue?", default=False):
                 sys.exit(1)
         # Fetch PR if needed
         sha = self.git('rev-parse', '--verify', 'refs/pull/%d/head' % pr.number).stdout.strip()
@@ -761,7 +761,7 @@ class GitHub(GitSpindle):
 
     @command
     def pull_request(self, opts):
-        """[--issue=<issue>] [<branch1:branch2>]
+        """[--issue=<issue>] [--yes] [<branch1:branch2>]
            Opens a pull request to merge your branch1 to upstream branch2"""
         repo = self.repository(opts)
         if repo.fork:
@@ -786,7 +786,7 @@ class GitHub(GitSpindle):
         # Do they exist on github?
         srcb = repo.branch(src)
         if not srcb:
-            if raw_input("Branch %s does not exist in your GitHub repo, shall I push? [Y/n] " % src).lower() in ['y', 'Y', '']:
+            if self.question("Branch %s does not exist in your GitHub repo, shall I push?" % src):
                 self.gitm('push', repo.remote, src, redirect=False)
             else:
                 err("Aborting")
@@ -794,12 +794,12 @@ class GitHub(GitSpindle):
             # Have we diverged? Then there are commits that are reachable from the github branch but not local
             diverged = self.gitm('rev-list', srcb.commit.sha, '^' + commit)
             if diverged.stderr or diverged.stdout:
-                if raw_input("Branch %s has diverged from GitHub, shall I push and overwrite? [y/N] " % src) in ['y', 'Y']:
+                if self.question("Branch %s has diverged from GitHub, shall I push and overwrite?" % src, default=False):
                     self.gitm('push', '--force', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")
             else:
-                if raw_input("Branch %s not up to date on github, but can be fast forwarded, shall I push? [Y/n] " % src) in ['y', 'Y', '']:
+                if self.question("Branch %s not up to date on github, but can be fast forwarded, shall I push?" % src):
                     self.gitm('push', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")
