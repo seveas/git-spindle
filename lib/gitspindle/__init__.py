@@ -165,12 +165,12 @@ Options:
                 remote = remote.split('.')[1]
                 host, user, repo = self._parse_url(url)
                 if repo and not first:
-                    first = host, user, repo
+                    first = remote, host, user, repo
                 if user == self.my_login:
                     break
             else:
                 if first:
-                    host, user, repo = first
+                    remote, host, user, repo = first
 
         if hostname_only:
             return host
@@ -183,10 +183,12 @@ Options:
         if not repo_:
             err("Repository %s/%s could not be found on %s" % (user, repo, self.what))
 
+        repo_.remote = remote
         if opts['--parent'] or opts['--maybe-parent']:
             parent = self.parent_repo(repo_)
             if parent:
                 repo_ = parent
+                repo_.remote = None
             elif opts['--parent']:
                 err("No parent repo found for %s/%s" % (user, repo))
 
