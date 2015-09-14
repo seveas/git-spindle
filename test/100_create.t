@@ -56,7 +56,7 @@ for spindle in hub lab bb; do
     test_expect_success $spindle "Create repo with description ($spindle)" "
         ( cd hacks &&
         echo 'Hacks repo' > expected &&
-        git_${spindle}_1 create -d 'Hacks repo' &&
+        git_${spindle}_1 create --description='Hacks repo' &&
         git_${spindle}_1 repos | sed -ne 's/.*H/H/p' > actual &&
         test_cmp expected actual )
     "

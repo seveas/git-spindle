@@ -330,7 +330,7 @@ class GitLab(GitSpindle):
 
     @command
     def create(self, opts):
-        """[--private|--internal] [-d <description>]
+        """[--private|--internal] [--description=<description>]
            Create a repository on gitlab to push to"""
         root = self.gitm('rev-parse', '--show-toplevel').stdout.strip()
         name = os.path.basename(root)
@@ -341,7 +341,7 @@ class GitLab(GitSpindle):
             visibility_level = 10
         elif opts['--private']:
             visibility_level = 10
-        glapi.Project(self.gl, {'name': name, 'description': opts['<description>'] or "", 'visibility_level': visibility_level}).save()
+        glapi.Project(self.gl, {'name': name, 'description': opts['--description'] or "", 'visibility_level': visibility_level}).save()
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the GitLab repository as 'gitlab'")
             self.set_origin(opts, 'gitlab')

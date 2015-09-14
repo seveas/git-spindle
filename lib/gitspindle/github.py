@@ -331,13 +331,13 @@ class GitHub(GitSpindle):
 
     @command
     def create(self, opts):
-        """[--private] [-d <description>]
+        """[--private] [--description=<description>]
            Create a repository on github to push to"""
         root = self.gitm('rev-parse', '--show-toplevel').stdout.strip()
         name = os.path.basename(root)
         if name in [x.name for x in self.gh.iter_repos()]:
             err("Repository already exists")
-        self.gh.create_repo(name=name, description=opts['<description>'] or "", private=opts['--private'])
+        self.gh.create_repo(name=name, description=opts['--description'] or "", private=opts['--private'])
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the GitHub repository as 'github'")
             self.set_origin(opts, 'github')
@@ -403,10 +403,10 @@ class GitHub(GitSpindle):
 
     @command
     def gist(self, opts):
-        """[-d <description>] <file>...
+        """[--description=<description>] <file>...
            Create a new gist from files or stdin"""
         files = {}
-        description = opts['<description>'] or ''
+        description = opts['--description'] or ''
         for f in opts['<file>']:
             if f == '-':
                 files['stdout'] = {'content': sys.stdin.read()}
