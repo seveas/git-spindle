@@ -40,7 +40,7 @@ for spindle in hub lab bb; do
 done
 
 for spindle in hub bb; do
-    test_expect_success $spindle "Listing forks" "
+    test_expect_success $spindle "Listing forks ($spindle)" "
         dst=\$(username git_${spindle}_1) &&
         dst=\$(username git_${spindle}_2) &&
         git_${spindle}_1 forks whelk >actual &&

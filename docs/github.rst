@@ -32,7 +32,7 @@ GitHub thinks about who you are. For example::
   Gists     4 public, 0 private
   RSA key   ...N0nFw3oW5l (Dennis)
 
-.. describe:: git hub whois
+.. describe:: git hub whois <user>...
 
 If you want to see this information about other users, use :command:`git hub whois`::
 
@@ -60,7 +60,7 @@ Shows the last few GitHub status messages::
   [2m2014-04-03 09:55[0m [33mminor[0m We're currently investigating issues with operations against a small percentage of repositories.
   [2m2014-04-03 10:14[0m [32mgood [0m Everything operating normally.
 
-.. describe:: git hub repos [--no-forks] [<user>...]
+.. describe:: git hub repos [--no-forks] [<user>]
 
 List all repositories owned by a user, by default you. Specify :option:`--no-forks`
 to exclude forked repositories.
@@ -83,6 +83,14 @@ instead of yours.
 If you are only interested in events of a specific type, you can filter for it,
 e.g. :option:`--type=push`.
 
+.. describe:: git hub add-account [--host=<host>] <alias>
+
+:command:`git hub` supports multiple accounts. To add a new account, use the
+:command:`add-account` command. If the account lives on a GitHub Enterprise
+instance, you can specify its hostname. To change the hostname of any account,
+including the default one, you can use the :command:`config` command as
+follows: :command:`git hub config host https://github.example.com`.
+
 .. describe:: git hub config [--unset] <key> [<value>]
 
 Set, get or unset a configuration variable in :file:`~/.gitspindle`. Similar to
@@ -95,7 +103,7 @@ is hardcoded to be the current account.
 Interacting with repositories
 -----------------------------
 
-.. describe:: git hub create [--private] [-d <description>]
+.. describe:: git hub create [--private] [--description=<description>]
 
 Create a (possibly private) repository on GitHub for your current repository. An
 optional description can be given too. After running this command, a repository
@@ -126,7 +134,7 @@ Display the contents of a file on GitHub. File can start with repository names
 and refs. For example: `master:bin/git-hub`, `git-spindle:master:bin/git-hub`
 or `seveas/git-spindle:master:bin/git-hub`.
 
-.. describe:: git hub ls <dir>...
+.. describe:: git hub ls [<dir>...]
 
 Display the contents of a directory on GitHub. Directory can start with
 repository names and refs. For example: `master:bin/git-hub`,
@@ -145,7 +153,7 @@ fork of that repository and set up your remotes.
 
 List all forks of this repository, highlighting the original repository.
 
-.. describe:: git hub add-remote [--ssh|--http|--git] [<user>]
+.. describe:: git hub add-remote [--ssh|--http|--git] <user>...
 
 Add a users fork as a remote using the user's login as name for the remote.
 Defaults to adding a git url, but this can be overridden. For private repos
@@ -204,7 +212,7 @@ can use the :option:`--parent` option to use the parent repository. If you do
 not specify an issue number, you will be prompted for a message that will be
 used to create a new issue.
 
-.. describe:: git hub pull-request [--issue <issue>] [<yours:theirs>]
+.. describe:: git hub pull-request [--issue=<issue>] [--yes] [<yours:theirs>]
 
 Files a pull request to merge branch "yours" (default: the current branch) into
 the upstream branch "theirs" (default: master). Like for a commit message, your
@@ -227,7 +235,7 @@ your history linear, this one is for you. It applies a pull request using
 Gists
 -----
 
-.. describe:: git hub gist [-d <description>] <file>...
+.. describe:: git hub gist [--description=<description>] <file>...
 
 Creates a gist (with optional description) from the named files. If you specify
 :file:`-` as filename, :file:`stdin` will be used, making it easy to pipe
@@ -239,7 +247,7 @@ List your gists, or those created by another user.
 
 Other
 -----
-.. describe:: git hub calendar [<user>...]
+.. describe:: git hub calendar [<user>]
 
 Show a timeline of a your activity, or that of another user. The timeline will
 look like that on your GitHub profile page::
@@ -274,3 +282,11 @@ who's repositories you've forked. For example::
 Here's mine:
 
 .. image:: _static/network.png
+
+.. describe:: git hub say [<msg>]
+
+This lets the octocat speak to you.
+
+.. describe:: git hub setup-goblet
+
+Set up a configuration for the goblet web interface based on data in GitHub.

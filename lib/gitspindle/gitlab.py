@@ -488,12 +488,12 @@ class GitLab(GitSpindle):
 
     @command
     def merge_request(self, opts):
-        """[<branch1:branch2>]
-           Opens a merge request to merge your branch1 to upstream branch2"""
+        """[--yes] [<yours:theirs>]
+           Opens a merge request to merge your branch to an upstream branch"""
         repo = self.repository(opts)
         parent = self.parent_repo(repo) or repo
         # Which branch?
-        src = opts['<branch1:branch2>'] or ''
+        src = opts['<yours:theirs>'] or ''
         dst = None
         if ':' in src:
             src, dst = src.split(':', 1)

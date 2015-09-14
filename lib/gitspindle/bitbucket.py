@@ -373,15 +373,15 @@ class BitBucket(GitSpindle):
 
     @command
     def pull_request(self, opts):
-        """[<branch1:branch2>]
-           Opens a pull request to merge your branch1 to upstream branch2"""
+        """[--yes] [<yours:theirs>]
+           Opens a pull request to merge your branch to an upstream branch"""
         repo = self.repository(opts)
         if repo.is_fork:
             parent = self.parent_repo(repo)
         else:
             parent = repo
         # Which branch?
-        src = opts['<branch1:branch2>'] or ''
+        src = opts['<yours:theirs>'] or ''
         dst = None
         if ':' in src:
             src, dst = src.split(':', 1)

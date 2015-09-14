@@ -761,15 +761,15 @@ class GitHub(GitSpindle):
 
     @command
     def pull_request(self, opts):
-        """[--issue=<issue>] [--yes] [<branch1:branch2>]
-           Opens a pull request to merge your branch1 to upstream branch2"""
+        """[--issue=<issue>] [--yes] [<yours:theirs>]
+           Opens a pull request to merge your branch to an upstream branch"""
         repo = self.repository(opts)
         if repo.fork:
             parent = repo.parent
         else:
             parent = repo
         # Which branch?
-        src = opts['<branch1:branch2>'] or ''
+        src = opts['<yours:theirs>'] or ''
         dst = None
         if ':' in src:
             src, dst = src.split(':', 1)

@@ -38,22 +38,22 @@ Usage:
   git hub cat <file>...
   git hub clone [--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
   git hub config [--unset] <key> [<value>]
-  git hub create [--private] [-d <description>]
+  git hub create [--private] [--description=<description>]
   git hub edit-hook <name> [<setting>...]
   git hub fork [--ssh|--http|--git] [<repo>]
   git hub forks [<repo>]
-  git hub gist [-d <description>] <file>...
+  git hub gist [--description=<description>] <file>...
   git hub gists [<user>]
   git hub hooks
   git hub ignore [<language>...]
   git hub issue [<repo>] [--parent] [<issue>...]
   git hub issues [<repo>] [--parent] [<filter>...]
   git hub log [--type=<type>] [<what>]
-  git hub ls <dir>...
+  git hub ls [<dir>...]
   git hub mirror [--ssh|--http|--git] [--goblet] [<repo>]
   git hub network [<level>]
   git hub public-keys [<user>]
-  git hub pull-request [--issue=<issue>] [<branch1:branch2>]
+  git hub pull-request [--issue=<issue>] [--yes] [<yours:theirs>]
   git hub remove-hook <name>
   git hub render [--save=<outfile>] <file>
   git hub repos [--no-forks] [<user>]
@@ -69,16 +69,17 @@ Usage:
   git lab add-remote [--ssh|--http] <user>...
   git lab apply-merge <merge-request-number>
   git lab browse [--parent] [<repo>] [<section>]
+  git lab calendar [<user>]
   git lab cat <file>...
   git lab clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
   git lab config [--unset] <key> [<value>]
-  git lab create [--private|--internal] [-d <description>]
+  git lab create [--private|--internal] [--description=<description>]
   git lab fork [--ssh|--http] [<repo>]
   git lab issue [<repo>] [--parent] [<issue>...]
   git lab issues [<repo>] [--parent] [<filter>...]
   git lab log [<repo>]
-  git lab ls <dir>...
-  git lab merge-request [<branch1:branch2>]
+  git lab ls [<dir>...]
+  git lab merge-request [--yes] [<yours:theirs>]
   git lab mirror [--ssh|--http] [--goblet] [<repo>]
   git lab public-keys [<user>]
   git lab repos [--no-forks]
@@ -94,17 +95,19 @@ Usage:
   git bb cat <file>...
   git bb clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
   git bb config [--unset] <key> [<value>]
-  git bb create [--private] [-d <description>]
+  git bb create [--private] [--description=<description>]
   git bb fork [--ssh|--http] [<repo>]
   git bb forks [<repo>]
   git bb issue [<repo>] [--parent] [<issue>...]
   git bb issues [<repo>] [--parent] [<filter>...]
-  git bb ls <dir>...
+  git bb ls [<dir>...]
   git bb mirror [--ssh|--http] [--goblet] [<repo>]
   git bb public-keys [<user>]
-  git bb pull-request [<branch1:branch2>]
+  git bb pull-request [--yes] [<yours:theirs>]
   git bb repos [--no-forks] [<user>]
   git bb set-origin [--ssh|--http]
+  git bb snippet [--description=<description>] <file>...
+  git bb snippets [<user>]
   git bb whoami
   git bb whois <user>...
 
