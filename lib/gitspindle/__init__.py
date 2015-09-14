@@ -323,7 +323,7 @@ Options:
 
     @hidden_command
     def test_cleanup(self, opts):
-        """[--keys] [--repos]
+        """[--keys] [--repos] [--gists]
         Delete all keys and repos of an account, used in tests"""
         if 'test' not in self.my_login:
             raise RuntimeError("Can only clean up test accounts")
@@ -337,6 +337,9 @@ Options:
                     if repo.owner.login == self.my_login:
                         if not repo.delete():
                             raise RuntimeError("Deleting repository failed")
+            if opts['--gists']:
+                for gist in self.gh.iter_gists():
+                    gist.delete()
 
         elif self.api.__name__ == 'gitspindle.bbapi':
             if opts['--keys']:

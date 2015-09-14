@@ -8,7 +8,7 @@ export DEBUG=1
 
 for spindle in $all_spindles; do
     test_expect_success $(req $spindle) "Clean up $spindle (cleanup)" "
-        $spindle test-cleanup --keys --repos
+        $spindle test-cleanup --keys --repos --gists
     "
 done
 for spindle in $all_spindles; do
