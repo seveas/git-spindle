@@ -47,6 +47,8 @@ for spindle in lab hub bb; do
         git_${spindle}_1 issues > issues &&
         grep -q whelk issues
     "
+
+    test_expect_failure $spindle "Display single issue" "false"
 done
 
 test_done

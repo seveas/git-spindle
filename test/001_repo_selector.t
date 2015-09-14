@@ -80,6 +80,8 @@ test_expect_success bb "Repository not found (bb)" "
     test_cmp expected actual
 "
 
+git remote rm origin
+
 test_expect_success "GitLab local install" "
     git remote add local http://gitlab.kaarsemaker.net/seveas2/whelk &&
 
@@ -104,6 +106,7 @@ for spindle in hub lab bb; do
     "
 done
 
+test_expect_failure "Test detecting correct repo when in a subdir of the repo" "false"
 test_expect_failure "Test fake GHE by pointing another name to GitHub" "false"
 test_expect_failure "Test BitBucket CNAMEs" "false"
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_description="Testing issues"
+test_description="Testing applying a branch"
 
 . ./setup.sh
 

@@ -10,7 +10,7 @@ for spindle in hub lab bb; do
         git_${spindle}_1 browse seveas/whelk > actual
         test_cmp expected actual
     "
-    test_expect_success $spindle "Launch browsers for repo homepage ($spindle)" "
+    test_expect_success $spindle "Launch browsers for repo issues page ($spindle)" "
         echo https://$(spindle_host git_${spindle}_1)/seveas/whelk/issues > expected
         git_${spindle}_1 browse seveas/whelk issues > actual
         test_cmp expected actual
