@@ -507,13 +507,15 @@ class GitLab(GitSpindle):
         # Try to get the local commit
         commit = self.gitm('show-ref', 'refs/heads/%s' % src).stdout.split()[0]
         # Do they exist on GitLab?
-        srcb = repo.Branch(src)
-        if not srcb:
+        try:
+            srcb = repo.Branch(src)
+        except glapi.GitlabGetError:
+            srcb = None
             if self.question("Branch %s does not exist in your GitLab repo, shall I push?" % src):
                 self.gitm('push', repo.remote, src, redirect=False)
             else:
                 err("Aborting")
-        elif srcb and srcb.commit.id != commit:
+        if srcb and srcb.commit.id != commit:
             # Have we diverged? Then there are commits that are reachable from the GitLab branch but not local
             diverged = self.gitm('rev-list', srcb.commit.id, '^' + commit)
             if diverged.stderr or diverged.stdout:

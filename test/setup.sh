@@ -88,8 +88,10 @@ username() {(
     $1 run-shell -c 'print(self.my_login)'
 )}
 
+commit_count=0
 test_commit() {
+    commit_count=$(expr $commit_count + 1) &&
     fortune >testfile &&
     git add testfile &&
-    git commit -m "Test commit"
+    git commit -m "Test commit $commit_count"
 }

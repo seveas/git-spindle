@@ -9,4 +9,8 @@ filename=$1
 test -n "$filename" || die "No filename given"
 test -e "$filename" || die "File $filename does not exist"
 
-echo "$FAKE_EDITOR_DATA" > $filename
+echo "$FAKE_EDITOR_DATA" > ${filename}.tmp
+if [ "x$FAKE_EDITOR_INCLUDE_ORIGINAL" = "x1" ]; then
+    cat $filename >> $filename.tmp
+fi
+mv $filename.tmp $filename
