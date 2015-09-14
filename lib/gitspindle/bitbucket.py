@@ -530,6 +530,31 @@ class BitBucket(GitSpindle):
                     self.gitm('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
 
     @command
+    def snippet(self, opts):
+        """[--description=<description>] <file>...
+           Create a new gist from files or stdin"""
+        files = {}
+        description = opts['--description'] or ''
+        for f in opts['<file>']:
+            if f == '-':
+                files['stdout'] = sys.stdin.read()
+            else:
+                if not os.path.exists(f):
+                    err("No such file: %s" % f)
+                with open(f) as fd:
+                    files[os.path.basename(f)] = fd.read()
+        snippet = self.me.create_snippet(description=description, files=files)
+        print("Snippet created at %s" % snippet.links['html']['href'])
+
+    @command
+    def snippets(self, opts):
+        """[<user>]
+           Show all gists for a user"""
+        snippets = self.bb.user(opts['<user>'] or self.my_login).snippets()
+        for snippet in snippets:
+            print("%s - %s" % (snippet.title, snippet.links['html']['href']))
+
+    @command
     def whoami(self, opts):
         """\nDisplay BitBucket user info"""
         opts['<user>'] = [self.my_login]

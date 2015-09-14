@@ -348,6 +348,9 @@ Options:
             if opts['--repos']:
                 for repo in self.me.repositories():
                     repo.delete()
+            if opts['--gists']:
+                for snippet in self.me.snippets():
+                    snippet.delete()
 
         elif self.api.__name__ == 'gitspindle.glapi':
             if opts['--keys']:

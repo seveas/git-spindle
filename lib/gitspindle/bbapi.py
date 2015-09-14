@@ -119,6 +119,18 @@ class User(BBobject):
         data = self.get(url)['values']
         return [Repository(self.bb, mode=None, **repo) for repo in data]
 
+    def snippets(self):
+        url = uritemplate.expand('https://bitbucket.org/api/2.0/snippets/{owner}', owner=self.username)
+        data = self.get(url)['values']
+        return [Snippet(self.bb, mode=None, **snippet) for snippet in data]
+
+    def create_snippet(self, description, files):
+        url = uritemplate.expand('https://bitbucket.org/api/2.0/snippets/{owner}', owner=self.username)
+        data = {'scm': 'git', 'is_private': 'false', 'title': description}
+        files = [('file', (filename, content)) for (filename, content) in files.items()]
+        snippet = self.post(url, data=data, files=files)
+        return Snippet(self.bb, mode=None, **snippet)
+
 def ssh_fix(url):
     if not url.startswith('ssh://'):
         return url
@@ -218,3 +230,20 @@ class Issue(BBobject):
 
 class Source(BBobject):
     uri = 'https://bitbucket.org/api/1.0/repositories/{owner}/{slug}/src/{revision}{/path*}'
+
+class Snippet(BBobject):
+    uri = 'https://bitbucket.org/api/2.0/snippets/{owner}/{id}'
+
+    def __init__(self, *args, **kwargs):
+        super(Snippet, self).__init__(*args, **kwargs)
+        if not hasattr(self, 'links'):
+            return
+        links, self.links['clone'] = self.links['clone'], {}
+        for link in links:
+            self.links['clone'][link['name']] = ssh_fix(link['href'])
+
+    def delete(self):
+        if not hasattr(self, 'url'):
+            data = {'owner': self.owner['username'], 'id': self.id}
+            self.url = [uritemplate.expand(x, **data) for x in self.uri]
+        return self.delete_(self.url[0])
