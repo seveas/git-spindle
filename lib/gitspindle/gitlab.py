@@ -77,7 +77,7 @@ class GitLab(GitSpindle):
             return repo.ssh_url_to_repo
         if opts['--http']:
             return repo.http_url_to_repo
-        if repo.owner.username == self.my_login:
+        if repo.namespace.name == self.my_login:
             return repo.ssh_url_to_repo
         return repo.http_url_to_repo
 
@@ -354,7 +354,7 @@ class GitLab(GitSpindle):
            Fork a repo and clone it"""
         do_clone = bool(opts['<repo>'])
         repo = self.repository(opts)
-        if repo.owner.username == self.my_login:
+        if repo.namespace.name == self.my_login:
             err("You cannot fork your own repos")
 
         if repo.name in [x.name for x in self.gl.Project()]:
@@ -388,7 +388,7 @@ class GitLab(GitSpindle):
 # Reporting an issue on %s/%s
 # Please describe the issue as clarly as possible. Lines starting with '#' will
 # be ignored, the first line will be used as title for the issue.
-#""" % (repo.owner.username, repo.name)
+#""" % (repo.namespace.name, repo.name)
             title, body = self.edit_msg(body, 'ISSUE_EDITMSG')
             if not body:
                 err("Empty issue message")
@@ -566,7 +566,7 @@ class GitLab(GitSpindle):
 #
 # Please enter a message to accompany your merge request. Lines starting
 # with '#' will be ignored, and an empty message aborts the request.
-#""" % (repo.owner.username, src, parent.owner.username, dst)
+#""" % (repo.namespace.name, src, parent.owner.username, dst)
         body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
         body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
         title, body = self.edit_msg("%s\n\n%s" % (title,body), 'merge_REQUEST_EDIT_MSG')
@@ -583,7 +583,7 @@ class GitLab(GitSpindle):
            Mirror a repository, or all your repositories"""
         if opts['<repo>'] and opts['<repo>'] == '*':
             for repo in self.gl.Project():
-                opts['<repo>'] = '%s/%s' % (repo.owner.username, name)
+                opts['<repo>'] = '%s/%s' % (repo.namespace.name, name)
                 self.mirror(opts)
             return
         repo = self.repository(opts)
@@ -652,8 +652,8 @@ class GitLab(GitSpindle):
                     continue
                 color.append(attr.faint)
             name = repo.name
-            if self.my_login != repo.owner.username:
-                name = '%s/%s' % (repo.owner.username, name)
+            if self.my_login != repo.namespace.name:
+                name = '%s/%s' % (repo.namespace.name, name)
             desc = ' '.join((repo.description or '').splitlines())
             msg = wrap(fmt % (name, desc), *color)
             if not PY3:
@@ -667,7 +667,7 @@ class GitLab(GitSpindle):
            If this is a fork, set the remote 'upstream' to the parent"""
         repo = self.repository(opts)
         # Is this mine? No? Do I have a clone?
-        if repo.owner.username != self.my_login:
+        if repo.namespace.name != self.my_login:
             my_repo = self.find_repo(self.my_login, repo.name)
             if my_repo:
                 repo = my_repo
