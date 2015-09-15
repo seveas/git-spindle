@@ -82,7 +82,7 @@ test_expect_success bb "Repository not found (bb)" "
 
 git remote rm origin
 
-test_expect_success "GitLab local install" "
+test_expect_success lab_local "GitLab local install" "
     git remote add local http://gitlab.kaarsemaker.net/seveas2/whelk &&
 
     echo seveas2/whelk > expected &&

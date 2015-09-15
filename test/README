@@ -29,6 +29,8 @@ The testsuite pays attention to the following environment variables:
 NO_GITHUB       -- don't test github
 NO_BITBUCKET    -- don't test bitbucket
 NO_GITLAB       -- don't test gitlab
+NO_GITLAB_LOCAL -- don't test a local gitlab instance
+AUTHORTESTS     -- run tests only the author needs to run
 
 Adding to the testsuite
 -----------------------

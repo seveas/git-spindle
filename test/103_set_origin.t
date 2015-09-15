@@ -45,7 +45,7 @@ for spindle in lab hub bb; do
     done
 done
 
-test_expect_success "Setting origin (local gitlab)" "
+test_expect_success lab_local "Setting origin (local gitlab)" "
     (cd whelk &&
     host=\$(spindle_host git_lab_local) &&
     git_lab_local set-origin &&

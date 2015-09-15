@@ -41,7 +41,7 @@ EOF
     test_cmp expected actual
 "
 
-test_expect_success "Create a repo with a GitLab local install set as default" "
+test_expect_success lab_local "Create a repo with a GitLab local install set as default" "
     host=\$(git_lab_local config host) &&
     user=\$(git_lab_local config user) &&
     token=\$(git_lab_local config token) &&

@@ -31,7 +31,7 @@ for spindle in hub lab bb; do test_expect_success $spindle "Adding keys for othe
     git_${spindle}_3 add-public-keys .ssh/id_rsa-3.pub
 "; done
 
-test_expect_success "Adding keys to local gitlab instance" "
+test_expect_success lab_local "Adding keys to local gitlab instance" "
     git_lab_local add-public-keys .ssh/id_rsa.pub &&
     git_lab_local public-keys >actual &&
     test_cmp .ssh/id_rsa.pub actual
