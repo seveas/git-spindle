@@ -9,34 +9,13 @@ Accounts
 --------
 You will need 3 accounts on each of gitlab.com, bitbucket.org and github.com.
 The word 'test' must appear in their name. You will also need a local GitLab
-instance, where a user 'Seveas' must exist and have a public repo 'whelk'.
+instance, where a user 'seveas' must exist and have a public repo named
+'whelk'.
 
 All these accounts must be added to a .gitspindle file in this directory. It's
-probably easiest to add them to your local .gitspindle file with the
-add-account command and then copy them over.
-
-Note that for GitHub accounts you must manually grant the delete_repo scope
-after creating the account. This can be done on
-https://github.com/settings/applications
-
-The git-spindle account names are hardcoded as below:
-
-[gitlab "gitlab-test-1"]
-[gitlab "gitlab-test-2"]
-[gitlab "gitlab-test-3"]
-[gitlab "gitlab-test-local"]
-
-[github "github-test-1"]
-[github "github-test-2"]
-[github "github-test-3"]
-
-[bitbucket "bitbucket-test-1"]
-[bitbucket "bitbucket-test-2"]
-[bitbucket "bitbucket-test-3"]
-
-After creating the .gitspindle file, copy over the [github "github-test-1"]
-section to a [github] section. Same for gitlab and bitbucket.
-
+not a normal .gitspindle file, please see the example in this directory. Note
+that the testsuite will add extra sections to this configfile storing the
+access tokens.
 
 Running the testsuite
 ---------------------
@@ -46,6 +25,10 @@ from the test directory. But beware that quite a few tests depend on each
 other, so make sure any failures you get when doing this are not the result of
 this fact.
 
+The testsuite pays attention to the following environment variables:
+NO_GITHUB       -- don't test github
+NO_BITBUCKET    -- don't test bitbucket
+NO_GITLAB       -- don't test gitlab
 
 Adding to the testsuite
 -----------------------

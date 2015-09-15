@@ -43,23 +43,36 @@ class GitHub(GitSpindle):
                 return raw_input("Two-Factor Authentication Code: ").strip()
             password = getpass.getpass("GitHub password: ")
             self.gh.login(user, password, two_factor_callback=prompt_for_2fa)
+            scopes = ['user', 'repo', 'gist', 'admin:public_key', 'admin:repo_hook', 'admin:org']
+            if user.startswith('git-spindle-test-'):
+                scopes.append('delete_repo')
+            name = "GitSpindle on %s" % socket.gethostname()
             try:
-                auth = self.gh.authorize(user, password, ['user', 'repo', 'gist', 'admin:public_key', 'admin:repo_hook', 'admin:org'],
-                        "GitSpindle on %s" % socket.gethostname(), "http://seveas.github.com/git-spindle")
+                auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
             except github3.GitHubError:
                 type, exc = sys.exc_info()[:2]
-                if hasattr(exc, 'response'):
-                    response = exc.response
-                    if response.status_code == 422:
-                        for error in response.json()['errors']:
-                            if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
-                                err("An OAuth token for this host already exists, please delete it on https://github.com/settings/applications")
-                raise
+                if not hasattr(exc, 'response'):
+                    raise
+                response = exc.response
+                if response.status_code != 422:
+                    raise
+                for error in response.json()['errors']:
+                    if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
+                        if os.getenv('DEBUG') or self.question('An OAuth token for this host already exists. Shall I delete it?', default=False):
+                            for auth in self.gh.iter_authorizations():
+                                if auth.app['name'] in (name, '%s (API)' % name):
+                                    auth.delete()
+                            auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
+                        else:
+                            err('Unable to create an OAuth token')
+                        break
+                else:
+                    raise
             if auth is None:
                 err("Authentication failed")
             token = auth.token
             self.config('token', token)
-            self.config('auth_id', auth.id)
+            self.config('auth-id', auth.id)
             print("A GitHub authentication token is now cached in %s - do not share this file" % self.config_file)
             print("To revoke access, visit https://github.com/settings/applications")
 

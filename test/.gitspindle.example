@@ -1,0 +1,31 @@
+[testsuite "github-test-1"]
+	user = git-spindle-test-1
+	password = Password!
+[testsuite "github-test-2"]
+	user = git-spindle-test-2
+	password = Password!
+[testsuite "github-test-3"]
+	user = git-spindle-test-3
+	password = Password!
+[testsuite "gitlab-test-1"]
+	user = git-spindle-test-1
+	password = Password!
+[testsuite "gitlab-test-2"]
+	user = git-spindle-test-2
+	password = Password!
+[testsuite "gitlab-test-3"]
+	user = git-spindle-test-3
+	password = Password!
+[testsuite "gitlab-test-local"]
+	user = git-spindle-test-local
+	password = Password!
+	host = http://gitlab.kaarsemaker.net
+[testsuite "bitbucket-test-1"]
+	user = git-spindle-test-1
+	password = Password!
+[testsuite "bitbucket-test-2"]
+	user = git-spindle-test-2
+	password = Password!
+[testsuite "bitbucket-test-3"]
+	user = git-spindle-test-3
+	password = Password!

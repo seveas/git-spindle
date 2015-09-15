@@ -227,7 +227,7 @@ Options:
         opts = docopt.docopt(self.usage, argv)
         self.account = opts['--account'] or os.environ.get('GITSPINDLE_ACCOUNT', None)
         self.assume_yes = opts['--yes']
-        if self.account and not self.config('user'):
+        if self.account and not self.config('user') and not opts['config']:
             err("%s does not yet know about %s. Use %s add-account to configure it" % (self.prog, self.account, self.prog))
         hosts = self.git('config', '--file', self.config_file, '--get-regexp', '%s.*host' % self.spindle).stdout.strip()
 
@@ -325,7 +325,7 @@ Options:
     def test_cleanup(self, opts):
         """[--keys] [--repos] [--gists]
         Delete all keys and repos of an account, used in tests"""
-        if 'test' not in self.my_login:
+        if not self.my_login.startswith('git-spindle-test-'):
             raise RuntimeError("Can only clean up test accounts")
 
         if self.api.__name__ == 'github3':
