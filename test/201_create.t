@@ -11,10 +11,15 @@ test_expect_success "Clone source repos" "
     git clone https://github.com/seveas/hacks.git
 "
 
-test -d whelk || test_done
+for spindle in hub lab bb; do
+    test_expect_success $spindle "Cleanup ($spindle)" "
+        (export DEBUG=1; git_${spindle}_1 test-cleanup --repos)
+    "
+done
 
 for spindle in hub lab bb; do
     test_expect_success $spindle "Create repo ($spindle)" "
+        git_${spindle}_1
         ( cd whelk &&
         echo whelk > expected &&
         git_${spindle}_1 create &&
@@ -42,6 +47,7 @@ EOF
 "
 
 test_expect_success lab_local "Create a repo with a GitLab local install set as default" "
+    (export DEBUG=1; git_lab_local test-cleanup --repos) &&
     host=\$(git_lab_local config host) &&
     user=\$(git_lab_local config user) &&
     token=\$(git_lab_local config token) &&

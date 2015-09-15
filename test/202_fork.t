@@ -8,7 +8,11 @@ test_expect_success "Clone extra repository" "
     git clone https://github.com/seveas/python-hpilo
 "
 
-test -d python-hpilo || test_done
+for spindle in hub lab bb; do
+    test_expect_success $spindle "Cleanup ($spindle)" "
+        (export DEBUG=1; git_${spindle}_2 test-cleanup --repos)
+    "
+done
 
 for spindle in hub lab bb; do
     test_expect_success $spindle "Create repo ($spindle)" "

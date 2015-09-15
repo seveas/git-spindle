@@ -12,6 +12,7 @@ test_expect_success "Generating keys" "
 "
 
 for spindle in hub lab bb; do test_expect_success $spindle "Add and retrieve keys ($spindle)" "
+    (export DEBUG=1; git_${spindle}_1 test-cleanup --keys) &&
     git_${spindle}_1 add-public-keys &&
     git_${spindle}_1 public-keys > actual &&
     test_cmp .ssh/id_rsa.pub actual &&
@@ -27,11 +28,14 @@ test_expect_success "Generating more keys" "
 "
 
 for spindle in hub lab bb; do test_expect_success $spindle "Adding keys for other users ($spindle)" "
+    (export DEBUG=1; git_${spindle}_2 test-cleanup --keys) &&
+    (export DEBUG=1; git_${spindle}_3 test-cleanup --keys) &&
     git_${spindle}_2 add-public-keys .ssh/id_rsa-2.pub &&
     git_${spindle}_3 add-public-keys .ssh/id_rsa-3.pub
 "; done
 
 test_expect_success lab_local "Adding keys to local gitlab instance" "
+    (export DEBUG=1; git_lab_local test-cleanup --keys) &&
     git_lab_local add-public-keys .ssh/id_rsa.pub &&
     git_lab_local public-keys >actual &&
     test_cmp .ssh/id_rsa.pub actual

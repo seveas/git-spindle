@@ -36,6 +36,9 @@ test_expect_success hub,lab,bb "Resetting non-numbered accounts" "
     git_bb config password \$(git_bb_1 config password)
 "
 
+test_expect_failure hub "Testing two factor authentication" "false"
+
+# vim: set syntax=sh:
 # Make sure other tests know about the new tokens
 if test $test_failure -eq 0; then
     say info "Updating global .gitspindle"
