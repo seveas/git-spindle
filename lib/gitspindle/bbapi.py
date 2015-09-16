@@ -228,6 +228,18 @@ class Repository(BBobject):
         url = uritemplate.expand('https://bitbucket.org/api/1.0/privileges/{owner}/{slug}', data)
         return self.get(url)
 
+    def add_deploy_key(self, key, label):
+        url = self.url[0] + '/deploy-keys'
+        return self.post(url, {'key': key, 'label': label})
+
+    def remove_deploy_key(self, key):
+        url = self.url[0] + '/deploy-keys/' + key
+        return self.delete_(url)
+
+    def deploy_keys(self):
+        url = self.url[0] + '/deploy-keys'
+        return self.get(url)
+
 class Branch(BBobject):
     uri = None
 

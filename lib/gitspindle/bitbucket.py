@@ -60,6 +60,18 @@ class BitBucket(GitSpindle):
 
     # Commands
     @command
+    def add_deploy_key(self, opts):
+        """<key>...
+           Add a deploy key"""
+        repo = self.repository(opts)
+        for arg in opts['<key>']:
+            with open(arg) as fd:
+                algo, key, label = fd.read().strip().split(None, 2)
+            key = "%s %s" % (algo, key)
+            print("Adding deploy key %s" % arg)
+            repo.add_deploy_key(key, label)
+
+    @command
     def add_privilege(self, opts):
         """[--admin|--read|--write] <user>...
            Add privileges for a user to this repo"""
@@ -215,6 +227,14 @@ class BitBucket(GitSpindle):
             self.set_origin(opts, 'bitbucket')
         else:
             self.set_origin(opts)
+
+    @command
+    def deploy_keys(self, opts):
+        """[<repo>]
+           Lists all keys for a repo"""
+        repo = self.repository(opts)
+        for key in repo.deploy_keys():
+            print("%s %s (id: %s)" % (key['key'], key.get('label', ''), key['pk']))
 
     @command
     def fork(self, opts):
@@ -494,6 +514,14 @@ class BitBucket(GitSpindle):
 
         pull = parent.create_pull_request(src=srcb, dst=dstb, title=title, body=body)
         print("Pull request %d created %s" % (pull.id, pull.links['html']['href']))
+
+    @command
+    def remove_deploy_key(self, opts):
+        """<key>...
+           Remove deploy key by id"""
+        repo = self.repository(opts)
+        for key in opts['<key>']:
+            repo.remove_deploy_key(key)
 
     @command
     def remove_privilege(self, opts):

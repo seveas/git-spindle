@@ -130,6 +130,21 @@ class GitHub(GitSpindle):
             repo.add_collaborator(user)
 
     @command
+    def add_deploy_key(self, opts):
+        """[--read-only] <key>...
+           Add a deploy key"""
+        repo = self.repository(opts)
+        url = repo._build_url('keys', base_url=repo._api)
+        for arg in opts['<key>']:
+            with open(arg) as fd:
+                algo, key, title = fd.read().strip().split(None, 2)
+            key = "%s %s" % (algo, key)
+            print("Adding deploy key %s" % arg)
+            # repo.create_key(title=title, key=key, read_only=opts['--read-only'])
+            data = {'title': title, 'key': key, 'read_only': opts['--read-only']}
+            repo._post(url, data=data)
+
+    @command
     def add_hook(self, opts):
         """<name> [<setting>...]
            Add a repository hook"""
@@ -374,6 +389,15 @@ class GitHub(GitSpindle):
             self.set_origin(opts, 'github')
         else:
             self.set_origin(opts)
+
+    @command
+    def deploy_keys(self, opts):
+        """[<repo>]
+           Lists all keys for a repo"""
+        repo = self.repository(opts)
+        for key in repo.iter_keys():
+            ro = key._json_data['read_only'] and 'ro' or 'rw'
+            print("%s %s (id: %s, %s)" % (key.key, key.title or '', key.id, ro))
 
     @command
     def edit_hook(self, opts):
@@ -896,6 +920,14 @@ class GitHub(GitSpindle):
         repo = self.repository(opts)
         for user in opts['<user>']:
             repo.remove_collaborator(user)
+
+    @command
+    def remove_deploy_key(self, opts):
+        """<key>...
+           Remove deploy key by id"""
+        repo = self.repository(opts)
+        for key in opts['<key>']:
+            repo.delete_key(key)
 
     @command
     def remove_hook(self, opts):

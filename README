@@ -30,6 +30,7 @@ Usage:
 
   git hub add-account [--host=<host>] <alias>
   git hub add-collaborator <user>...
+  git hub add-deploy-key [--read-only] <key>...
   git hub add-hook <name> [<setting>...]
   git hub add-public-keys [<key>...]
   git hub add-remote [--ssh|--http|--git] <user>...
@@ -41,6 +42,7 @@ Usage:
   git hub collaborators [<repo>]
   git hub config [--unset] <key> [<value>]
   git hub create [--private] [--description=<description>]
+  git hub deploy-keys [<repo>]
   git hub edit-hook <name> [<setting>...]
   git hub fork [--ssh|--http|--git] [<repo>]
   git hub forks [<repo>]
@@ -57,6 +59,7 @@ Usage:
   git hub public-keys [<user>]
   git hub pull-request [--issue=<issue>] [--yes] [<yours:theirs>]
   git hub remove-collaborator <user>...
+  git hub remove-deploy-key <key>...
   git hub remove-hook <name>
   git hub render [--save=<outfile>] <file>
   git hub repos [--no-forks] [<user>]
@@ -94,6 +97,7 @@ Usage:
   git lab whois <user>...
 
   git bb add-account [--host=<host>] <alias>
+  git bb add-deploy-key <key>...
   git bb add-privilege [--admin|--read|--write] <user>...
   git bb add-public-keys [<key>...]
   git bb add-remote [--ssh|--http] <user>...
@@ -103,6 +107,7 @@ Usage:
   git bb clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
   git bb config [--unset] <key> [<value>]
   git bb create [--private] [--description=<description>]
+  git bb deploy-keys [<repo>]
   git bb fork [--ssh|--http] [<repo>]
   git bb forks [<repo>]
   git bb issue [<repo>] [--parent] [<issue>...]
@@ -112,6 +117,7 @@ Usage:
   git bb privileges [<repo>]
   git bb public-keys [<user>]
   git bb pull-request [--yes] [<yours:theirs>]
+  git bb remove-deploy-key <key>...
   git bb remove-privilege <user>...
   git bb repos [--no-forks] [<user>]
   git bb set-origin [--ssh|--http]

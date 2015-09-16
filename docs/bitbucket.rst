@@ -150,6 +150,20 @@ Grant people read, write or admin access to this repository.
 
 Revoke access to this repository.
 
+.. describe:: git bb deploy-keys [<repo>]
+
+List all deploy keys for this repository
+
+.. describe:: git bb add-deploy-key <key>...
+
+Add a deploy key to a repository, which can be used to fetch and push data via
+ssh.
+
+.. describe:: git bb remove-deploy-key <key>...
+
+Remove a deploy key by id. Use the :command:`git bb deploy-keys` command to
+see the id's of your deploy keys.
+
 Issues and pull requests
 ------------------------
 
