@@ -29,6 +29,7 @@ Usage:
 (For detailed information, go to http://seveas.github.com/git-spindle)
 
   git hub add-account [--host=<host>] <alias>
+  git hub add-collaborator <user>...
   git hub add-hook <name> [<setting>...]
   git hub add-public-keys [<key>...]
   git hub add-remote [--ssh|--http|--git] <user>...
@@ -37,6 +38,7 @@ Usage:
   git hub calendar [<user>]
   git hub cat <file>...
   git hub clone [--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
+  git hub collaborators [<repo>]
   git hub config [--unset] <key> [<value>]
   git hub create [--private] [--description=<description>]
   git hub edit-hook <name> [<setting>...]
@@ -54,6 +56,7 @@ Usage:
   git hub network [<level>]
   git hub public-keys [<user>]
   git hub pull-request [--issue=<issue>] [--yes] [<yours:theirs>]
+  git hub remove-collaborator <user>...
   git hub remove-hook <name>
   git hub render [--save=<outfile>] <file>
   git hub repos [--no-forks] [<user>]
@@ -65,6 +68,7 @@ Usage:
   git hub whois <user>...
 
   git lab add-account [--host=<host>] <alias>
+  git lab add-member [--access-level=guest|reporter|developer|master|owner] <user>...
   git lab add-public-keys [<key>...]
   git lab add-remote [--ssh|--http] <user>...
   git lab apply-merge <merge-request-number>
@@ -79,15 +83,18 @@ Usage:
   git lab issues [<repo>] [--parent] [<filter>...]
   git lab log [<repo>]
   git lab ls [<dir>...]
+  git lab members [<repo>]
   git lab merge-request [--yes] [<yours:theirs>]
   git lab mirror [--ssh|--http] [--goblet] [<repo>]
   git lab public-keys [<user>]
+  git lab remove-member <user>...
   git lab repos [--no-forks]
   git lab set-origin [--ssh|--http]
   git lab whoami
   git lab whois <user>...
 
   git bb add-account [--host=<host>] <alias>
+  git bb add-privilege [--admin|--read|--write] <user>...
   git bb add-public-keys [<key>...]
   git bb add-remote [--ssh|--http] <user>...
   git bb apply-pr <pr-number>
@@ -102,8 +109,10 @@ Usage:
   git bb issues [<repo>] [--parent] [<filter>...]
   git bb ls [<dir>...]
   git bb mirror [--ssh|--http] [--goblet] [<repo>]
+  git bb privileges [<repo>]
   git bb public-keys [<user>]
   git bb pull-request [--yes] [<yours:theirs>]
+  git bb remove-privilege <user>...
   git bb repos [--no-forks] [<user>]
   git bb set-origin [--ssh|--http]
   git bb snippet [--description=<description>] <file>...

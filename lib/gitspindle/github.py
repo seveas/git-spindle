@@ -122,6 +122,14 @@ class GitHub(GitSpindle):
     # Commands
 
     @command
+    def add_collaborator(self, opts):
+        """<user>...
+           Add a user as collaborator"""
+        repo = self.repository(opts)
+        for user in opts['<user>']:
+            repo.add_collaborator(user)
+
+    @command
     def add_hook(self, opts):
         """<name> [<setting>...]
            Add a repository hook"""
@@ -341,6 +349,16 @@ class GitHub(GitSpindle):
         if repo.fork:
             os.chdir(dir)
             self.set_origin(opts)
+
+    @command
+    def collaborators(self, opts):
+        """[<repo>]
+           List collaborators of a repository"""
+        repo = self.repository(opts)
+        users = list(repo.iter_collaborators())
+        users.sort(key = lambda user: user.login)
+        for user in users:
+            print(user.login)
 
     @command
     def create(self, opts):
@@ -870,6 +888,14 @@ class GitHub(GitSpindle):
 
         pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
         print("Pull request %d created %s" % (pull.number, pull.html_url))
+
+    @command
+    def remove_collaborator(self, opts):
+        """<user>...
+           Remove a user as collaborator """
+        repo = self.repository(opts)
+        for user in opts['<user>']:
+            repo.remove_collaborator(user)
 
     @command
     def remove_hook(self, opts):

@@ -176,6 +176,20 @@ When you use the :option:`--goblet` option, the resulting mirror will be
 configured for the goblet web interface, using description, owner and clone
 information from GitHub.
 
+Administering repositories
+--------------------------
+.. describe:: git hub collaborators [<repo>]
+
+List all people with push access to this repository.
+
+.. describe:: git hub add-collaborator <user>...
+
+Grant people push access to this repository.
+
+.. describe:: git hub remove-collaborator <user>...
+
+Revoke access to this repository.
+
 .. describe:: git hub hooks
 
 Show all service hooks for this repository.

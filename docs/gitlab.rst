@@ -145,6 +145,20 @@ When you use the :option:`--goblet` option, the resulting mirror will be
 configured for the goblet web interface, using description, owner and clone
 information from GitLab.
 
+Administering repositories
+--------------------------
+.. describe:: git lab members [<repo>]
+
+List all people with push access to this repository.
+
+.. describe:: git lab add-member [--access-level=guest|reporter|developer|master|owner] <user>...
+
+Grant people access to this repository.
+
+.. describe:: git lab remove-member <user>...
+
+Revoke access to this repository.
+
 Issues and pull requests
 ------------------------
 

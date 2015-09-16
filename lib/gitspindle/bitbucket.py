@@ -60,6 +60,19 @@ class BitBucket(GitSpindle):
 
     # Commands
     @command
+    def add_privilege(self, opts):
+        """[--admin|--read|--write] <user>...
+           Add privileges for a user to this repo"""
+        repo = self.repository(opts)
+        priv = 'read'
+        if opts['--write']:
+            priv = 'write'
+        elif opts['--admin']:
+            priv = 'admin'
+        for user in opts['<user>']:
+            repo.add_privilege(user, priv)
+
+    @command
     def add_public_keys(self, opts):
         """[<key>...]
            Adds keys to your public keys"""
@@ -364,6 +377,21 @@ class BitBucket(GitSpindle):
                 os.chmod(goblet_dir, 0o777)
 
     @command
+    def privileges(self, opts):
+        """[<repo>]
+           List repo privileges"""
+        repo = self.repository(opts)
+        order = {'admin': 0, 'write': 1, 'read': 2}
+        privs = repo.privileges()
+        if not privs:
+            return
+        privs.sort(key=lambda priv: (order[priv['privilege']], priv['user']['username']))
+        maxlen = max([len(priv['user']['username']) for priv in privs])
+        fmt = "%%s %%-%ds (%%s)" % maxlen
+        for priv in privs:
+            print(fmt % (wrap("%-5s" % priv['privilege'], attr.faint), priv['user']['username'], priv['user']['display_name']))
+
+    @command
     def public_keys(self, opts):
         """[<user>]
            Lists all keys for a user"""
@@ -466,6 +494,14 @@ class BitBucket(GitSpindle):
 
         pull = parent.create_pull_request(src=srcb, dst=dstb, title=title, body=body)
         print("Pull request %d created %s" % (pull.id, pull.links['html']['href']))
+
+    @command
+    def remove_privilege(self, opts):
+        """<user>...
+           Remove a user's membership"""
+        repo = self.repository(opts)
+        for user in opts['<user>']:
+            repo.remove_privilege(user)
 
     @command
     def repos(self, opts):

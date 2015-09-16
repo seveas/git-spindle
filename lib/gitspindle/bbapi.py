@@ -83,6 +83,10 @@ class BBobject(object):
         kwargs.update({'auth': (self.bb.username, self.bb.passwd)})
         return check(requests.post(*args, **kwargs))
 
+    def put(self, *args, **kwargs):
+        kwargs.update({'auth': (self.bb.username, self.bb.passwd)})
+        return check(requests.put(*args, **kwargs))
+
     def delete_(self, *args, **kwargs):
         kwargs.update({'auth': (self.bb.username, self.bb.passwd)})
         return check(requests.delete(*args, **kwargs))
@@ -208,6 +212,21 @@ class Repository(BBobject):
             data = {'owner': self.owner['username'], 'slug': self.name}
             self.url = [uritemplate.expand(x, **data) for x in self.uri]
         return self.delete_(self.url[1])
+
+    def add_privilege(self, user, priv):
+        data = {'owner': self.owner['username'], 'slug': self.name, 'user': user}
+        url = uritemplate.expand('https://bitbucket.org/api/1.0/privileges/{owner}/{slug}/{user}', data)
+        return self.put(url, data=priv)
+
+    def remove_privilege(self, user):
+        data = {'owner': self.owner['username'], 'slug': self.name, 'user': user}
+        url = uritemplate.expand('https://bitbucket.org/api/1.0/privileges/{owner}/{slug}/{user}', data)
+        return self.delete_(url)
+
+    def privileges(self):
+        data = {'owner': self.owner['username'], 'slug': self.name}
+        url = uritemplate.expand('https://bitbucket.org/api/1.0/privileges/{owner}/{slug}', data)
+        return self.get(url)
 
 class Branch(BBobject):
     uri = None

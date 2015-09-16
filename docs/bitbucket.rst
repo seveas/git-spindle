@@ -133,6 +133,23 @@ When you use the :option:`--goblet` option, the resulting mirror will be
 configured for the goblet web interface, using description, owner and clone
 information from BitBucket.
 
+Administering repositories
+--------------------------
+.. describe:: git bb privileges [<repo>]
+
+List all people with access to this repository. Beware that BitBucket
+aggressively caches permissions and it can take up to a minute for a change in
+permissions to be reflected in the output of this command. The owner of the
+repository is also not listed in the output.
+
+.. describe:: git bb add-privilege [--admin|--read|--write] <user>...
+
+Grant people read, write or admin access to this repository.
+
+.. describe:: git bb remove-privilege <user>...
+
+Revoke access to this repository.
+
 Issues and pull requests
 ------------------------
 

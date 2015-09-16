@@ -18,6 +18,14 @@ class GitLab(GitSpindle):
     spindle = 'gitlab'
     hosts = ['gitlab.com', 'www.gitlab.com']
     api = glapi
+    access_levels = {
+        'guest':     10,
+        'reporter':  20,
+        'developer': 30,
+        'master':    40,
+        'owner':     50,
+    }
+    access_levels_r = dict([(value, key) for (key, value) in access_levels.items()])
 
     # Support functions
     def login(self):
@@ -133,6 +141,20 @@ class GitLab(GitSpindle):
                 continue
             print("Adding %s" % arg)
             glapi.CurrentUserKey(self.gl, {'title': title, 'key': key}).save()
+
+    @command
+    def add_member(self, opts):
+        """[--access-level=guest|reporter|developer|master|owner] <user>...
+           Add a project member"""
+        repo = self.repository(opts)
+        for user in opts['<user>']:
+            user_ = self.find_user(user)
+            if not user_:
+                print("No such user: %s" % user)
+                continue
+            user = user_
+            access_level = self.access_levels[opts['--access-level'] or 'developer']
+            glapi.ProjectMember(self.gl, {'project_id': repo.id, 'user_id': user.id, 'access_level': access_level}).save()
 
     @command
     def add_remote(self, opts):
@@ -487,6 +509,18 @@ class GitLab(GitSpindle):
                 print(fmt % file)
 
     @command
+    def members(self, opts):
+        """[<repo>]
+           List repo memberships"""
+        repo = self.repository(opts)
+        members = repo.Member()
+        members.sort(key=lambda member: (-member.access_level, member.username))
+        maxlen = max([len(member.username) for member in members])
+        fmt = "%%s %%-%ds (%%s)" % maxlen
+        for member in members:
+            print(fmt % (wrap("%-9s" % self.access_levels_r[member.access_level], attr.faint), member.username, member.name))
+
+    @command
     def merge_request(self, opts):
         """[--yes] [<yours:theirs>]
            Opens a merge request to merge your branch to an upstream branch"""
@@ -634,6 +668,15 @@ class GitLab(GitSpindle):
         except glapi.GitlabListError:
             # Permission denied, ignore
             pass
+
+    @command
+    def remove_member(self, opts):
+        """<user>...
+           Remove a user's membership"""
+        repo = self.repository(opts)
+        for member in repo.Member():
+            if member.username in opts['<user>']:
+                member.delete()
 
     @command
     def repos(self, opts):
