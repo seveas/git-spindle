@@ -89,10 +89,13 @@ Usage:
   git lab members [<repo>]
   git lab merge-request [--yes] [<yours:theirs>]
   git lab mirror [--ssh|--http] [--goblet] [<repo>]
+  git lab protect <branch>
+  git lab protected
   git lab public-keys [<user>]
   git lab remove-member <user>...
   git lab repos [--no-forks]
   git lab set-origin [--ssh|--http]
+  git lab unprotect <branch>
   git lab whoami
   git lab whois <user>...
 

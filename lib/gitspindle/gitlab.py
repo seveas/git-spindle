@@ -651,6 +651,23 @@ class GitLab(GitSpindle):
                 os.mkdir(goblet_dir, 0o777)
                 os.chmod(goblet_dir, 0o777)
 
+    @command
+    def protect(self, opts):
+        """<branch>
+           Protect a branch against force-pushes"""
+        repo = self.repository(opts)
+        for branch in repo.Branch():
+            if branch.name == opts['<branch>']:
+                branch.protect()
+                break
+
+    @command
+    def protected(self, opts):
+        """\nList protected branches"""
+        repo = self.repository(opts)
+        for branch in repo.Branch():
+            if branch.protected:
+                print(branch.name)
 
     @command
     def public_keys(self, opts):
@@ -749,6 +766,16 @@ class GitLab(GitSpindle):
                     print("Marking %s as remote-tracking branch" % branch)
                     self.gitm('config', 'branch.%s.remote' % branch, 'origin')
                     self.gitm('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
+
+    @command
+    def unprotect(self, opts):
+        """<branch>
+           Remove force-push protection from a branch"""
+        repo = self.repository(opts)
+        for branch in repo.Branch():
+            if branch.name == opts['<branch>']:
+                branch.unprotect()
+                break
 
     @command
     def whoami(self, opts):
