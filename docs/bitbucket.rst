@@ -150,6 +150,10 @@ Grant people read, write or admin access to this repository.
 
 Revoke access to this repository.
 
+.. describe:: git bb invite [--read|--write|--admin] <email>...
+
+Invite users by e-mail to collaborate on this repository.
+
 .. describe:: git bb deploy-keys [<repo>]
 
 List all deploy keys for this repository

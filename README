@@ -113,6 +113,7 @@ Usage:
   git bb deploy-keys [<repo>]
   git bb fork [--ssh|--http] [<repo>]
   git bb forks [<repo>]
+  git bb invite [--read|--write|--admin] <email>...
   git bb issue [<repo>] [--parent] [<issue>...]
   git bb issues [<repo>] [--parent] [<filter>...]
   git bb ls [<dir>...]

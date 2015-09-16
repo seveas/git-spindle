@@ -135,6 +135,10 @@ class User(BBobject):
         snippet = self.post(url, data=data, files=files)
         return Snippet(self.bb, mode=None, **snippet)
 
+    def emails(self):
+        url = uritemplate.expand('https://bitbucket.org/api/1.0/users/{username}/emails', username=self.username)
+        return self.get(url)
+
 def ssh_fix(url):
     if not url.startswith('ssh://'):
         return url
@@ -239,6 +243,11 @@ class Repository(BBobject):
     def deploy_keys(self):
         url = self.url[0] + '/deploy-keys'
         return self.get(url)
+
+    def invite(self, email, priv):
+        data = {'owner': self.owner['username'], 'slug': self.name, 'email': email}
+        url = uritemplate.expand('https://bitbucket.org/api/1.0/invitations/{owner}/{slug}/{+email}', data)
+        return self.post(url, {'permission': priv})
 
 class Branch(BBobject):
     uri = None

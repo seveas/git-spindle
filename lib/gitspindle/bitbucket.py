@@ -269,6 +269,20 @@ class BitBucket(GitSpindle):
             print("[%s] %s" % (fork.owner['username'], fork.links['html']['href']))
 
     @command
+    def invite(self, opts):
+        """[--read|--write|--admin] <email>...
+           Invite users to collaborate on this repository"""
+        repo = self.repository(opts)
+        priv = 'read'
+        if opts['--write']:
+            priv = 'write'
+        elif opts['--admin']:
+            priv = 'admin'
+        for email in opts['<email>']:
+            invitation = repo.invite(email, priv)
+            print("Invitation with %s privileges sent to %s" % (invitation['permission'], invitation['email']))
+
+    @command
     def issue(self, opts):
         """[<repo>] [--parent] [<issue>...]
            Show issue details or report an issue"""
