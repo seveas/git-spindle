@@ -106,10 +106,6 @@ for spindle in hub lab bb; do
     "
 done
 
-test_expect_failure "Test detecting correct repo when in a subdir of the repo" "false"
-test_expect_failure "Test fake GHE by pointing another name to GitHub" "false"
-test_expect_failure "Test BitBucket CNAMEs" "false"
-
 test_done
 
 # vim: set syntax=sh:
