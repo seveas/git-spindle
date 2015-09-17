@@ -290,7 +290,14 @@ test_debug() {
 test_eval_() {
 	# This is a separate function because some tests use
 	# "return" to end a test_expect_success block early.
-	eval </dev/null >&3 2>&4 "$*"
+	case ",$test_prereq," in
+		*,INTERACTIVE,*)
+			eval "$*"
+			;;
+		*)
+			eval </dev/null >&3 2>&4 "$*"
+			;;
+	esac
 }
 
 test_run_() {
