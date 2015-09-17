@@ -17,6 +17,9 @@ names. It's not a normal .gitspindle file, please see the example in this
 directory. Note that the testsuite will add extra sections to this configfile
 storing access tokens.
 
+The third GitHub test account must have two-factor authentication set up to be
+able to test two-factor authentication.
+
 Running the testsuite
 ---------------------
 While setting up tests is a bit of work, running them is as easy as 'make

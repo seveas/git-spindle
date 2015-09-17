@@ -16,17 +16,23 @@ for spindle in $all_spindles; do
         $spindle config --unset host || test \$? -eq 5 &&
         $spindle config --unset user || test \$? -eq 5
     "
-    test_expect_success $(req spindle) "Logging in $spindle" "
+    test_expect_success $(req $spindle) "Logging in $spindle" "
         user=\$(git config -f .gitspindle testsuite.${spindle_dash}.user) &&
         password=\$(git config -f .gitspindle testsuite.${spindle_dash}.password) &&
         host=\$(git config -f .gitspindle testsuite.${spindle_dash}.host || true) &&
         test -n \"\$user\" &&
         test -n \"\$password\" &&
         { test -z \"\$host\" || host=\"--host \$host\"; } &&
-        (echo \"\$user\"; echo \"\$password\") | $spindle_root add-account $spindle_dash \$host &&
+        if [ $spindle = git_hub_3 ]; then
+            echo \"\$ $spindle_root add-account $spindle_dash \$host\"
+            $spindle_root add-account $spindle_dash \$host
+        else
+            (echo \"\$user\"; echo \"\$password\" ) | $spindle_root add-account $spindle_dash \$host
+        fi &&
         $spindle config --unset keepme
     "
 done
+
 test_expect_success hub,lab,bb "Resetting non-numbered accounts" "
     git_hub config user \$(git_hub_1 config user) &&
     git_hub config token \$(git_hub_1 config token) &&
@@ -35,8 +41,6 @@ test_expect_success hub,lab,bb "Resetting non-numbered accounts" "
     git_bb config user \$(git_bb_1 config user) &&
     git_bb config password \$(git_bb_1 config password)
 "
-
-test_expect_failure hub "Testing two factor authentication" "false"
 
 # vim: set syntax=sh:
 # Make sure other tests know about the new tokens

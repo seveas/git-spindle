@@ -17,6 +17,7 @@ test -z "$NO_GITLAB" && test_set_prereq lab
 test -z "$NO_GITLAB$NO_GITLAB_LOCAL" && test_set_prereq lab_local
 test -z "$NO_BITBUCKET" && test_set_prereq bb
 test -n "$AUTHORTESTS" && test_set_prereq author
+test -n "$TWOFACTORTESTS" && test_set_prereq 2fa && test_set_prereq INTERACTIVE
 
 # Make sure git doesn't think we're in a repo
 git rev-parse >/dev/null 2>&1 && { echo "Yikes, git sees an outer repo!"; exit 1; }
@@ -59,7 +60,11 @@ req() {
         git_lab_*)
             echo lab;;
         git_hub_*)
-            echo hub;;
+            if [ $1 = git_hub_3 ]; then
+                echo hub,2fa,INTERACTIVE
+            else
+                echo hub
+            fi;;
         git_bb_*)
             echo bb;;
     esac
