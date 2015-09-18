@@ -389,6 +389,48 @@ class GitHub(GitSpindle):
             self.set_origin(opts)
 
     @command
+    def create_token(self, opts):
+        """[--store]
+           Create a personal access token that can be used for git operations"""
+        password = getpass.getpass("GitHub password: ")
+        scopes = ['repo']
+        name = "Git on %s" % socket.gethostname()
+        host = self.config('host')
+        if host and host not in ('https://api.github.com', 'api.github.com'):
+            if not host.startswith(('http://', 'https://')):
+                host = 'https://' + host
+            gh = github3.GitHubEnterprise(url=host)
+        else:
+            gh = github3.GitHub()
+        gh.login(self.my_login, password, two_factor_callback=lambda: prompt_for_2fa(self.my_login))
+        try:
+            auth = gh.authorize(self.my_login, password, scopes, name, "http://git-scm.com")
+        except github3.GitHubError:
+            type, exc = sys.exc_info()[:2]
+            dont_raise = False
+            if hasattr(exc, 'response') and exc.response.status_code == 422:
+                for error in exc.response.json()['errors']:
+                    if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
+                        if os.getenv('DEBUG'):
+                            for auth in gh.iter_authorizations():
+                                if auth.app['name'] in (name, '%s (API)' % name):
+                                    auth.delete()
+                            auth = gh.authorize(self.my_login, password, scopes, name, "http://git-scm.com")
+                            dont_raise=True
+                        else:
+                            err('An OAuth token for git on this host already exists. Please delete it on your setting page')
+            if not dont_raise:
+                raise
+        if auth is None:
+            err("Authentication failed")
+        token = auth.token
+        print("Your personal access token is: %s" % token)
+        if opts['--store']:
+            host = self.config('host') or 'github.com'
+            Credential(protocol='https', host=host, username=self.my_login, password=token).approve()
+            print("Your personal access token has been stored in the git credential helper")
+
+    @command
     def deploy_keys(self, opts):
         """[<repo>]
            Lists all keys for a repo"""

@@ -56,6 +56,8 @@ Configure git-spindle, similar to git-config:
   git hub config [--unset] <key> [<value>]
 Create a repository on github to push to:
   git hub create [--private] [--description=<description>]
+Create a personal access token that can be used for git operations:
+  git hub create-token [--store]
 Lists all keys for a repo:
   git hub deploy-keys [<repo>]
 Edit a hook:

@@ -97,6 +97,17 @@ Set, get or unset a configuration variable in :file:`~/.gitspindle`. Similar to
 :command:`git config`, but only single-level keys are allowed, and the section
 is hardcoded to be the current account.
 
+.. describe:: git hub create-token [--store]
+
+Create a personal access token that can be used for git operations (clone,
+fetch, push) over http. Especially useful if you use two-factor authentication,
+as these tokens can be used instead of your password and don't require the
+second factor.
+
+The token is shown in the output of the command. If you specify
+:option:`--store`, the token will also be stored using the git credential
+helpers.
+
 .. _`profile page`: https://github.com/settings/applications
 
 
