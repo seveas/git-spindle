@@ -38,11 +38,8 @@ class GitHub(GitSpindle):
 
         token = self.config('token')
         if not token:
-            def prompt_for_2fa():
-                """Callback for github3.py's 2FA support."""
-                return raw_input("Two-Factor Authentication Code: ").strip()
             password = getpass.getpass("GitHub password: ")
-            self.gh.login(user, password, two_factor_callback=prompt_for_2fa)
+            self.gh.login(user, password, two_factor_callback=lambda: prompt_for_2fa(user))
             scopes = ['user', 'repo', 'gist', 'admin:public_key', 'admin:repo_hook', 'admin:org']
             if user.startswith('git-spindle-test-'):
                 scopes.append('delete_repo')
@@ -1162,3 +1159,9 @@ class GitHub(GitSpindle):
                 for member in self.gh.organization(user.login).iter_members():
                     print(" - %s" % member.login)
 
+def prompt_for_2fa(user, cache={}):
+    """Callback for github3.py's 2FA support."""
+    if cache.get(user, (0,))[0] < time.time() - 30:
+        code = raw_input("Two-Factor Authentication Code: ").strip()
+        cache[user] = (time.time(), code)
+    return cache[user][1]
