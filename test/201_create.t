@@ -19,7 +19,6 @@ done
 
 for spindle in hub lab bb; do
     test_expect_success $spindle "Create repo ($spindle)" "
-        git_${spindle}_1
         ( cd whelk &&
         echo whelk > expected &&
         git_${spindle}_1 create &&
