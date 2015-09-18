@@ -79,7 +79,10 @@ Usage:\n""" % (self.prog, self.what)
                 name = name[:-1]
             name = name.replace('_', '-')
             self.commands[name] = fnc
-            self.usage += ('  %s %s %s %s' % (self.prog, '[options]', name, fnc.__doc__.split('\n', 1)[0])).rstrip() + '\n'
+            doc = [line.strip() for line in fnc.__doc__.splitlines()]
+            if doc[0]:
+                doc[0] = ' ' + doc[0]
+            self.usage += '%s:\n  %s %s %s%s\n' % (doc[1], self.prog, '[options]', name, doc[0])
         self.usage += """
 Options:
   -h --help              Show this help message and exit

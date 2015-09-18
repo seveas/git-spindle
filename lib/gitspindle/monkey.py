@@ -87,3 +87,14 @@ def parse_atom(tokens, options):
 
 docopt.orig_parse_atom = docopt.parse_atom
 docopt.parse_atom = parse_atom
+
+def formal_usage(printable_usage):
+    usage = printable_usage.splitlines()
+    ret = []
+    for num, line in enumerate(usage):
+        if line[0].isupper() and usage[num+1].startswith('  git'):
+            continue
+        ret.append(line)
+    return docopt.orig_formal_usage('\n'.join(ret))
+docopt.orig_formal_usage = docopt.formal_usage
+docopt.formal_usage = formal_usage

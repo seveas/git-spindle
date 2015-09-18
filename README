@@ -28,107 +28,206 @@ Usage:
 
 (For detailed information, go to http://seveas.github.com/git-spindle)
 
-  git hub add-account [--host=<host>] <alias>
-  git hub add-collaborator <user>...
-  git hub add-deploy-key [--read-only] <key>...
-  git hub add-hook <name> [<setting>...]
-  git hub add-public-keys [<key>...]
-  git hub add-remote [--ssh|--http|--git] <user> [<name>]
-  git hub apply-pr <pr-number>
-  git hub browse [--parent] [<repo>] [<section>]
-  git hub calendar [<user>]
-  git hub cat <file>...
-  git hub clone [--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
-  git hub collaborators [<repo>]
-  git hub config [--unset] <key> [<value>]
-  git hub create [--private] [--description=<description>]
-  git hub deploy-keys [<repo>]
-  git hub edit-hook <name> [<setting>...]
-  git hub fork [--ssh|--http|--git] [<repo>]
-  git hub forks [<repo>]
-  git hub gist [--description=<description>] <file>...
-  git hub gists [<user>]
-  git hub hooks
-  git hub ignore [<language>...]
-  git hub issue [<repo>] [--parent] [<issue>...]
-  git hub issues [<repo>] [--parent] [<filter>...]
-  git hub log [--type=<type>] [<what>]
-  git hub ls [<dir>...]
-  git hub mirror [--ssh|--http|--git] [--goblet] [<repo>]
-  git hub network [<level>]
-  git hub public-keys [<user>]
-  git hub pull-request [--issue=<issue>] [--yes] [<yours:theirs>]
-  git hub remove-collaborator <user>...
-  git hub remove-deploy-key <key>...
-  git hub remove-hook <name>
-  git hub render [--save=<outfile>] <file>
-  git hub repos [--no-forks] [<user>]
-  git hub say [<msg>]
-  git hub set-origin [--ssh|--http|--git]
-  git hub setup-goblet
-  git hub status
-  git hub whoami
-  git hub whois <user>...
+Add an account to the configuration:
+  git hub [options] add-account [--host=<host>] <alias>
+Add a user as collaborator:
+  git hub [options] add-collaborator <user>...
+Add a deploy key:
+  git hub [options] add-deploy-key [--read-only] <key>...
+Add a repository hook:
+  git hub [options] add-hook <name> [<setting>...]
+Adds keys to your public keys:
+  git hub [options] add-public-keys [<key>...]
+Add user's fork as a named remote. The name defaults to the user's loginname:
+  git hub [options] add-remote [--ssh|--http|--git] <user> [<name>]
+Applies a pull request as a series of cherry-picks:
+  git hub [options] apply-pr <pr-number>
+Open the GitHub page for a repository in a browser:
+  git hub [options] browse [--parent] [<repo>] [<section>]
+Show a timeline of a user's activity:
+  git hub [options] calendar [<user>]
+Display the contents of a file on GitHub:
+  git hub [options] cat <file>...
+Clone a repository by name:
+  git hub [options] clone [--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
+List collaborators of a repository:
+  git hub [options] collaborators [<repo>]
+Configure git-spindle, similar to git-config:
+  git hub [options] config [--unset] <key> [<value>]
+Create a repository on github to push to:
+  git hub [options] create [--private] [--description=<description>]
+Lists all keys for a repo:
+  git hub [options] deploy-keys [<repo>]
+Edit a hook:
+  git hub [options] edit-hook <name> [<setting>...]
+Fork a repo and clone it:
+  git hub [options] fork [--ssh|--http|--git] [<repo>]
+List all forks of this repository:
+  git hub [options] forks [<repo>]
+Create a new gist from files or stdin:
+  git hub [options] gist [--description=<description>] <file>...
+Show all gists for a user:
+  git hub [options] gists [<user>]
+Show hooks that have been enabled:
+  git hub [options] hooks
+Show gitignore patterns for one or more languages:
+  git hub [options] ignore [<language>...]
+Show issue details or report an issue:
+  git hub [options] issue [<repo>] [--parent] [<issue>...]
+List issues in a repository:
+  git hub [options] issues [<repo>] [--parent] [<filter>...]
+Display github log for yourself or other users. Or for an organisation or a repo:
+  git hub [options] log [--type=<type>] [<what>]
+Display the contents of a directory on GitHub:
+  git hub [options] ls [<dir>...]
+Mirror a repository, or all repositories for a user:
+  git hub [options] mirror [--ssh|--http|--git] [--goblet] [<repo>]
+Create a graphviz graph of followers and forks:
+  git hub [options] network [<level>]
+Lists all keys for a user:
+  git hub [options] public-keys [<user>]
+Opens a pull request to merge your branch to an upstream branch:
+  git hub [options] pull-request [--issue=<issue>] [--yes] [<yours:theirs>]
+Remove a user as collaborator:
+  git hub [options] remove-collaborator <user>...
+Remove deploy key by id:
+  git hub [options] remove-deploy-key <key>...
+Remove a hook:
+  git hub [options] remove-hook <name>
+Render a markdown document:
+  git hub [options] render [--save=<outfile>] <file>
+List all repos of a user, by default yours:
+  git hub [options] repos [--no-forks] [<user>]
+Let the octocat speak to you:
+  git hub [options] say [<msg>]
+Set the remote 'origin' to github.:
+  git hub [options] set-origin [--ssh|--http|--git]
+Set up goblet config based on GitHub config:
+  git hub [options] setup-goblet
+Display current and historical GitHub service status:
+  git hub [options] status
+Display GitHub user info:
+  git hub [options] whoami
+Display GitHub user info:
+  git hub [options] whois <user>...
 
-  git lab add-account [--host=<host>] <alias>
-  git lab add-member [--access-level=guest|reporter|developer|master|owner] <user>...
-  git lab add-public-keys [<key>...]
-  git lab add-remote [--ssh|--http] <user> [<name>]
-  git lab apply-merge <merge-request-number>
-  git lab browse [--parent] [<repo>] [<section>]
-  git lab calendar [<user>]
-  git lab cat <file>...
-  git lab clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
-  git lab config [--unset] <key> [<value>]
-  git lab create [--private|--internal] [--description=<description>]
-  git lab fork [--ssh|--http] [<repo>]
-  git lab issue [<repo>] [--parent] [<issue>...]
-  git lab issues [<repo>] [--parent] [<filter>...]
-  git lab log [<repo>]
-  git lab ls [<dir>...]
-  git lab members [<repo>]
-  git lab merge-request [--yes] [<yours:theirs>]
-  git lab mirror [--ssh|--http] [--goblet] [<repo>]
-  git lab protect <branch>
-  git lab protected
-  git lab public-keys [<user>]
-  git lab remove-member <user>...
-  git lab repos [--no-forks]
-  git lab set-origin [--ssh|--http]
-  git lab unprotect <branch>
-  git lab whoami
-  git lab whois <user>...
+Add an account to the configuration:
+  git lab [options] add-account [--host=<host>] <alias>
+Add a project member:
+  git lab [options] add-member [--access-level=guest|reporter|developer|master|owner] <user>...
+Adds keys to your public keys:
+  git lab [options] add-public-keys [<key>...]
+Add user's fork as a named remote. The name defaults to the user's loginname:
+  git lab [options] add-remote [--ssh|--http] <user> [<name>]
+Applies a merge request as a series of cherry-picks:
+  git lab [options] apply-merge <merge-request-number>
+Open the GitLab page for a repository in a browser:
+  git lab [options] browse [--parent] [<repo>] [<section>]
+Show a timeline of a user's activity:
+  git lab [options] calendar [<user>]
+Display the contents of a file on GitLab:
+  git lab [options] cat <file>...
+Clone a repository by name:
+  git lab [options] clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
+Configure git-spindle, similar to git-config:
+  git lab [options] config [--unset] <key> [<value>]
+Create a repository on gitlab to push to:
+  git lab [options] create [--private|--internal] [--description=<description>]
+Fork a repo and clone it:
+  git lab [options] fork [--ssh|--http] [<repo>]
+Show issue details or report an issue:
+  git lab [options] issue [<repo>] [--parent] [<issue>...]
+List issues in a repository:
+  git lab [options] issues [<repo>] [--parent] [<filter>...]
+Display GitLab log for a repository:
+  git lab [options] log [<repo>]
+Display the contents of a directory on GitLab:
+  git lab [options] ls [<dir>...]
+List repo memberships:
+  git lab [options] members [<repo>]
+Opens a merge request to merge your branch to an upstream branch:
+  git lab [options] merge-request [--yes] [<yours:theirs>]
+Mirror a repository, or all your repositories:
+  git lab [options] mirror [--ssh|--http] [--goblet] [<repo>]
+Protect a branch against force-pushes:
+  git lab [options] protect <branch>
+List protected branches:
+  git lab [options] protected
+Lists all keys for a user:
+  git lab [options] public-keys [<user>]
+Remove a user's membership:
+  git lab [options] remove-member <user>...
+List all your repos:
+  git lab [options] repos [--no-forks]
+Set the remote 'origin' to gitlab.:
+  git lab [options] set-origin [--ssh|--http]
+Remove force-push protection from a branch:
+  git lab [options] unprotect <branch>
+Display GitLab user info:
+  git lab [options] whoami
+Display GitLab user info:
+  git lab [options] whois <user>...
 
-  git bb add-account [--host=<host>] <alias>
-  git bb add-deploy-key <key>...
-  git bb add-privilege [--admin|--read|--write] <user>...
-  git bb add-public-keys [<key>...]
-  git bb add-remote [--ssh|--http] <user> [<name>]
-  git bb apply-pr <pr-number>
-  git bb browse [--parent] [<repo>] [<section>]
-  git bb cat <file>...
-  git bb clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
-  git bb config [--unset] <key> [<value>]
-  git bb create [--private] [--description=<description>]
-  git bb deploy-keys [<repo>]
-  git bb fork [--ssh|--http] [<repo>]
-  git bb forks [<repo>]
-  git bb invite [--read|--write|--admin] <email>...
-  git bb issue [<repo>] [--parent] [<issue>...]
-  git bb issues [<repo>] [--parent] [<filter>...]
-  git bb ls [<dir>...]
-  git bb mirror [--ssh|--http] [--goblet] [<repo>]
-  git bb privileges [<repo>]
-  git bb public-keys [<user>]
-  git bb pull-request [--yes] [<yours:theirs>]
-  git bb remove-deploy-key <key>...
-  git bb remove-privilege <user>...
-  git bb repos [--no-forks] [<user>]
-  git bb set-origin [--ssh|--http]
-  git bb snippet [--description=<description>] <file>...
-  git bb snippets [<user>]
-  git bb whoami
-  git bb whois <user>...
+Add an account to the configuration:
+  git bb [options] add-account [--host=<host>] <alias>
+Add a deploy key:
+  git bb [options] add-deploy-key <key>...
+Add privileges for a user to this repo:
+  git bb [options] add-privilege [--admin|--read|--write] <user>...
+Adds keys to your public keys:
+  git bb [options] add-public-keys [<key>...]
+Add user's fork as a named remote. The name defaults to the user's loginname:
+  git bb [options] add-remote [--ssh|--http] <user> [<name>]
+Applies a pull request as a series of cherry-picks:
+  git bb [options] apply-pr <pr-number>
+Open the GitHub page for a repository in a browser:
+  git bb [options] browse [--parent] [<repo>] [<section>]
+Display the contents of a file on BitBucket:
+  git bb [options] cat <file>...
+Clone a repository by name:
+  git bb [options] clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
+Configure git-spindle, similar to git-config:
+  git bb [options] config [--unset] <key> [<value>]
+Create a repository on bitbucket to push to:
+  git bb [options] create [--private] [--description=<description>]
+Lists all keys for a repo:
+  git bb [options] deploy-keys [<repo>]
+Fork a repo and clone it:
+  git bb [options] fork [--ssh|--http] [<repo>]
+List all forks of this repository:
+  git bb [options] forks [<repo>]
+Invite users to collaborate on this repository:
+  git bb [options] invite [--read|--write|--admin] <email>...
+Show issue details or report an issue:
+  git bb [options] issue [<repo>] [--parent] [<issue>...]
+List issues in a repository:
+  git bb [options] issues [<repo>] [--parent] [<filter>...]
+Display the contents of a directory on BitBucket:
+  git bb [options] ls [<dir>...]
+Mirror a repository, or all repositories for a user:
+  git bb [options] mirror [--ssh|--http] [--goblet] [<repo>]
+List repo privileges:
+  git bb [options] privileges [<repo>]
+Lists all keys for a user:
+  git bb [options] public-keys [<user>]
+Opens a pull request to merge your branch to an upstream branch:
+  git bb [options] pull-request [--yes] [<yours:theirs>]
+Remove deploy key by id:
+  git bb [options] remove-deploy-key <key>...
+Remove a user's membership:
+  git bb [options] remove-privilege <user>...
+List all repos of a user, by default yours:
+  git bb [options] repos [--no-forks] [<user>]
+Set the remote 'origin' to github.:
+  git bb [options] set-origin [--ssh|--http]
+Create a new gist from files or stdin:
+  git bb [options] snippet [--description=<description>] <file>...
+Show all gists for a user:
+  git bb [options] snippets [<user>]
+Display BitBucket user info:
+  git bb [options] whoami
+Display GitHub user info:
+  git bb [options] whois <user>...
 
 Copyright (C) 2012-2015 Dennis Kaarsemaker <dennis@kaarsemaker.net>
 
