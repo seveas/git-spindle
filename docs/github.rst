@@ -153,11 +153,11 @@ fork of that repository and set up your remotes.
 
 List all forks of this repository, highlighting the original repository.
 
-.. describe:: git hub add-remote [--ssh|--http|--git] <user>...
+.. describe:: git hub add-remote [--ssh|--http|--git] <user> [<name>]
 
-Add a users fork as a remote using the user's login as name for the remote.
-Defaults to adding a git url, but this can be overridden. For private repos
-SSH is used.
+Add a users fork as a remote using the specified name or the user's login as
+name for the remote. Defaults to adding an http url, but this can be
+overridden. For private repos SSH is used.
 
 .. describe:: git hub browse [--parent] [<repo>] [<section>]
 

@@ -33,7 +33,7 @@ Usage:
   git hub add-deploy-key [--read-only] <key>...
   git hub add-hook <name> [<setting>...]
   git hub add-public-keys [<key>...]
-  git hub add-remote [--ssh|--http|--git] <user>...
+  git hub add-remote [--ssh|--http|--git] <user> [<name>]
   git hub apply-pr <pr-number>
   git hub browse [--parent] [<repo>] [<section>]
   git hub calendar [<user>]
@@ -73,7 +73,7 @@ Usage:
   git lab add-account [--host=<host>] <alias>
   git lab add-member [--access-level=guest|reporter|developer|master|owner] <user>...
   git lab add-public-keys [<key>...]
-  git lab add-remote [--ssh|--http] <user>...
+  git lab add-remote [--ssh|--http] <user> [<name>]
   git lab apply-merge <merge-request-number>
   git lab browse [--parent] [<repo>] [<section>]
   git lab calendar [<user>]
@@ -103,7 +103,7 @@ Usage:
   git bb add-deploy-key <key>...
   git bb add-privilege [--admin|--read|--write] <user>...
   git bb add-public-keys [<key>...]
-  git bb add-remote [--ssh|--http] <user>...
+  git bb add-remote [--ssh|--http] <user> [<name>]
   git bb apply-pr <pr-number>
   git bb browse [--parent] [<repo>] [<section>]
   git bb cat <file>...

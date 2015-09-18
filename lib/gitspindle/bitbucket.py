@@ -103,13 +103,14 @@ class BitBucket(GitSpindle):
     @command
     @wants_parent
     def add_remote(self, opts):
-        """[--ssh|--http] <user>...
-           Add user's fork as a remote by that name"""
+        """[--ssh|--http] <user> [<name>]
+           Add user's fork as a named remote. The name defaults to the user's loginname"""
         for fork in self.repository(opts).forks():
             if fork.owner['username'] in opts['<user>']:
+                name = opts['<name>'] or fork.owner['username']
                 url = self.clone_url(fork, opts)
-                self.gitm('remote', 'add', fork.owner['username'], url)
-                self.gitm('fetch', fork.owner['username'], redirect=False)
+                self.gitm('remote', 'add', name, url)
+                self.gitm('fetch', name, redirect=False)
 
     @command
     @wants_parent

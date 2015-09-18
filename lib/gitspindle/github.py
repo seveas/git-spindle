@@ -202,13 +202,14 @@ class GitHub(GitSpindle):
     @command
     @wants_parent
     def add_remote(self, opts):
-        """[--ssh|--http|--git] <user>...
-           Add user's fork as a remote by that name"""
+        """[--ssh|--http|--git] <user> [<name>]
+           Add user's fork as a named remote. The name defaults to the user's loginname"""
         for fork in self.repository(opts).iter_forks():
             if fork.owner.login in opts['<user>']:
                 url = self.clone_url(fork, opts)
-                self.gitm('remote', 'add', fork.owner.login, url)
-                self.gitm('fetch', fork.owner.login, redirect=False)
+                name = opts['<name>'] or fork.owner.login
+                self.gitm('remote', 'add', name, url)
+                self.gitm('fetch', name, redirect=False)
 
     @command
     def add_public_keys(self, opts):
