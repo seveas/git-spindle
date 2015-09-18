@@ -306,8 +306,12 @@ class BitBucket(GitSpindle):
             if not body:
                 err("Empty issue message")
 
-            issue = repo.create_issue(title=title, body=body)
-            print("Issue %d created %s" % (issue.local_id, issue.html_url))
+            try:
+                issue = repo.create_issue(title=title, body=body)
+                print("Issue %d created %s" % (issue.local_id, issue.html_url))
+            except:
+                filename = self.backup_message(title, body, 'issue-message-')
+                err("Failed to create an issue, the issue text has been saved in %s" % filename)
 
     @command
     def issues(self, opts):
@@ -527,8 +531,12 @@ class BitBucket(GitSpindle):
         if not body:
             err("No pull request message specified")
 
-        pull = parent.create_pull_request(src=srcb, dst=dstb, title=title, body=body)
-        print("Pull request %d created %s" % (pull.id, pull.links['html']['href']))
+        try:
+            pull = parent.create_pull_request(src=srcb, dst=dstb, title=title, body=body)
+            print("Pull request %d created %s" % (pull.id, pull.links['html']['href']))
+        except:
+            filename = self.backup_message(title, body, 'pull-request-message-')
+            err("Failed to create a pull request, the pull request text has been saved in %s" % filename)
 
     @command
     def remove_deploy_key(self, opts):

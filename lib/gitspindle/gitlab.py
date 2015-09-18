@@ -417,9 +417,13 @@ class GitLab(GitSpindle):
             if not body:
                 err("Empty issue message")
 
-            issue = glapi.ProjectIssue(self.gl, {'project_id': repo.id, 'title': title, 'description': body})
-            issue.save()
-            print("Issue %d created %s" % (issue.iid, self.issue_url(issue)))
+            try:
+                issue = glapi.ProjectIssue(self.gl, {'project_id': repo.id, 'title': title, 'description': body})
+                issue.save()
+                print("Issue %d created %s" % (issue.iid, self.issue_url(issue)))
+            except:
+                filename = self.backup_message(title, body, 'issue-message-')
+                err("Failed to create an issue, the issue text has been saved in %s" % filename)
 
     @command
     def issues(self, opts):
@@ -607,13 +611,17 @@ class GitLab(GitSpindle):
 #""" % (repo.namespace.name, src, parent.owner.username, dst)
         body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
         body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
-        title, body = self.edit_msg("%s\n\n%s" % (title,body), 'merge_REQUEST_EDIT_MSG')
+        title, body = self.edit_msg("%s\n\n%s" % (title,body), 'MERGE_REQUEST_EDIT_MSG')
         if not body:
             err("No merge request message specified")
 
-        merge = glapi.ProjectMergeRequest(self.gl, {'project_id': repo.id, 'target_project_id': parent.id, 'source_branch': src, 'target_branch': dst, 'title': title, 'description': body})
-        merge.save()
-        print("merge request %d created %s" % (merge.iid, self.merge_url(merge)))
+        try:
+            merge = glapi.ProjectMergeRequest(self.gl, {'project_id': repo.id, 'target_project_id': parent.id, 'source_branch': src, 'target_branch': dst, 'title': title, 'description': body})
+            merge.save()
+            print("merge request %d created %s" % (merge.iid, self.merge_url(merge)))
+        except:
+            filename = self.backup_message(title, body, 'merge-request-message-')
+            err("Failed to create a merge request, the merge request text has been saved in %s" % filename)
 
     @command
     def mirror(self, opts):

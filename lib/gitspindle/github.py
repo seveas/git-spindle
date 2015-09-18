@@ -528,8 +528,12 @@ class GitHub(GitSpindle):
             if not body:
                 err("Empty issue message")
 
-            issue = repo.create_issue(title=title, body=body)
-            print("Issue %d created %s" % (issue.number, issue.html_url))
+            try:
+                issue = repo.create_issue(title=title, body=body)
+                print("Issue %d created %s" % (issue.number, issue.html_url))
+            except:
+                filename = self.backup_message(title, body, 'issue-message-')
+                err("Failed to create an issue, the issue text has been saved in %s" % filename)
 
     @command
     def issues(self, opts):
@@ -911,8 +915,12 @@ class GitHub(GitSpindle):
         if not body:
             err("No pull request message specified")
 
-        pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
-        print("Pull request %d created %s" % (pull.number, pull.html_url))
+        try:
+            pull = parent.create_pull(base=dst, head='%s:%s' % (repo.owner.login, src), title=title, body=body)
+            print("Pull request %d created %s" % (pull.number, pull.html_url))
+        except:
+            filename = self.backup_message(title, body, 'pull-request-message-')
+            err("Failed to create a pull request, the pull request text has been saved in %s" % filename)
 
     @command
     def remove_collaborator(self, opts):

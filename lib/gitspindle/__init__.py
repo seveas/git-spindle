@@ -225,6 +225,13 @@ Options:
         body = re.sub('^#.*', '', body, flags=re.MULTILINE).strip()
         return title, body
 
+    def backup_message(self, title, body, filename):
+        msg = "%s\n\n%s" % (title, body)
+        fd, temp_file = tempfile.mkstemp(prefix=filename)
+        with os.fdopen(fd,'w') as fd:
+            fd.write(msg.encode('utf-8'))
+        return temp_file
+
     def main(self):
         argv = self.prog.split()[1:] + sys.argv[1:]
         opts = docopt.docopt(self.usage, argv)
