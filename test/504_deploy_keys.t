@@ -10,6 +10,7 @@ test_expect_success "Generating keys" "
 "
 
 test_expect_success hub "Testing deploy key manipulation (hub)" "
+    rm -rf whelk &&
     git_hub_1 clone whelk &&
     (cd whelk &&
     git_hub_1 add-deploy-key ../deploy-key-1.pub &&
@@ -28,6 +29,7 @@ test_expect_success hub "Testing deploy key manipulation (hub)" "
 "
 
 test_expect_success bb "Testing deploy key manipulation (bb)" "
+    rm -rf whelk &&
     git_bb_1 clone whelk &&
     (cd whelk &&
     git_bb_1 add-deploy-key ../deploy-key-1.pub &&
