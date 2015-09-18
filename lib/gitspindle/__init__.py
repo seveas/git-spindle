@@ -7,7 +7,7 @@ import sys
 import tempfile
 import whelk
 
-__all__ = ['GitSpindle', 'command', 'wants_parent']
+__all__ = ['GitSpindle', 'Credential', 'command', 'wants_parent']
 NO_VALUE_SENTINEL = 'NO_VALUE_SENTINEL'
 
 __builtins__['PY3'] = sys.version_info[0] > 2
@@ -372,3 +372,50 @@ Options:
 
         else:
             raise UtterConfusion()
+
+class Credential(object):
+    shell = whelk.Shell(encoding='utf-8')
+    params = ['protocol', 'host', 'path', 'username', 'password']
+
+    def __init__(self, protocol, host, path='', username='', password=''):
+        self.protocol = protocol
+        self.host = host
+        self.path = path
+        self.username = username
+        self.password = password
+
+    def __str__(self):
+        return '%s://%s:%s@%s/%s' % (self.protocol, self.username, self.password, self.host, self.path)
+
+    def __repr__(self):
+        return '<Credential %s>' % str(self)
+
+    def fill(self):
+        self.communicate('fill')
+
+    def approve(self):
+        if not self.username or not self.password:
+            raise ValueError("No username or password specified")
+        self.communicate('approve')
+
+    def reject(self):
+        if not self.username or not self.password:
+            raise ValueError("No username or password specified")
+        self.communicate('reject')
+        self.password = None
+
+    def communicate(self, action):
+        data = self.format() + '\n\n'
+        ret = self.shell.git('credential', action, input=data)
+        if not ret:
+            raise RuntimeError("git credential %s failed: %s" % (action, ret.stderr))
+        self.parse(ret.stdout)
+
+    def format(self):
+        return '\n'.join(['%s=%s' % (x, getattr(self, x)) for x in self.params if getattr(self, x)])
+
+    def parse(self, text):
+        for key, val in [line.split('=', 1) for line in text.splitlines() if line]:
+            if key not in self.params:
+                raise ValueError("Unexpected data: %s=%s" % (key, val))
+            setattr(self, key, val)
