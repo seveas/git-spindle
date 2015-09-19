@@ -116,6 +116,12 @@ Add a users fork as a remote using the specified name or the user's login as
 name for the remote. Defaults to adding an http url, but this can be
 overridden. For private repos SSH is used.
 
+.. describe:: git bb fetch [--ssh|--http] <user> [<refspec>]
+
+If you don't want to add a user's fork as a remote, but to want to fetch some
+refs from it, you can use the :command:`fetch` command. You can tell it which
+refs to fetch, and if you don't give a refspec, it will fetch all branches.
+
 .. describe:: git bb browse [--parent] [<repo>] [<section>]
 
 Browse a repository (or its parent) on BitBucket. By default the repository's

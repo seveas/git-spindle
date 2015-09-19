@@ -62,6 +62,8 @@ Lists all keys for a repo:
   git hub deploy-keys [<repo>]
 Edit a hook:
   git hub edit-hook <name> [<setting>...]
+Fetch refs from a user's fork:
+  git hub fetch [--ssh|--http|--git] <user> [<refspec>]
 Fork a repo and clone it:
   git hub fork [--ssh|--http|--git] [<repo>]
 List all forks of this repository:
@@ -135,6 +137,8 @@ Configure git-spindle, similar to git-config:
   git lab config [--unset] <key> [<value>]
 Create a repository on gitlab to push to:
   git lab create [--private|--internal] [--description=<description>]
+Fetch refs from a user's fork:
+  git lab fetch [--ssh|--http] <user> [<refspec>]
 Fork a repo and clone it:
   git lab fork [--ssh|--http] [<repo>]
 Show issue details or report an issue:
@@ -194,6 +198,8 @@ Create a repository on bitbucket to push to:
   git bb create [--private] [--description=<description>]
 Lists all keys for a repo:
   git bb deploy-keys [<repo>]
+Fetch refs from a user's fork:
+  git bb fetch [--ssh|--http] <user> [<refspec>]
 Fork a repo and clone it:
   git bb fork [--ssh|--http] [<repo>]
 List all forks of this repository:

@@ -372,6 +372,24 @@ class GitLab(GitSpindle):
             self.set_origin(opts)
 
     @command
+    def fetch(self, opts):
+        """[--ssh|--http] <user> [<refspec>]
+           Fetch refs from a user's fork"""
+        repo = self.repository(opts)
+        user = opts['<user>'][0]
+        refspec = opts['<refspec>'] or 'refs/heads/*'
+        repo = self.find_repo(user, repo.name)
+        if not repo:
+            err("Repository %s/%s does not exist" % (user, repo.name))
+        if ':' not in refspec:
+            if not refspec.startswith('refs/'):
+                refspec += ':' + 'refs/remotes/%s/' % repo.owner.username + refspec
+            else:
+                refspec += ':' + refspec.replace('refs/heads/', 'refs/remotes/%s/' % repo.owner.username)
+        url = self.clone_url(repo, opts)
+        self.gitm('fetch', url, refspec, redirect=False)
+
+    @command
     def fork(self, opts):
         """[--ssh|--http] [<repo>]
            Fork a repo and clone it"""

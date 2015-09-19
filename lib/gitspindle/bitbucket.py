@@ -238,6 +238,21 @@ class BitBucket(GitSpindle):
             print("%s %s (id: %s)" % (key['key'], key.get('label', ''), key['pk']))
 
     @command
+    def fetch(self, opts):
+        """[--ssh|--http] <user> [<refspec>]
+           Fetch refs from a user's fork"""
+        for fork in self.repository(opts).forks():
+            if fork.owner['username'] in opts['<user>']:
+                url = self.clone_url(fork, opts)
+                refspec = opts['<refspec>'] or 'refs/heads/*'
+                if ':' not in refspec:
+                    if not refspec.startswith('refs/'):
+                        refspec += ':' + 'refs/remotes/%s/' % fork.owner['username'] + refspec
+                    else:
+                        refspec += ':' + refspec.replace('refs/heads/', 'refs/remotes/%s/' % fork.owner['username'])
+                self.gitm('fetch', url, refspec, redirect=False)
+
+    @command
     def fork(self, opts):
         """[--ssh|--http] [<repo>]
            Fork a repo and clone it"""

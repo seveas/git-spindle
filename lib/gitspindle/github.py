@@ -459,6 +459,21 @@ class GitHub(GitSpindle):
         hook.edit(opts['<name>'], config, events)
 
     @command
+    def fetch(self, opts):
+        """[--ssh|--http|--git] <user> [<refspec>]
+           Fetch refs from a user's fork"""
+        for fork in self.repository(opts).iter_forks():
+            if fork.owner.login in opts['<user>']:
+                url = self.clone_url(fork, opts)
+                refspec = opts['<refspec>'] or 'refs/heads/*'
+                if ':' not in refspec:
+                    if not refspec.startswith('refs/'):
+                        refspec += ':' + 'refs/remotes/%s/' % fork.owner.login + refspec
+                    else:
+                        refspec += ':' + refspec.replace('refs/heads/', 'refs/remotes/%s/' % fork.owner.login)
+                self.gitm('fetch', url, refspec, redirect=False)
+
+    @command
     def fork(self, opts):
         """[--ssh|--http|--git] [<repo>]
            Fork a repo and clone it"""
