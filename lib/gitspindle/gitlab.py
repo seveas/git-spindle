@@ -47,7 +47,10 @@ class GitLab(GitSpindle):
             self.gl.auth()
             token = self.gl.user.private_token
             self.config('token', token)
-            print("Your GitLab authentication token is now cached in %s - do not share this file" % self.config_file)
+            location = '%s - do not share this file' % self.config_file
+            if self.use_credential_helper:
+                location = 'git\'s credential helper'
+            print("Your GitLab authentication token is now stored in %s" % location)
 
         if not user or not token:
             err("No user or token specified")
@@ -123,6 +126,17 @@ class GitLab(GitSpindle):
     def merge_url(self, merge):
         repo = self.gl.Project(merge.project_id)
         return '%s/merge_requests/%d' % (repo.web_url, merge.iid)
+
+    def api_root(self):
+        if hasattr(self, 'gl') and self.gl:
+            return self.gl._url
+        host = self.config('host')
+        if not host:
+            return 'https://gitlab.com/api/v3'
+        host = host.rstrip('/') + '/api/v3'
+        if not host.startswith(('http://', 'https://')):
+            host = 'https://' + host
+        return host
 
     # commands
 

@@ -30,7 +30,10 @@ class BitBucket(GitSpindle):
             except:
                 err("Authentication failed")
             self.config('password', password)
-            print("Your BitBucket authentication password is now cached in %s - do not share this file" % self.config_file)
+            location = '%s - do not share this file' % self.config_file
+            if self.use_credential_helper:
+                location = 'git\'s credential helper'
+            print("Your BitBucket authentication password is now stored in %s" % location)
 
         self.bb = bbapi.Bitbucket(user, password)
         self.me = self.bb.user(user)
@@ -57,6 +60,9 @@ class BitBucket(GitSpindle):
         if repo.owner['username'] == self.my_login:
             return repo.links['clone']['ssh']
         return repo.links['clone']['https']
+
+    def api_root(self):
+        return 'https://bitbucket.org/api/'
 
     # Commands
     @command

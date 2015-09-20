@@ -67,6 +67,7 @@ class GitSpindle(object):
         self.commands = {}
         self.accounts = {}
         self.my_login = {}
+        self.use_credential_helper = self.git('config', 'credential.helper').stdout.strip() not in ('', 'cache')
         self.usage = """%s - %s integration for git
 A full manual can be found on http://seveas.github.com/git-spindle/
 
@@ -106,6 +107,8 @@ Options:
         return result
 
     def config(self, key, value=NO_VALUE_SENTINEL):
+        if key in ('token', 'password') and self.use_credential_helper:
+            return self.config_secret(key, value)
         section = self.spindle
         if self.account:
             section = '%s.%s' % (self.spindle, self.account)
@@ -124,6 +127,18 @@ Options:
                 return self.gitm('config', '--file', self.config_file, key, value)
             finally:
                 os.umask(umask)
+
+    def config_secret(self, key, value=NO_VALUE_SENTINEL):
+        url = urlparse.urlparse(self.api_root())
+        credential = Credential(protocol=url.scheme, host=url.hostname, path=url.path, username=self.my_login or self.config('user'), password=value)
+        if value == NO_VALUE_SENTINEL:
+            credential.password = ''
+            credential.fill_noninteractive()
+            return credential.password
+        elif value is None:
+            credential.reject()
+        else:
+            credential.approve()
 
     def _parse_url(self, url):
         if '://' not in url and ':' in url:
@@ -393,22 +408,33 @@ class Credential(object):
     def fill(self):
         self.communicate('fill')
 
+    def fill_noninteractive(self):
+        env = os.environ.copy()
+        env['GIT_TERMINAL_PROMPT'] = '0'
+        env.pop('GIT_ASKPASS', None)
+        env.pop('SSH_ASKPASS', None)
+        self.communicate('fill', env=env)
+
     def approve(self):
         if not self.username or not self.password:
             raise ValueError("No username or password specified")
         self.communicate('approve')
 
     def reject(self):
-        if not self.username or not self.password:
-            raise ValueError("No username or password specified")
+        if not self.username:
+            raise ValueError("No username specified")
         self.communicate('reject')
-        self.password = None
+        self.password = ''
 
-    def communicate(self, action):
+    def communicate(self, action, env=os.environ):
         data = self.format() + '\n\n'
-        ret = self.shell.git('credential', action, input=data)
+        if env.get('GIT_TERMINAL_PROMPT', None) == '0':
+            ret = self.shell.git('-c', 'core.askpass=', 'credential', action, env=env, input=data)
+        else:
+            ret = self.shell.git('credential', action, env=env, input=data)
         if not ret:
-            raise RuntimeError("git credential %s failed: %s" % (action, ret.stderr))
+            if 'terminal prompts disabled' not in ret.stderr:
+                raise RuntimeError("git credential %s failed: %s" % (action, ret.stderr))
         self.parse(ret.stdout)
 
     def format(self):

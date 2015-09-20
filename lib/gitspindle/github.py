@@ -70,7 +70,10 @@ class GitHub(GitSpindle):
             token = auth.token
             self.config('token', token)
             self.config('auth-id', auth.id)
-            print("A GitHub authentication token is now cached in %s - do not share this file" % self.config_file)
+            location = '%s - do not share this file' % self.config_file
+            if self.use_credential_helper:
+                location = 'git\'s credential helper'
+            print("A GitHub authentication token is now stored in %s" % location)
             print("To revoke access, visit https://github.com/settings/applications")
 
         if not user or not token:
@@ -115,6 +118,14 @@ class GitHub(GitSpindle):
         if self.my_login == repo.owner.login:
             return repo.ssh_url
         return repo.clone_url
+
+    def api_root(self):
+        if hasattr(self, 'gh'):
+            return self.gh._session.base_url
+        host = self.config('host')
+        if not host:
+            return 'https://api.github.com'
+        return host.rstrip('/') + '/api/v3'
 
     # Commands
 
