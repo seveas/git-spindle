@@ -33,7 +33,7 @@ for spindle in $all_spindles; do
     "
 done
 
-test_expect_success hub,lab,bb "Resetting non-numbered accounts" "
+test_expect_success "Resetting non-numbered accounts" "
     git_hub config user \$(git_hub_1 config user) &&
     git_hub config token \$(git_hub_1 config token) &&
     git_lab config user \$(git_lab_1 config user) &&
@@ -42,14 +42,10 @@ test_expect_success hub,lab,bb "Resetting non-numbered accounts" "
     git_bb config password \$(git_bb_1 config password)
 "
 
-# vim: set syntax=sh:
 # Make sure other tests know about the new tokens
-if test $test_failure -eq 0; then
-    say info "Updating global .gitspindle"
-    test_expect_success hub,lab,bb "Updating global .gitspindle" "
-        mv .gitspindle ..
-    "
-fi
+test_expect_success "Updating global .gitspindle" "
+    mv .gitspindle ..
+"
 
 test_done
 
