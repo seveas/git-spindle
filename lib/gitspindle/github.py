@@ -343,6 +343,7 @@ class GitHub(GitSpindle):
                 repo = self.gh.repository(user or self.my_login, repo)
             else:
                 repo = self.repository(opts)
+                file = self.rel2root(file)
             if '/' in file:
                 dir, file = file.rsplit('/', 1)
             else:
@@ -890,6 +891,7 @@ class GitHub(GitSpindle):
                 repo = self.gh.repository(user or self.my_login, repo)
             else:
                 repo = self.repository(opts)
+                file = self.rel2root(file)
             content = repo.contents(path=file, ref=ref or repo.default_branch)
             if not content:
                 err("No such directory: %s" % arg)

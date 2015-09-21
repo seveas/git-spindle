@@ -29,7 +29,7 @@ for spindle in lab hub bb; do
         git_${spindle}_1 ls whelk::docs | grep presentation
     "
 
-    test_expect_failure $spindle "Testing ls against a relative path ($spindle)" "
+    test_expect_success $spindle "Testing ls against a relative path ($spindle)" "
         (cd whelk/docs &&
         git_${spindle}_1 ls | grep presentation)
     "

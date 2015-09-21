@@ -255,6 +255,16 @@ Options:
         root = os.path.abspath(root)
         return root
 
+    def rel2root(self, path):
+        if path.startswith('/'):
+            return os.path.normpath(path)
+        path = os.path.abspath(path)
+        root = self.repo_root()
+        if not path.startswith(root):
+            raise ValueError("Path not inside the git repository")
+        path = path.replace(root, '')
+        return path
+
     def main(self):
         argv = self.prog.split()[1:] + sys.argv[1:]
         opts = docopt.docopt(self.usage, argv)

@@ -338,6 +338,7 @@ class GitLab(GitSpindle):
                 repo = self.find_repo(user or self.my_login, repo)
             else:
                 repo = self.repository(opts)
+                file = self.rel2root(file).lstrip('/')
 
             try:
                 file = repo.File(ref=ref or repo.default_branch, file_path=file)
@@ -533,6 +534,7 @@ class GitLab(GitSpindle):
                 repo = self.find_repo(user or self.my_login, repo)
             else:
                 repo = self.repository(opts)
+                file = self.rel2root(file).lstrip('/')
 
             try:
                 content = repo.tree(ref_name=ref or repo.default_branch, path=file)

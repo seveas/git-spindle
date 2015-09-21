@@ -184,6 +184,7 @@ class BitBucket(GitSpindle):
                 repo = self.bb.repository(user or self.my_login, repo)
             else:
                 repo = self.repository(opts)
+                file = self.rel2root(file)
             try:
                 content = repo.src(path=file, revision=ref or 'master') # BitBucket has no API to retrieve the default branch
             except bbapi.BitBucketError:
@@ -377,6 +378,7 @@ class BitBucket(GitSpindle):
                 repo = self.bb.repository(user or self.my_login, repo)
             else:
                 repo = self.repository(opts)
+                file = self.rel2root(file)
             try:
                 content = repo.src(path=file or '/', revision=ref or 'master') # BitBucket has no API to retrieve the default branch
             except bbapi.BitBucketError:

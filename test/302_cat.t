@@ -8,6 +8,7 @@ test_expect_success "Cloning source repo" "
     git clone http://github.com/seveas/whelk &&
     cat whelk/setup.py | md5sum > expected.plain &&
     cat whelk/docs/presentation/whelk.jpg | md5sum > expected.binary &&
+    cat whelk/docs/conf.py | md5sum > expected.relative &&
     git -C whelk checkout -b debian origin/debian -- &&
     cat whelk/debian/rules | md5sum > expected.branch &&
     git -C whelk remote rm origin
@@ -42,7 +43,11 @@ for spindle in lab hub bb; do
         test_cmp expected.plain actual
     "
 
-    test_expect_failure $spindle "Testing cat against a relative path ($spindle)" "false"
+    test_expect_success $spindle "Testing cat against a relative path ($spindle)" "
+        (cd whelk/docs &&
+        git_${spindle}_1 cat conf.py | md5sum > actual &&
+        test_cmp ../../expected.relative actual)
+    "
 done
 
 test_done
