@@ -357,6 +357,133 @@ class GitHub(GitSpindle):
                 os.write(sys.stdout.fileno(), chunk)
 
     @command
+    def check_pages(self, opts):
+        """\nCheck the github pages configuration and content of your repo"""
+        repo = self.repository(opts)
+
+        def warning(msg, url=None):
+            print(wrap(msg, fgcolor.yellow))
+            if url:
+                print(wrap(url, attr.faint))
+
+        def error(msg, url=None):
+            print(wrap(msg, fgcolor.red))
+            if url:
+                print(wrap(url, attr.faint))
+
+        # Old-style $user.github.com repos
+        if repo.name == repo.owner.login + '.github.com':
+            warning("Your repository is named %s.github.com, but should be named %s.github.io" % (repo.owner.login, repo.owner.login),
+                    "https://help.github.com/articles/user-organization-and-project-pages/#user--organization-pages")
+
+        # Which branch do we check?
+        if repo.name in (repo.owner.login + '.github.com', repo.owner.login + '.github.io'):
+            branchname = 'master'
+        else:
+            branchname = 'gh-pages'
+
+        # Do we have local changes?
+        if self.git('rev-parse', '--symbolic-full-name', 'HEAD').stdout.strip() == 'refs/heads/%s' % branchname and self.git('status', '--porcelain').stdout.strip():
+            warning("You have uncommitted changes. This tool checks the latest commit, not the working tree")
+
+        # Do we have a pages branch?
+        local = remote_tracking = remote = None
+
+        output = self.git('ls-remote', repo.remote, 'refs/heads/%s' % branchname).stdout
+        for line in output.splitlines():
+            remote = line.split()[0]
+        if not remote:
+            error("You have no %s branch on GitHub" % branchname,
+                  "https://help.github.com/articles/user-organization-and-project-pages/")
+
+        output = self.git('for-each-ref', '--format=%(refname) %(objectname) %(upstream:trackshort)',
+                          'refs/remotes/%s/%s' % (repo.remote, branchname),
+                          'refs/heads/%s' % branchname,).stdout
+        for line in output.splitlines():
+            if line.startswith('refs/heads'):
+                ref, sha, ahead = line.split()
+                local = sha
+                if ahead == '<':
+                    warning("Your local %s branch is behind the one on GitHub" % branchname)
+                elif ahead == '>':
+                    warning("Your local %s branch is ahead of the one on GitHub" % branchname)
+                elif ahead == '<>':
+                    warning("Your local %s branch has diverged from the one on GitHub" % branchname)
+            elif line.startswith('refs/remotes'):
+                ref, sha = line.split()
+                remote_tracking = sha
+                if remote != remote_tracking:
+                    warning("You need to fetch %s from GitHub to get its latest revision" % branchname)
+
+        if not local or not remote_tracking:
+            warning("You have no %s branch locally" % branchname,
+                    "https://help.github.com/articles/user-organization-and-project-pages/")
+
+        # Do we need .nojekyll (dirs starting with underscores)
+        if local:
+            ref = 'refs/heads/%s' % branchname
+        elif remote_tracking:
+            ref = 'refs/remotes/%s/%s' % (repo.remote, branchname)
+        files = self.git('ls-tree', '-r', '--name-only', ref).stdout.splitlines()
+
+        if '.nojekyll' not in files:
+            for file in files:
+                if file.startswith('_'):
+                    warning("You have filenames starting with underscores, but no .nojekyll file",
+                            "https://help.github.com/articles/using-jekyll-with-pages/#turning-jekyll-off")
+                break
+
+        # Do we have a custom CNAME. Check DNS (Use meta api for A records)
+        for file in files:
+            if file.lower() == 'cname':
+                if file != 'CNAME':
+                    error("The CNAME file must be named in all caps",
+                          "https://help.github.com/articles/adding-a-cname-file-to-your-repository/")
+                cname = self.git('--no-pager', 'show', '%s:%s' % (ref, file)).stdout.strip()
+                pages_ips = self.gh.meta()['pages']
+                try:
+                    import publicsuffix
+                except ImportError:
+                    import gitspindle.public_suffix as publicsuffix
+                expect_cname = publicsuffix.PublicSuffixList(publicsuffix.fetch()).get_public_suffix(cname) != cname
+                try:
+                    import dns
+                    import dns.resolver
+                    resolver = dns.resolver.Resolver()
+                    answer = resolver.query(cname)
+                    for rrset in answer.response.answer:
+                        name = rrset.name.to_text().rstrip('.')
+                        if name == cname:
+                            for rr in rrset:
+                                if rr.rdtype == dns.rdatatype.A and expect_cname:
+                                    warning("You should use a CNAME record for non-apex domains",
+                                            "https://help.github.com/articles/tips-for-configuring-a-cname-record-with-your-dns-provider/")
+                                if rr.rdtype == dns.rdatatype.A and rr.address not in pages_ips:
+                                    error("IP address %s is incorreect for a pages site, use only %s" % (rr.address, ', '.join(pages_ips)),
+                                          "https://help.github.com/articles/tips-for-configuring-a-cname-record-with-your-dns-provider/")
+                                if rr.rdtype == 'CNAME' and rr.target != '%s.github.io.' % repo.owner.login:
+                                    error("CNAME %s -> %s is incorrect, should be %s -> %s" % (name, rr.target, name, '%s.github.io.' % repo.owner.login),
+                                          "https://help.github.com/articles/tips-for-configuring-an-a-record-with-your-dns-provider/")
+                except ImportError:
+                    if hasattr(self.shell, 'dig'):
+                        lines = self.shell.dig('+nocomment', '+nocmd', '+nostats', '+noquestion', cname).stdout.splitlines()
+                        for line in lines:
+                            rname, ttl, _, rtype, value = line.split(None, 4)
+                            if rname.rstrip('.') == cname:
+                                if rtype == 'A' and expect_cname:
+                                    warning("You should use a CNAME record for non-apex domains",
+                                            "https://help.github.com/articles/tips-for-configuring-a-cname-record-with-your-dns-provider/")
+                                if rtype == 'A' and value not in pages_ips:
+                                    error("IP address %s is incorreect for a pages site, use only %s" % (value, ', '.join(pages_ips)),
+                                          "https://help.github.com/articles/tips-for-configuring-a-cname-record-with-your-dns-provider/")
+                                if rtype == 'CNAME' and value != '%s.github.io.' % repo.owner.login:
+                                    error("CNAME %s -> %s is incorrect, should be %s -> %s" % (rname, value, rname, '%s.github.io.' % repo.owner.login),
+                                          "https://help.github.com/articles/tips-for-configuring-an-a-record-with-your-dns-provider/")
+                    else:
+                        error("Cannot check DNS settings. Please install dnspython or dig")
+                break
+
+    @command
     def clone(self, opts):
         """[--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""

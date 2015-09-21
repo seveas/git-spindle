@@ -48,6 +48,8 @@ Show a timeline of a user's activity:
   git hub calendar [<user>]
 Display the contents of a file on GitHub:
   git hub cat <file>...
+Check the github pages configuration and content of your repo:
+  git hub check-pages
 Clone a repository by name:
   git hub clone [--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
 List collaborators of a repository:
