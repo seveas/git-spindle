@@ -322,6 +322,11 @@ GitHub provides :file:`.gitignore` templates for various languages and
 environments. This command will let you quickly grab them and add them to your
 :file:`.gitignore`. For example: :command:`git hub ignore Python C`
 
+.. describe:: git hub ip-addresses [--git] [--hooks] [--importer] [--pages]
+
+This tells you which ip addresses belong to certain github.com services. Very
+useful to keep firewalls and access control lists up-to-date.
+
 .. describe:: git hub network [<level>]
 
 Generates a graphviz graph of people following you, people you follow or people

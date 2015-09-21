@@ -78,6 +78,8 @@ Show hooks that have been enabled:
   git hub hooks
 Show gitignore patterns for one or more languages:
   git hub ignore [<language>...]
+Show the IP addresses for github.com services in CIDR format:
+  git hub ip-addresses [--git] [--hooks] [--importer] [--pages]
 Show issue details or report an issue:
   git hub issue [<repo>] [--parent] [<issue>...]
 List issues in a repository:

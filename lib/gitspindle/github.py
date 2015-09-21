@@ -698,6 +698,15 @@ class GitHub(GitSpindle):
                 print(self.gh.gitignore_template(l).strip())
 
     @command
+    def ip_addresses(self, opts):
+        """[--git] [--hooks] [--importer] [--pages]
+           Show the IP addresses for github.com services in CIDR format"""
+        ip_addresses = self.gh.meta()
+        for what in ('git', 'hooks', 'importer', 'pages'):
+            if opts['--' + what]:
+                print("\n".join(ip_addresses[what]))
+
+    @command
     def issue(self, opts):
         """[<repo>] [--parent] [<issue>...]
            Show issue details or report an issue"""
