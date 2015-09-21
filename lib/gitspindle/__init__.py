@@ -192,10 +192,11 @@ Options:
 
         if hostname_only:
             return host
+        if not repo:
+            remote, user, repo  = None, self.my_login, os.path.basename(self.repo_root())
         if repo and repo.endswith('.git'):
             repo = repo[:-4]
-        if not repo:
-            remote, user, repo  = None, self.my_login, os.path.basename(os.getcwd())
+
         repo_ = self.get_repo(remote, user, repo)
 
         if not repo_:
@@ -246,6 +247,13 @@ Options:
         with os.fdopen(fd,'w') as fd:
             fd.write(msg.encode('utf-8'))
         return temp_file
+
+    def repo_root(self):
+        root = self.shell.git('rev-parse', '--show-toplevel').stdout.strip()
+        if not root:
+            root = self.shell.git('rev-parse', '--git-dir').stdout.strip()
+        root = os.path.abspath(root)
+        return root
 
     def main(self):
         argv = self.prog.split()[1:] + sys.argv[1:]
