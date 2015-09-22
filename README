@@ -226,15 +226,15 @@ Opens a pull request to merge your branch to an upstream branch:
   git bb pull-request [--yes] [<yours:theirs>]
 Remove deploy key by id:
   git bb remove-deploy-key <key>...
-Remove a user's membership:
+Remove a user's privileges:
   git bb remove-privilege <user>...
 List all repos of a user, by default yours:
   git bb repos [--no-forks] [<user>]
 Set the remote 'origin' to github.:
   git bb set-origin [--ssh|--http]
-Create a new gist from files or stdin:
+Create a new snippet from files or stdin:
   git bb snippet [--description=<description>] <file>...
-Show all gists for a user:
+Show all snippets for a user:
   git bb snippets [<user>]
 Display BitBucket user info:
   git bb whoami

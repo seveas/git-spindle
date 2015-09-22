@@ -572,7 +572,7 @@ class BitBucket(GitSpindle):
     @command
     def remove_privilege(self, opts):
         """<user>...
-           Remove a user's membership"""
+           Remove a user's privileges"""
         repo = self.repository(opts)
         for user in opts['<user>']:
             repo.remove_privilege(user)
@@ -642,7 +642,7 @@ class BitBucket(GitSpindle):
     @command
     def snippet(self, opts):
         """[--description=<description>] <file>...
-           Create a new gist from files or stdin"""
+           Create a new snippet from files or stdin"""
         files = {}
         description = opts['--description'] or ''
         for f in opts['<file>']:
@@ -659,7 +659,7 @@ class BitBucket(GitSpindle):
     @command
     def snippets(self, opts):
         """[<user>]
-           Show all gists for a user"""
+           Show all snippets for a user"""
         snippets = self.bb.user(opts['<user>'] or self.my_login).snippets()
         for snippet in snippets:
             print("%s - %s" % (snippet.title, snippet.links['html']['href']))
