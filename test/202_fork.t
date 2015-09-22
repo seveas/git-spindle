@@ -33,6 +33,7 @@ done
 
 for spindle in hub lab bb; do
     test_expect_success $spindle "Forking not-yet cloned repo ($spindle)" "
+        rm -rf whelk &&
         src=\$(username git_${spindle}_1) &&
         git_${spindle}_2 fork \$src/whelk &&
         git_${spindle}_2 repos | grep whelk &&
