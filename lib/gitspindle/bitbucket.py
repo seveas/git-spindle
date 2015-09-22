@@ -194,7 +194,7 @@ class BitBucket(GitSpindle):
             if getattr(content, 'encoding', None) == 'base64':
                 os.write(sys.stdout.fileno(), binascii.a2b_base64(content._data))
             else:
-                os.write(sys.stdout.fileno(), content._data)
+                os.write(sys.stdout.fileno(), content._data.encode('utf-8'))
 
     @command
     def clone(self, opts):

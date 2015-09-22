@@ -230,7 +230,7 @@ Options:
             fd, temp_file = tempfile.mkstemp(prefix=filename)
             os.close(fd)
         with open(temp_file, 'w') as fd:
-            fd.write(msg.encode('utf-8'))
+            fd.write(msg)
         editor = shlex.split(self.gitm('var', 'GIT_EDITOR').stdout) + [temp_file]
         self.shell[editor[0]](*editor[1:], redirect=False)
         with open(temp_file) as fd:

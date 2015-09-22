@@ -1179,7 +1179,7 @@ class GitHub(GitSpindle):
                 fd.write(html)
         else:
             with tempfile.NamedTemporaryFile(suffix='.html') as fd:
-                fd.write(html)
+                fd.write(html.encode('utf-8'))
                 fd.flush()
                 webbrowser.open('file://' + fd.name)
                 time.sleep(1)
