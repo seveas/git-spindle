@@ -56,7 +56,7 @@ known_options = {
 
 class GitOption(docopt.Option):
     def match(self, left, collected=None):
-        if isinstance(left[0], docopt.Option) and ((self.short == left[0].short and self.short) or (self.long == left[0].long and self.long)):
+        if left and isinstance(left[0], docopt.Option) and ((self.short == left[0].short and self.short) or (self.long == left[0].long and self.long)):
             opt = left.pop(0)
             # Hijack the command argument to store the data
             cmd = [x for x in collected if type(x).__name__ == 'Command'][1]
