@@ -1,3 +1,9 @@
+git-spindle (3.0.2-1) wily; urgency=medium
+
+  * New upstream release 
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Sun, 04 Oct 2015 01:06:53 +0200
+
 git-spindle (3.0.1-1) wily; urgency=medium
 
   * New upstream release
