@@ -1,2 +1,3 @@
+etc/bash_completion.d/git-spindle.completion.bash
 usr/bin/git-*
 usr/lib/python2*/*packages/gitspindle/*.py
