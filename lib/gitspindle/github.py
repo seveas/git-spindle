@@ -373,12 +373,15 @@ class GitHub(GitSpindle):
                 print(wrap(url, attr.faint))
 
         # Old-style $user.github.com repos
-        if repo.name == repo.owner.login + '.github.com':
+        if repo.name.lower() == repo.owner.login.lower() + '.github.com':
             warning("Your repository is named %s.github.com, but should be named %s.github.io" % (repo.owner.login, repo.owner.login),
                     "https://help.github.com/articles/user-organization-and-project-pages/#user--organization-pages")
 
+#        if repo.name.lower() == repo.owner.login.lower() + '.github.io' and repo.name != repo.name.lower():
+#            error("You should not have capital letters in your repository name, please rename it from %s to %s" % (repo.name, repo.name.lower()))
+
         # Which branch do we check?
-        if repo.name in (repo.owner.login + '.github.com', repo.owner.login + '.github.io'):
+        if repo.name.lower() in (repo.owner.login.lower() + '.github.com', repo.owner.login + '.github.io'):
             branchname = 'master'
         else:
             branchname = 'gh-pages'
@@ -420,14 +423,18 @@ class GitHub(GitSpindle):
             warning("You have no %s branch locally" % branchname,
                     "https://help.github.com/articles/user-organization-and-project-pages/")
 
-        # Do we need .nojekyll (dirs starting with underscores)
         if local:
             ref = 'refs/heads/%s' % branchname
         elif remote_tracking:
             ref = 'refs/remotes/%s/%s' % (repo.remote, branchname)
         files = self.git('ls-tree', '-r', '--name-only', ref).stdout.splitlines()
 
-        if '.nojekyll' not in files:
+        # Do we have an index.html
+        if 'index.html' not in files:
+            warning("You have no index.html")
+
+        # Do we need .nojekyll (dirs starting with underscores)
+        if '.nojekyll' not in files: and '_config.yml' not in files:
             for file in files:
                 if file.startswith('_'):
                     warning("You have filenames starting with underscores, but no .nojekyll file",
