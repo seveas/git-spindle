@@ -3,3 +3,12 @@ include docs/*.py
 include docs/_static/*
 include docs/Makefile
 include COPYING
+include completion/*
+include test/*.t
+include test/README
+include test/*.sh
+include test/bin/*
+include test/Makefile
+include test/lib/*.py
+include test/.gitspindle.example
+recursive-include test/sharness *
