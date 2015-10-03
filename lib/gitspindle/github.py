@@ -434,7 +434,7 @@ class GitHub(GitSpindle):
             warning("You have no index.html")
 
         # Do we need .nojekyll (dirs starting with underscores)
-        if '.nojekyll' not in files: and '_config.yml' not in files:
+        if '.nojekyll' not in files and '_config.yml' not in files:
             for file in files:
                 if file.startswith('_'):
                     warning("You have filenames starting with underscores, but no .nojekyll file",
