@@ -359,7 +359,7 @@ _git_spindle_issues() {
 }
 
 _git_spindle_log() {
-    __git_spindle_options "--type="
+    __git_spindle_options "--type= --count= --verbose"
     # TODO actually complete the types
 }  
 
