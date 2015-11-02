@@ -238,7 +238,7 @@ Options:
         os.unlink(temp_file)
         title = title.strip()
         body = body.strip()
-        body = re.sub('^#.*', '', body, flags=re.MULTILINE).strip()
+        body = re.compile('^#.*', re.MULTILINE).sub('', body).strip()
         return title, body
 
     def backup_message(self, title, body, filename):
