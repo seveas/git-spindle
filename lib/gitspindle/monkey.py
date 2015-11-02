@@ -39,6 +39,25 @@ def _gist_contents(self, path, ref):
             return Content(f)
 github3.gists.Gist.contents = _gist_contents
 
+from github3.session import GitHubSession
+from gitspindle.ansi import wrap, fgcolor, attr
+import time
+warned = False
+def request(self, *args, **kwargs):
+    global warned
+    r = self.orig_request(*args, **kwargs)
+    # Warn when approaching the rate limit
+    limit = int(r.headers.get('x-ratelimit-limit', 0))
+    remaining = int(r.headers.get('x-ratelimit-remaining', 0))
+    reset = int(r.headers.get('x-ratelimit-reset', 0))
+    if limit and (remaining < 100) and not warned:
+        msg = "You are approaching the API rate limit. Only %d requests remain until %s" % (remaining, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(reset)))
+        print(wrap(msg, fgcolor.red, attr.bright))
+        warned = True
+    return r
+GitHubSession.orig_request = GitHubSession.request
+GitHubSession.request = request
+
 import gitspindle.glapi as glapi
 glapi.Project.spindle = 'gitlab'
 glapi.UserProject.spindle = 'gitlab'
