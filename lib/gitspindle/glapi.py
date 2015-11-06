@@ -469,6 +469,7 @@ class Gitlab(object):
 
     def _list_projects(self, url, **kwargs):
         r = self.rawGet(url, **kwargs)
+	print(r)
         if r.status_code != 200:
             _raiseErrorFromResponse(r, GitlabListError)
 
@@ -483,7 +484,7 @@ class Gitlab(object):
 
         Returns a list of matching projects.
         """
-        return self._list_projects("/projects/search/" + query, per_page=per_page, page=page)
+        return self._list_projects("/projects", per_page=per_page, page=page)
 
     def all_projects(self, page=None, per_page=None):
         """Lists all the projects (need admin rights)."""

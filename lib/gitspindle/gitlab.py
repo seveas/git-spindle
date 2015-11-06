@@ -70,7 +70,7 @@ class GitLab(GitSpindle):
         return ([self.my_login] + url.path.split('/'))[-2:]
 
     def get_repo(self, remote, user, repo):
-        if remote:
+	if remote:
             id = self.git('config', 'remote.%s.gitlab-id' % remote).stdout.strip()
             if id and id.isdigit():
                 return self.gl.Project(id)
@@ -352,7 +352,7 @@ class GitLab(GitSpindle):
            Clone a repository by name"""
         repo = self.repository(opts)
         url = self.clone_url(repo, opts)
-
+	print(url)
         args = opts['extra-opts']
         args.append(url)
         dir = opts['<dir>'] and opts['<dir>'][0] or repo.name
@@ -563,8 +563,9 @@ class GitLab(GitSpindle):
     def merge_request(self, opts):
         """[--yes] [<yours:theirs>]
            Opens a merge request to merge your branch to an upstream branch"""
-        repo = self.repository(opts)
+	repo = self.repository(opts)
         parent = self.parent_repo(repo) or repo
+	parent = repo
         # Which branch?
         src = opts['<yours:theirs>'] or ''
         dst = None
@@ -638,17 +639,19 @@ class GitLab(GitSpindle):
             body = ""
 
         body += """
-# Requesting a merge from %s/%s into %s/%s
-#
-# Please enter a message to accompany your merge request. Lines starting
-# with '#' will be ignored, and an empty message aborts the request.
-#""" % (repo.namespace.name, src, parent.owner.username, dst)
-        body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
-        body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
-        title, body = self.edit_msg("%s\n\n%s" % (title,body), 'MERGE_REQUEST_EDIT_MSG')
+Requesting a merge from %s/%s into %s/%s
+""" % (repo.namespace.name, src, parent.owner.username, dst)
+        #body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
+        #body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
+        
+	title = title.strip()
+        body = body.strip()
+        #body = re.sub('^#.*', '', body, flags=re.MULTILINE).strip()	
+
+	#title, body = self.edit_msg("%s\n\n%s" % (title,body), 'MERGE_REQUEST_EDIT_MSG')
         if not body:
             err("No merge request message specified")
-
+	print(body)
         try:
             merge = glapi.ProjectMergeRequest(self.gl, {'project_id': repo.id, 'target_project_id': parent.id, 'source_branch': src, 'target_branch': dst, 'title': title, 'description': body})
             merge.save()
@@ -758,8 +761,10 @@ class GitLab(GitSpindle):
                     continue
                 color.append(attr.faint)
             name = repo.name
-            if self.my_login != repo.namespace.name:
-                name = '%s/%s' % (repo.namespace.name, name)
+            
+	    if hasattr(repo.namespace, 'name'):
+	   	if self.my_login != repo.namespace.name:
+                	name = '%s/%s' % (repo.namespace.name, name)
             desc = ' '.join((repo.description or '').splitlines())
             msg = wrap(fmt % (name, desc), *color)
             if not PY3:
