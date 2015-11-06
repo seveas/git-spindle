@@ -102,7 +102,7 @@ class GitLab(GitSpindle):
         lname = name.lower()
         try:
             for repo in self.gl.search_projects(name, per_page=100):
-                if lname in (repo.name.lower(), repo.path.lower()) and luser in (repo.namespace.name.lower(), repo.namespace.path.lower()):
+                if lname in (repo.name.lower(), repo.path.lower()) and (not hasattr(repo.namespace, 'name') or luser in (repo.namespace.name.lower(), repo.namespace.path.lower())):
                     return repo
         except glapi.GitlabListError:
             pass
