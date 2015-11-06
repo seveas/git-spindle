@@ -102,7 +102,7 @@ class GitLab(GitSpindle):
         lname = name.lower()
         try:
             for repo in self.gl.search_projects(name, per_page=100):
-                if lname in (repo.name.lower(), repo.path.lower()) and luser in (repo.namespace.name.lower(), repo.namespace.path.lower()):
+                if lname in (repo.name.lower(), repo.path.lower()) and (not hasattr(repo.namespace, 'name') or luser in (repo.namespace.name.lower(), repo.namespace.path.lower())):
                     return repo
         except glapi.GitlabListError:
             pass
@@ -637,15 +637,11 @@ class GitLab(GitSpindle):
             title = title.title().replace('-', ' ')
             body = ""
 
-        body += """
-# Requesting a merge from %s/%s into %s/%s
-#
-# Please enter a message to accompany your merge request. Lines starting
-# with '#' will be ignored, and an empty message aborts the request.
-#""" % (repo.namespace.name, src, parent.owner.username, dst)
-        body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
-        body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
-        title, body = self.edit_msg("%s\n\n%s" % (title,body), 'MERGE_REQUEST_EDIT_MSG')
+        body += """Requesting a merge from %s into %s""" % (src, dst)
+
+        #body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
+        #body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
+        #title, body = self.edit_msg("%s\n\n%s" % (title,body), 'MERGE_REQUEST_EDIT_MSG')
         if not body:
             err("No merge request message specified")
 
@@ -758,8 +754,9 @@ class GitLab(GitSpindle):
                     continue
                 color.append(attr.faint)
             name = repo.name
-            if self.my_login != repo.namespace.name:
-                name = '%s/%s' % (repo.namespace.name, name)
+            if hasattr(repo.namespace, 'name'):
+                if self.my_login != repo.namespace.name:
+                    name = '%s/%s' % (repo.namespace.name, name)
             desc = ' '.join((repo.description or '').splitlines())
             msg = wrap(fmt % (name, desc), *color)
             if not PY3:

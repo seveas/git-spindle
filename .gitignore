@@ -8,3 +8,6 @@ build
 dist
 test-results
 trash directory.*
+/.project
+/.pydevproject
+/.settings/

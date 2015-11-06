@@ -483,7 +483,9 @@ class Gitlab(object):
 
         Returns a list of matching projects.
         """
-        return self._list_projects("/projects/search/" + query, per_page=per_page, page=page)
+        #return self._list_projects("/projects/search/" + query, per_page=per_page, page=page)
+        """EPAM git lab always return users repos"""
+        return self._list_projects("/projects", per_page=per_page, page=page) 
 
     def all_projects(self, page=None, per_page=None):
         """Lists all the projects (need admin rights)."""
