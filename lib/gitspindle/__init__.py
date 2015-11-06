@@ -196,7 +196,7 @@ Options:
             remote, user, repo  = None, self.my_login, os.path.basename(self.repo_root())
         if repo and repo.endswith('.git'):
             repo = repo[:-4]
-	
+
         repo_ = self.get_repo(remote, user, repo)
 
         if not repo_:
@@ -229,7 +229,7 @@ Options:
         else:
             fd, temp_file = tempfile.mkstemp(prefix=filename)
             os.close(fd)
-	with open(temp_file, 'w') as fd:
+        with open(temp_file, 'w') as fd:
             fd.write(msg)
         editor = shlex.split(self.gitm('var', 'GIT_EDITOR').stdout) + [temp_file]
         self.shell[editor[0]](*editor[1:], redirect=False)
