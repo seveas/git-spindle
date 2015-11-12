@@ -1148,6 +1148,17 @@ class GitHub(GitSpindle):
             err("Failed to create a pull request, the pull request text has been saved in %s" % filename)
 
     @command
+    def readme(self, opts):
+        """[<repo>]
+           Get the README for a repository"""
+        repo = self.repository(opts)
+        readme = repo.readme()
+        if readme:
+            os.write(sys.stdout.fileno(), readme.decoded)
+        else:
+            err("No readme found")
+
+    @command
     def remove_collaborator(self, opts):
         """<user>...
            Remove a user as collaborator """

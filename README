@@ -96,6 +96,8 @@ Lists all keys for a user:
   git hub public-keys [<user>]
 Opens a pull request to merge your branch to an upstream branch:
   git hub pull-request [--issue=<issue>] [--yes] [<yours:theirs>]
+Get the README for a repository:
+  git hub readme [<repo>]
 Remove a user as collaborator:
   git hub remove-collaborator <user>...
 Remove deploy key by id:

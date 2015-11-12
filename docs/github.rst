@@ -153,6 +153,10 @@ Display the contents of a directory on GitHub. Directory can start with
 repository names and refs. For example: `master:bin/git-hub`,
 `git-spindle:master:bin/git-hub` or `seveas/git-spindle:master:bin/git-hub`.
 
+.. describe:: git hub readme [<repo>]
+
+Download and display a repository's README file, whatever its actual name is.
+
 .. describe:: git hub fork [--ssh|--http|--git] [<repo>]
 
 Fork another person's git repository on GitHub and clone that repository
