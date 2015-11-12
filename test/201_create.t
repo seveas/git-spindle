@@ -8,7 +8,9 @@ test_expect_success "Clone source repos" "
     git clone https://github.com/seveas/whelk.git &&
     # Contains a tree that has a .git directory
     git -C whelk update-ref -d refs/remotes/origin/gh-pages &&
-    git clone https://github.com/seveas/hacks.git
+    git clone https://github.com/seveas/hacks.git &&
+    git clone https://github.com/seveas/python-zonediff.git &&
+    git clone https://github.com/seveas/python-snmpclient
 "
 
 for spindle in hub lab bb; do
@@ -67,8 +69,40 @@ for spindle in hub lab bb; do
     "
 done;
 
-test_expect_failure "Create private repo" "false"
-test_expect_failure "Create with --name" "false # upsets set-origin"
+export DEBUG=1
+test $(git hub run-shell -c 'print self.me.plan.name') != 'free' && test_set_prereq hub-nonfree
+
+test_expect_success hub,hub-nonfree "Create private repo ($hub)" "
+    ( cd python-zonediff &&
+    echo True > expected &&
+    git_hub_1 create --private &&
+    git_hub_1 run-shell -c 'print repo.private' > actual &&
+    test_cmp expected actual )
+"
+
+test_expect_success lab "Create private repo ($lab)" "
+    ( cd python-zonediff &&
+    echo True > expected &&
+    git_lab_1 create --private &&
+    git_lab_1 run-shell -c 'print repo.visibility_level == 0' > actual &&
+    test_cmp expected actual )
+"
+
+test_expect_success lab "Create internal repo ($lab)" "
+    ( cd python-snmpclient &&
+    echo True > expected &&
+    git_lab_1 create --internal &&
+    git_lab_1 run-shell -c 'print repo.visibility_level == 10' > actual &&
+    test_cmp expected actual )
+"
+
+test_expect_success bb "Create private repo ($bb)" "
+    ( cd python-zonediff &&
+    echo True > expected &&
+    git_bb_1 create --private &&
+    git_bb_1 run-shell -c 'print repo.is_private' > actual &&
+    test_cmp expected actual )
+"
 
 test_done
 

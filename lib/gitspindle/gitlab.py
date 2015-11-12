@@ -378,7 +378,7 @@ class GitLab(GitSpindle):
         if opts['--internal']:
             visibility_level = 10
         elif opts['--private']:
-            visibility_level = 10
+            visibility_level = 0
         glapi.Project(self.gl, {'name': name, 'description': opts['--description'] or "", 'visibility_level': visibility_level}).save()
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the GitLab repository as 'gitlab'")
