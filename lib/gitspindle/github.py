@@ -1033,6 +1033,24 @@ class GitHub(GitSpindle):
         print("\n".join(graph))
 
     @command
+    def protect(self, opts):
+        """[--enforcement-level=<level>] [--contexts=<contexts>] <branch>
+           Protect a branch against deletions, force-pushes and failed status checks"""
+        repo = self.repository(opts)
+        repo.branch(opts['<branch>']).protect(enforcement_level=opts['--enforcement-level'], contexts=(opts['--contexts'] or '').split(','))
+
+    @command
+    def protected(self, opts):
+        """\nList active branch protections"""
+        repo = self.repository(opts)
+        for branch in repo.iter_branches(protected=True):
+            data = branch._json_data['protection']
+            msg = branch.name
+            if data['required_status_checks']['contexts'] and data['required_status_checks']['enforcement_level'] != 'off':
+                msg += ' (%s must pass for %s)' % (','.join(data['required_status_checks']['contexts']), data['required_status_checks']['enforcement_level'])
+            print(msg)
+
+    @command
     def public_keys(self, opts):
         """[<user>]
            Lists all keys for a user"""
@@ -1351,6 +1369,13 @@ class GitHub(GitSpindle):
             color = {'good': fgcolor.green, 'minor': fgcolor.yellow, 'major': fgcolor.red}[message['status']]
             ts = datetime.datetime(ts.tm_year, ts.tm_mon, ts.tm_mday, ts.tm_hour, ts.tm_min, ts.tm_sec) - datetime.timedelta(0,offset)
             print('%s %s %s' % (wrap(ts.strftime('%Y-%m-%d %H:%M'), attr.faint), wrap("%-5s" % message['status'], color), message['body']))
+
+    @command
+    def unprotect(self, opts):
+        """ <branch>
+           Remove branch protections from a branch"""
+        repo = self.repository(opts)
+        repo.branch(opts['<branch>']).unprotect()
 
     @command
     def whoami(self, opts):

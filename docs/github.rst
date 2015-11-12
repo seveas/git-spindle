@@ -213,6 +213,22 @@ Grant people push access to this repository.
 
 Revoke access to this repository.
 
+.. describe:: git hub protected
+
+List all protected branches. Protected branches cannot be force-pushed or
+deleted, and can potentially have required status checks.
+
+.. describe:: git hub protect [--enforcement-level=<level>] [--contexts=<contexts>] <branch>
+
+Protect a branch against force-pushes and deletion. Optionally require status
+checks to succeed by specifying their context (e.g.
+continuous-integration/travis-ci) and for whom this is required (everyone or
+non_admins).
+
+.. describe:: git hub unprotect <branch>
+
+Remove a branch's protection.
+
 .. describe:: git hub deploy-keys [<repo>]
 
 List all deploy keys for this repository
