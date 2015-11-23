@@ -441,6 +441,12 @@ class GitHub(GitSpindle):
                             "https://help.github.com/articles/using-jekyll-with-pages/#turning-jekyll-off")
                 break
 
+        # Do we have unverified emails
+        if repo.owner.login == self.me.login:
+            for mail in self.gh.iter_emails():
+                if not mail['verified']:
+                    error("Unverified %s email address: %s" % (mail['primary'] and 'primary' or 'secondary', mail['email']))
+
         # Do we have a custom CNAME. Check DNS (Use meta api for A records)
         for file in files:
             if file.lower() == 'cname':
@@ -1392,10 +1398,24 @@ class GitHub(GitSpindle):
             if not user:
                 print("No such user: %s" % user_)
                 continue
+            emails = {}
+            if user.login == self.my_login:
+                for email in self.gh.iter_emails():
+                    emails[email['email']] = email
             print(wrap(user.name or user.login, attr.bright, attr.underline))
             print('Profile   %s' % user.html_url)
             if user.email:
-                print('Email     %s' % user.email)
+                unverified = ''
+                if not emails.get(user.email, {}).get('verified', True):
+                    unverified = ' ' + wrap('(not verified)', fgcolor.red, attr.bright)
+                print('Email     %s%s' % (user.email, unverified))
+                for email in emails:
+                    if email == user.email:
+                        continue
+                    unverified = ''
+                    if not emails[email]['verified']:
+                        unverified = ' ' + wrap('(not verified)', fgcolor.red, attr.bright)
+                    print('          %s%s' % (email, unverified))
             if user.blog:
                 print('Blog      %s' % user.blog)
             if user.location:
