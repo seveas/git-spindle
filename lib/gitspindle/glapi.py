@@ -262,6 +262,9 @@ class Gitlab(object):
                 "Can't connect to GitLab server (%s)" % self._url)
 
     def list(self, obj_class, **kwargs):
+        return list(self.iter(obj_class, **kwargs))
+
+    def iter(self, obj_class, **kwargs):
         missing = []
         for k in chain(obj_class.requiredUrlAttrs,
                        obj_class.requiredListAttrs):
@@ -279,33 +282,41 @@ class Gitlab(object):
         for attribute in obj_class.requiredUrlAttrs:
             del params[attribute]
 
-        try:
-            r = requests.get(url, params=kwargs, headers=self.headers,
-                             verify=self.ssl_verify,
-                             timeout=self.timeout)
-        except:
-            raise GitlabConnectionError(
-                "Can't connect to GitLab server (%s)" % self._url)
+        cls = obj_class
+        if obj_class._returnClass:
+            cls = obj_class._returnClass
 
-        if r.status_code == 200:
-            cls = obj_class
-            if obj_class._returnClass:
-                cls = obj_class._returnClass
+        cls_kwargs = kwargs.copy()
 
-            cls_kwargs = kwargs.copy()
+        # Add _created manually, because we are not creating objects
+        # through normal path
+        cls_kwargs['_created'] = True
 
-            # Add _created manually, because we are not creating objects
-            # through normal path
-            cls_kwargs['_created'] = True
+        # Remove parameters from kwargs before passing it to constructor
+        for key in ['page', 'per_page']:
+            if key in cls_kwargs:
+                del cls_kwargs[key]
 
-            # Remove parameters from kwargs before passing it to constructor
-            for key in ['page', 'per_page']:
-                if key in cls_kwargs:
-                    del cls_kwargs[key]
+        kwargs['per_page'] = 100
+        while True:
+            try:
+                r = requests.get(url, params=kwargs, headers=self.headers,
+                                 verify=self.ssl_verify,
+                                 timeout=self.timeout)
+            except:
+                raise GitlabConnectionError(
+                    "Can't connect to GitLab server (%s)" % self._url)
 
-            return [cls(self, item, **cls_kwargs) for item in r.json() if item is not None]
-        else:
-            _raiseErrorFromResponse(r, GitlabListError)
+            if r.status_code == 200:
+                for item in r.json():
+                    if item is not None:
+                        yield cls(self, item, **cls_kwargs)
+            else:
+                _raiseErrorFromResponse(r, GitlabListError)
+            if 'next' in r.links:
+                url = r.links['next']['url']
+            else:
+                break
 
 
     def get(self, obj_class, id=None, **kwargs):
