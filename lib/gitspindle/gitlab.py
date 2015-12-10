@@ -398,9 +398,9 @@ class GitLab(GitSpindle):
             err("Repository %s/%s does not exist" % (user, repo.name))
         if ':' not in refspec:
             if not refspec.startswith('refs/'):
-                refspec += ':' + 'refs/remotes/%s/' % repo.owner.username + refspec
+                refspec += ':' + 'refs/remotes/%s/' % repo.namespace.name + refspec
             else:
-                refspec += ':' + refspec.replace('refs/heads/', 'refs/remotes/%s/' % repo.owner.username)
+                refspec += ':' + refspec.replace('refs/heads/', 'refs/remotes/%s/' % repo.namespace.name)
         url = self.clone_url(repo, opts)
         self.gitm('fetch', url, refspec, redirect=False)
 
@@ -605,18 +605,18 @@ class GitLab(GitSpindle):
 
         dstb = parent.Branch(dst)
         if not dstb:
-            err("Branch %s does not exist in %s/%s" % (dst, parent.owner.username, parent.name))
+            err("Branch %s does not exist in %s/%s" % (dst, parent.namespace.name, parent.name))
 
         # Do we have the dst locally?
         for remote in self.gitm('remote').stdout.strip().split("\n"):
             url = self.gitm('config', 'remote.%s.url' % remote).stdout.strip()
             if url in [parent.ssh_url_to_repo, parent.http_url_to_repo]:
                 if not parent.public and url != parent.ssh_url_to_repo:
-                    err("You should configure %s/%s to fetch via ssh, it is a private repo" % (parent.owner.username, parent.name))
+                    err("You should configure %s/%s to fetch via ssh, it is a private repo" % (parent.namespace.name, parent.name))
                 self.gitm('fetch', remote, redirect=False)
                 break
         else:
-            err("You don't have %s/%s configured as a remote repository" % (parent.owner.username, parent.name))
+            err("You don't have %s/%s configured as a remote repository" % (parent.namespace.name, parent.name))
 
         # How many commits?
         commits = try_decode(self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout).strip().split()
@@ -642,7 +642,7 @@ class GitLab(GitSpindle):
 #
 # Please enter a message to accompany your merge request. Lines starting
 # with '#' will be ignored, and an empty message aborts the request.
-#""" % (repo.namespace.name, src, parent.owner.username, dst)
+#""" % (repo.namespace.name, src, parent.namespace.name, dst)
         body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
         body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
         title, body = self.edit_msg("%s\n\n%s" % (title,body), 'MERGE_REQUEST_EDIT_MSG')
