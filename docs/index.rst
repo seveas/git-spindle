@@ -32,4 +32,3 @@ Contents
    github
    gitlab
    bitbucket
-   accounts

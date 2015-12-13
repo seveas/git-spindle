@@ -59,19 +59,38 @@ other users.
 Displays a log of actions done to a repository, such as pushes and issue
 comments.
 
+Using multiple accounts
+-----------------------
+:command:`git lab` supports using more than one account, and using local
+installs of GitLab CE and EE. To use a non-default account outside a
+repository, for example when cloning, you have to tell :command:`git lab` which
+account to use using :option:`--account`::
+
+    $ git lab --account test-account clone seveas/whelk
+
+If the account is on a Gitlab enterprise installation, you don't need to use
+--account all the time. git-spindle will recognize the account from the url in
+your repository configuration::
+
+    $ git lab --account work clone dev/website
+    $ cd website
+    $ git lab issues
+
 .. describe:: git lab add-account [--host=<host>] <alias>
 
-:command:`git lab` supports multiple accounts. To add a new account, use the
-:command:`add-account` command. If the account lives on a Gitlab CE or EE
-instance, you can specify its hostname. To change the hostname of any account,
-including the default one, you can use the :command:`config` command as
-follows: :command:`git lab config host https://gitlab.example.com`.
+To add a new account, use the :command:`add-account` command. If the account
+lives on a GitLab EE or CE instance other than gitlab.com, you can specify its
+hostname.
 
 .. describe:: git lab config [--unset] <key> [<value>]
 
 Set, get or unset a configuration variable in :file:`~/.gitspindle`. Similar to
 :command:`git config`, but only single-level keys are allowed, and the section
 is hardcoded to be the current account.
+
+To change the hostname of any account, including the default one, you can use
+the :command:`config` command as follows: :command:`git lab config host
+https://gitlab.example.com`.
 
 Interacting with repositories
 -----------------------------

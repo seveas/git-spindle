@@ -85,20 +85,6 @@ e.g. :option:`--type=push`. You can also get more (or less) than the default 30
 items in the log by specifying a count. Finally, :option:`--verbose` will give
 slightly more verbose output for some log items.
 
-.. describe:: git hub add-account [--host=<host>] <alias>
-
-:command:`git hub` supports multiple accounts. To add a new account, use the
-:command:`add-account` command. If the account lives on a GitHub Enterprise
-instance, you can specify its hostname. To change the hostname of any account,
-including the default one, you can use the :command:`config` command as
-follows: :command:`git hub config host https://github.example.com`.
-
-.. describe:: git hub config [--unset] <key> [<value>]
-
-Set, get or unset a configuration variable in :file:`~/.gitspindle`. Similar to
-:command:`git config`, but only single-level keys are allowed, and the section
-is hardcoded to be the current account.
-
 .. describe:: git hub create-token [--store]
 
 Create a personal access token that can be used for git operations (clone,
@@ -112,6 +98,37 @@ helpers.
 
 .. _`profile page`: https://github.com/settings/applications
 
+Using multiple accounts
+-----------------------
+:command:`git hub` supports using more than one account, and using local
+installs of GitHub enterprise. To use a non-default account outside a
+repository, for example when cloning, you have to tell :command:`git hub` which
+account to use using :option:`--account`::
+
+    $ git hub --account test-account clone seveas/whelk
+
+If the account is on a GitHub enterprise installation, you don't need to use
+--account all the time. git-spindle will recognize the account from the url in
+your repository configuration::
+
+    $ git hub --account work clone dev/website
+    $ cd website
+    $ git hub issues
+
+.. describe:: git hub add-account [--host=<host>] <alias>
+
+To add a new account, use the :command:`add-account` command. If the account
+lives on a GitHub Enterprise instance, you can specify its hostname.
+
+.. describe:: git hub config [--unset] <key> [<value>]
+
+Set, get or unset a configuration variable in :file:`~/.gitspindle`. Similar to
+:command:`git config`, but only single-level keys are allowed, and the section
+is hardcoded to be the current account.
+
+To change the hostname of any account, including the default one, you can use
+the :command:`config` command as follows: :command:`git hub config host
+https://github.example.com`.
 
 Interacting with repositories
 -----------------------------
