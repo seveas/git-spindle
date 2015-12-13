@@ -88,7 +88,7 @@ class GitLab(GitSpindle):
             return repo.ssh_url_to_repo
         if opts['--http']:
             return repo.http_url_to_repo
-        if repo.namespace.name == self.my_login:
+        if repo.namespace.path == self.my_login:
             return repo.ssh_url_to_repo
         return repo.http_url_to_repo
 
@@ -96,15 +96,10 @@ class GitLab(GitSpindle):
        if getattr(repo, 'forked_from_project', False):
            return self.gl.Project(repo.forked_from_project['id'])
 
-    # There's no way to fetch a repo by name. Abuse search.
     def find_repo(self, user, name):
-        luser = user.lower()
-        lname = name.lower()
         try:
-            for repo in self.gl.search_projects(name, per_page=100):
-                if lname in (repo.name.lower(), repo.path.lower()) and luser in (repo.namespace.name.lower(), repo.namespace.path.lower()):
-                    return repo
-        except glapi.GitlabListError:
+            return self.gl.Project('%s%%2F%s' % (user, name))
+        except glapi.GitlabGetError:
             pass
 
     # There's no way to fetch a user by username. Abuse seaarch.
@@ -177,9 +172,9 @@ class GitLab(GitSpindle):
         dwim = self.repository(opts)
         user = opts['<user>'][0]
         name = opts['<name>'] or user
-        repo = self.find_repo(user, dwim.name)
+        repo = self.find_repo(user, dwim.path)
         if not repo:
-            err("Repository %s/%s does not exist" % (user, dwim.name))
+            err("Repository %s/%s does not exist" % (user, dwim.path))
         url = self.clone_url(repo, opts)
         self.gitm('remote', 'add', name, url)
         self.gitm('config', 'remote.%s.gitlab-id' % name, repo.id)
@@ -355,7 +350,7 @@ class GitLab(GitSpindle):
 
         args = opts['extra-opts']
         args.append(url)
-        dir = opts['<dir>'] and opts['<dir>'][0] or repo.name
+        dir = opts['<dir>'] and opts['<dir>'][0] or repo.path
         if '--bare' in args:
             dir += '.git'
         args.append(dir)
@@ -372,7 +367,7 @@ class GitLab(GitSpindle):
            Create a repository on gitlab to push to"""
         root = self.gitm('rev-parse', '--show-toplevel').stdout.strip()
         name = os.path.basename(root)
-        if name in [x.name for x in self.gl.Project()]:
+        if name in [x.path for x in self.gl.Project()]:
             err("Repository already exists")
         visibility_level = 20 # public
         if opts['--internal']:
@@ -393,14 +388,14 @@ class GitLab(GitSpindle):
         repo = self.repository(opts)
         user = opts['<user>'][0]
         refspec = opts['<refspec>'] or 'refs/heads/*'
-        repo = self.find_repo(user, repo.name)
+        repo = self.find_repo(user, repo.path)
         if not repo:
-            err("Repository %s/%s does not exist" % (user, repo.name))
+            err("Repository %s/%s does not exist" % (user, repo.path))
         if ':' not in refspec:
             if not refspec.startswith('refs/'):
-                refspec += ':' + 'refs/remotes/%s/' % repo.namespace.name + refspec
+                refspec += ':' + 'refs/remotes/%s/' % repo.namespace.path + refspec
             else:
-                refspec += ':' + refspec.replace('refs/heads/', 'refs/remotes/%s/' % repo.namespace.name)
+                refspec += ':' + refspec.replace('refs/heads/', 'refs/remotes/%s/' % repo.namespace.path)
         url = self.clone_url(repo, opts)
         self.gitm('fetch', url, refspec, redirect=False)
 
@@ -410,14 +405,14 @@ class GitLab(GitSpindle):
            Fork a repo and clone it"""
         do_clone = bool(opts['<repo>'])
         repo = self.repository(opts)
-        if repo.namespace.name == self.my_login:
+        if repo.namespace.path == self.my_login:
             err("You cannot fork your own repos")
 
-        my_repo = self.find_repo(self.my_login, repo.name)
+        my_repo = self.find_repo(self.my_login, repo.path)
         if my_repo:
             err("Repository already exists")
 
-        opts['<repo>'] = repo.fork().name
+        opts['<repo>'] = repo.fork().path
 
         if do_clone:
             self.clone(opts)
@@ -445,7 +440,7 @@ class GitLab(GitSpindle):
 # Reporting an issue on %s/%s
 # Please describe the issue as clarly as possible. Lines starting with '#' will
 # be ignored, the first line will be used as title for the issue.
-#""" % (repo.namespace.name, repo.name)
+#""" % (repo.namespace.path, repo.path)
             title, body = self.edit_msg(body, 'ISSUE_EDITMSG')
             if not body:
                 err("Empty issue message")
@@ -475,11 +470,11 @@ class GitLab(GitSpindle):
             if not issues and not mergerequests:
                 continue
             if issues:
-                print(wrap("Issues for %s/%s" % (repo.namespace.name, repo.name), attr.bright))
+                print(wrap("Issues for %s/%s" % (repo.namespace.path, repo.path), attr.bright))
                 for issue in issues:
                     print("[%d] %s %s" % (issue.iid, issue.title, self.issue_url(issue)))
             if mergerequests:
-                print(wrap("Merge requests for %s/%s" % (repo.namespace.name, repo.name), attr.bright))
+                print(wrap("Merge requests for %s/%s" % (repo.namespace.path, repo.path), attr.bright))
                 for mr in mergerequests:
                     print("[%d] %s %s" % (mr.iid, mr.title, self.merge_url(mr)))
 
@@ -605,18 +600,18 @@ class GitLab(GitSpindle):
 
         dstb = parent.Branch(dst)
         if not dstb:
-            err("Branch %s does not exist in %s/%s" % (dst, parent.namespace.name, parent.name))
+            err("Branch %s does not exist in %s/%s" % (dst, parent.namespace.path, parent.path))
 
         # Do we have the dst locally?
         for remote in self.gitm('remote').stdout.strip().split("\n"):
             url = self.gitm('config', 'remote.%s.url' % remote).stdout.strip()
             if url in [parent.ssh_url_to_repo, parent.http_url_to_repo]:
                 if not parent.public and url != parent.ssh_url_to_repo:
-                    err("You should configure %s/%s to fetch via ssh, it is a private repo" % (parent.namespace.name, parent.name))
+                    err("You should configure %s/%s to fetch via ssh, it is a private repo" % (parent.namespace.path, parent.path))
                 self.gitm('fetch', remote, redirect=False)
                 break
         else:
-            err("You don't have %s/%s configured as a remote repository" % (parent.namespace.name, parent.name))
+            err("You don't have %s/%s configured as a remote repository" % (parent.namespace.path, parent.path))
 
         # How many commits?
         commits = try_decode(self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout).strip().split()
@@ -642,7 +637,7 @@ class GitLab(GitSpindle):
 #
 # Please enter a message to accompany your merge request. Lines starting
 # with '#' will be ignored, and an empty message aborts the request.
-#""" % (repo.namespace.name, src, parent.namespace.name, dst)
+#""" % (repo.namespace.path, src, parent.namespace.path, dst)
         body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
         body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
         title, body = self.edit_msg("%s\n\n%s" % (title,body), 'MERGE_REQUEST_EDIT_MSG')
@@ -663,11 +658,11 @@ class GitLab(GitSpindle):
            Mirror a repository, or all your repositories"""
         if opts['<repo>'] and opts['<repo>'] == '*':
             for repo in self.gl.Project():
-                opts['<repo>'] = '%s/%s' % (repo.namespace.name, name)
+                opts['<repo>'] = '%s/%s' % (repo.namespace.path, name)
                 self.mirror(opts)
             return
         repo = self.repository(opts)
-        git_dir = repo.name + '.git'
+        git_dir = repo.path + '.git'
         cur_dir = os.path.basename(os.path.abspath(os.getcwd()))
         if cur_dir != git_dir and not os.path.exists(git_dir):
             url = self.clone_url(repo, opts)
@@ -757,9 +752,9 @@ class GitLab(GitSpindle):
                 if opts['--no-forks']:
                     continue
                 color.append(attr.faint)
-            name = repo.name
-            if self.my_login != repo.namespace.name:
-                name = '%s/%s' % (repo.namespace.name, name)
+            name = repo.path
+            if self.my_login != repo.namespace.path:
+                name = '%s/%s' % (repo.namespace.path, name)
             desc = ' '.join((repo.description or '').splitlines())
             msg = wrap(fmt % (name, desc), *color)
             if not PY3:
@@ -773,8 +768,8 @@ class GitLab(GitSpindle):
            If this is a fork, set the remote 'upstream' to the parent"""
         repo = self.repository(opts)
         # Is this mine? No? Do I have a clone?
-        if repo.namespace.name != self.my_login:
-            my_repo = self.find_repo(self.my_login, repo.name)
+        if repo.namespace.path != self.my_login:
+            my_repo = self.find_repo(self.my_login, repo.path)
             if my_repo:
                 repo = my_repo
 
