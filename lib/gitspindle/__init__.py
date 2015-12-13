@@ -268,31 +268,39 @@ Options:
     def main(self):
         argv = self.prog.split()[1:] + sys.argv[1:]
         opts = docopt.docopt(self.usage, argv)
-        self.account = opts['--account'] or os.environ.get('GITSPINDLE_ACCOUNT', None)
         self.assume_yes = opts['--yes']
-        if self.account and not self.config('user') and not opts['config']:
-            err("%s does not yet know about %s. Use %s add-account to configure it" % (self.prog, self.account, self.prog))
-        hosts = self.git('config', '--file', self.config_file, '--get-regexp', '%s.*host' % self.spindle).stdout.strip()
+        hosts = self.git('config', '--file', self.config_file, '--get-regexp', '%s\..*\.host' % self.spindle).stdout.strip()
 
         for (account, host) in [x.split() for x in hosts.splitlines()]:
             account = account.split('.')
             if host.startswith(('http://', 'https://')):
                 host = urlparse.urlparse(host).hostname
-            if len(account) == 2: # User has set a host for the default account
-                self.hosts = [host]
-            if self.account == account[1]:
-                self.hosts = [host]
-                break
             self.accounts[host] = account[1]
             self.hosts.append(host)
 
+        # Which account do we use?
+        # 1: Explicitely configured
+        self.account = opts['--account'] or os.environ.get('GITSPINDLE_ACCOUNT', None)
+        if self.account and not self.config('user') and not opts['config']:
+            err("%s does not yet know about %s. Use %s add-account to configure it" % (self.prog, self.account, self.prog))
+
+        # 2: Determine from the current repo
         if not self.account and (self.in_repo or opts['<repo>']):
             host = self.repository(opts, True)
             if host in self.accounts:
                 self.account = self.accounts[host]
                 self.hosts = [host]
 
+        # 3: If we have no [gitXXX], but do have [gitXXX "url"], use it.
+        if not self.account and not self.config('user'):
+            accounts = self.git('config', '--file', self.config_file, '--get-regexp', '%s\..*\.user' % self.spindle).stdout.strip()
+            if accounts:
+                self.account = accounts.splitlines()[0].split('.')[1]
+
         os.environ['GITSPINDLE_ACCOUNT'] = self.account or self.spindle
+        host = self.config('host')
+        if host:
+            self.hosts = [urlparse.urlparse(host).hostname]
 
         for command, func in self.commands.items():
             if opts[command]:
