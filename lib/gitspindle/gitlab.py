@@ -102,12 +102,21 @@ class GitLab(GitSpindle):
         except glapi.GitlabGetError:
             pass
 
-    # There's no way to fetch a user by username. Abuse seaarch.
+    # There's no way to fetch a user by username. Abuse search.
     def find_user(self, username):
         try:
             for user in self.gl.User(search=username):
                 if user.username == username:
                     return user
+        except glapi.GitlabListError:
+            pass
+
+    # There's no way to fetch a group by name. Abuse search.
+    def find_group(self, name):
+        try:
+            for group in self.gl.Group(search=name):
+                if group.path == name:
+                    return group
         except glapi.GitlabListError:
             pass
 
@@ -363,18 +372,26 @@ class GitLab(GitSpindle):
 
     @command
     def create(self, opts):
-        """[--private|--internal] [--description=<description>]
+        """[--private|--internal] [--group=<group>] [--description=<description>]
            Create a repository on gitlab to push to"""
         root = self.gitm('rev-parse', '--show-toplevel').stdout.strip()
         name = os.path.basename(root)
-        if name in [x.path for x in self.gl.Project()]:
+        if (opts['--group'] or self.my_login, name) in [(x.namespace.path, x.path) for x in self.gl.Project()]:
             err("Repository already exists")
         visibility_level = 20 # public
         if opts['--internal']:
             visibility_level = 10
         elif opts['--private']:
             visibility_level = 0
-        glapi.Project(self.gl, {'name': name, 'description': opts['--description'] or "", 'visibility_level': visibility_level}).save()
+        kwargs = {'name': name, 'description': opts['--description'] or "", 'visibility_level': visibility_level}
+        if opts['--group']:
+            group = self.find_group(opts['--group'])
+            if not group:
+                err("Group %s could not be found" % opts['--group'])
+            kwargs['namespace_id'] = group.id
+        repo = glapi.Project(self.gl, kwargs)
+        repo.save()
+        opts['<repo>'] = self.clone_url(repo, opts)
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the GitLab repository as 'gitlab'")
             self.set_origin(opts, 'gitlab')

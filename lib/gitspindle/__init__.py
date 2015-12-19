@@ -374,20 +374,29 @@ Options:
 
     @hidden_command
     def test_cleanup(self, opts):
-        """[--keys] [--repos] [--gists]
+        """[--keys] [--repos] [--gists] [--namespace=<namespace>]
         Delete all keys and repos of an account, used in tests"""
         if not self.my_login.startswith('git-spindle-test-'):
             raise RuntimeError("Can only clean up test accounts")
+
+        namespace =  opts['--namespace'] or self.my_login
 
         if self.api.__name__ == 'github3':
             if opts['--keys']:
                 for key in self.gh.iter_keys():
                     key.delete()
             if opts['--repos']:
-                for repo in self.gh.iter_repos():
-                    if repo.owner.login == self.my_login:
+                if namespace != self.my_login:
+                    for repo in self.gh.organization(namespace).iter_repos():
+                        print repo
                         if not repo.delete():
                             raise RuntimeError("Deleting repository failed")
+                else:
+                    for repo in self.gh.iter_repos():
+                        if repo.owner.login == namespace:
+                            print repo
+                            if not repo.delete():
+                                raise RuntimeError("Deleting repository failed")
             if opts['--gists']:
                 for gist in self.gh.iter_gists():
                     gist.delete()
@@ -397,8 +406,12 @@ Options:
                 for key in self.me.keys():
                     key.delete()
             if opts['--repos']:
-                for repo in self.me.repositories():
-                    repo.delete()
+                if namespace != self.my_login:
+                    for repo in self.bb.team(namespace).repositories():
+                        repo.delete()
+                else:
+                    for repo in self.me.repositories():
+                        repo.delete()
             if opts['--gists']:
                 for snippet in self.me.snippets():
                     snippet.delete()
@@ -409,7 +422,8 @@ Options:
                     key.delete()
             if opts['--repos']:
                 for repo in self.gl.Project():
-                    repo.delete()
+                    if repo.namespace.path == namespace:
+                        repo.delete()
 
         else:
             raise UtterConfusion()

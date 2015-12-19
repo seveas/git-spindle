@@ -133,12 +133,15 @@ https://github.example.com`.
 Interacting with repositories
 -----------------------------
 
-.. describe:: git hub create [--private] [--description=<description>]
+.. describe:: git hub create [--private] [--org=<org>] [--description=<description>]
 
 Create a (possibly private) repository on GitHub for your current repository. An
 optional description can be given too. After running this command, a repository
 will be created on GitHub and your local repository will have GitHub as remote
 "origin", so :command:`git push origin master` will work.
+
+By default the repository is created under your account, but you can specify an
+organization to create the repository for.
 
 .. describe:: git hub set-origin [--ssh|--http|--git]
 

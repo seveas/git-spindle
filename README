@@ -57,7 +57,7 @@ List collaborators of a repository:
 Configure git-spindle, similar to git-config:
   git hub config [--unset] <key> [<value>]
 Create a repository on github to push to:
-  git hub create [--private] [--description=<description>]
+  git hub create [--private] [--org=<org>] [--description=<description>]
 Create a personal access token that can be used for git operations:
   git hub create-token [--store]
 Lists all keys for a repo:
@@ -148,7 +148,7 @@ Clone a repository by name:
 Configure git-spindle, similar to git-config:
   git lab config [--unset] <key> [<value>]
 Create a repository on gitlab to push to:
-  git lab create [--private|--internal] [--description=<description>]
+  git lab create [--private|--internal] [--group=<group>] [--description=<description>]
 Fetch refs from a user's fork:
   git lab fetch [--ssh|--http] <user> [<refspec>]
 Fork a repo and clone it:
@@ -207,7 +207,7 @@ Clone a repository by name:
 Configure git-spindle, similar to git-config:
   git bb config [--unset] <key> [<value>]
 Create a repository on bitbucket to push to:
-  git bb create [--private] [--description=<description>]
+  git bb create [--private] [--team=<team>] [--description=<description>]
 Lists all keys for a repo:
   git bb deploy-keys [<repo>]
 Fetch refs from a user's fork:

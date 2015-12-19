@@ -1,6 +1,7 @@
 [testsuite "github-test-1"]
 	user = git-spindle-test-1
 	password = Password!
+	org = git-spingle-test-org
 [testsuite "github-test-2"]
 	user = git-spindle-test-2
 	password = Password!
@@ -10,6 +11,7 @@
 [testsuite "gitlab-test-1"]
 	user = git-spindle-test-1
 	password = Password!
+	group = git-spindle-test-group
 [testsuite "gitlab-test-2"]
 	user = git-spindle-test-2
 	password = Password!
@@ -23,6 +25,7 @@
 [testsuite "bitbucket-test-1"]
 	user = git-spindle-test-1
 	password = Password!
+	team = git-spindle-test-team
 [testsuite "bitbucket-test-2"]
 	user = git-spindle-test-2
 	password = Password!

@@ -25,6 +25,9 @@ class Bitbucket(object):
     def user(self, username):
         return User(self, username=username)
 
+    def team(self, username):
+        return Team(self, username=username)
+
     def repository(self, owner, slug):
         if isinstance(owner, BBobject):
             owner = owner.username
@@ -138,6 +141,9 @@ class User(BBobject):
     def emails(self):
         url = uritemplate.expand('https://bitbucket.org/api/1.0/users/{username}/emails', username=self.username)
         return self.get(url)
+
+class Team(User):
+    uri = 'https://bitbucket.org/api/2.0/teams/{username}'
 
 def ssh_fix(url):
     if not url.startswith('ssh://'):

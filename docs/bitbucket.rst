@@ -67,12 +67,15 @@ is hardcoded to be the current account.
 Interacting with repositories
 -----------------------------
 
-.. describe:: git bb create [--private] [--description=<description>]
+.. describe:: git bb create [--private] [--team=<team>] [--description=<description>]
 
 Create a (possibly private) repository on BitBucket for your current repository. An
 optional description can be given too. After running this command, a repository
 will be created on BitBucket and your local repository will have BitBucket as remote
 "origin", so :command:`git push origin master` will work.
+
+By default the repository is created under your account, but you can specify a
+team to create the repository for.
 
 .. describe:: git bb set-origin [--ssh|--http]
 

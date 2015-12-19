@@ -530,13 +530,21 @@ class GitHub(GitSpindle):
 
     @command
     def create(self, opts):
-        """[--private] [--description=<description>]
+        """[--private] [--org=<org>] [--description=<description>]
            Create a repository on github to push to"""
         root = self.gitm('rev-parse', '--show-toplevel').stdout.strip()
         name = os.path.basename(root)
-        if name in [x.name for x in self.gh.iter_repos()]:
+        if opts['--org']:
+            dest = self.gh.organization(opts['--org'])
+            ns = opts['--org']
+        else:
+            dest = self.gh
+            ns = self.my_login
+
+        if name in [x.name for x in dest.iter_repos() if x.owner.login == ns]:
             err("Repository already exists")
-        self.gh.create_repo(name=name, description=opts['--description'] or "", private=opts['--private'])
+        dest.create_repo(name=name, description=opts['--description'] or "", private=opts['--private'])
+
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the GitHub repository as 'github'")
             self.set_origin(opts, 'github')
@@ -1249,10 +1257,10 @@ class GitHub(GitSpindle):
         """[--no-forks] [<user>]
            List all repos of a user, by default yours"""
         if opts['<user>']:
-            repos = list(self.gh.iter_user_repos(opts['<user>'][0], type='all'))
+            repos = list(self.gh.iter_user_repos(opts['<user>'][0]))
         else:
             repos = list(self.gh.iter_repos(type='all'))
-            opts['<user>'] = [self.gh.user().login]
+            opts['<user>'] = [self.my_login]
         if not repos:
             return
         maxlen = max([len(x.name) for x in repos])

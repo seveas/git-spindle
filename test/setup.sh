@@ -90,6 +90,25 @@ spindle_remote() {
     echo $(spindle_host $1) | sed -e 's/\..*//'
 }
 
+spindle_namespace() {
+    suite=$1
+    case $suite in
+        github*)
+            echo $(git config -f "$HOME/.gitspindle" testsuite.$suite.org)
+            ;;
+        gitlab*)
+            echo $(git config -f "$HOME/.gitspindle" testsuite.$suite.group)
+            ;;
+        gitbb*)
+            suite=bitbucket-${suite#gitbb-}
+            echo $(git config -f "$HOME/.gitspindle" testsuite.$suite.team)
+            ;;
+        bitbucket*)
+            echo $(git config -f "$HOME/.gitspindle" testsuite.$suite.team)
+            ;;
+    esac
+}
+
 username() {(
     export DEBUG=1
     $1 run-shell -c 'print(self.my_login)'

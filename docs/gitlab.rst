@@ -95,12 +95,15 @@ https://gitlab.example.com`.
 Interacting with repositories
 -----------------------------
 
-.. describe:: git lab create [--private|--internal] [--description=<description>]
+.. describe:: git lab create [--private|--internal] [--group=<group>] [--description=<description>]
 
 Create a (possibly private/internal) repository on GitLab for your current
 repository. An optional description can be given too. After running this
 command, a repository will be created on GitLab and your local repository will
 have GitLab as remote "origin", so :command:`git push origin master` will work.
+
+By default the repository is created under your account, but you can specify a
+group to create the repository for.
 
 .. describe:: git lab set-origin [--ssh|--http]
 

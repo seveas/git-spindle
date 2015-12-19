@@ -218,18 +218,21 @@ class BitBucket(GitSpindle):
 
     @command
     def create(self, opts):
-        """[--private] [--description=<description>]
+        """[--private] [--team=<team>] [--description=<description>]
            Create a repository on bitbucket to push to"""
         root = self.gitm('rev-parse', '--show-toplevel').stdout.strip()
         name = os.path.basename(root)
+        if opts['--team']:
+            dest = self.bb.team(opts['--team'])
+        else:
+            dest = self.me
         try:
-            self.me.repository(name)
+            dest.repository(name)
             err("Repository already exists")
         except bbapi.BitBucketError:
             pass
 
-        self.me.create_repository(slug=name, description=opts['--description'], is_private=opts['--private'],
-                                  has_issues=True, has_wiki=True)
+        dest.create_repository(slug=name, description=opts['--description'], is_private=opts['--private'], has_issues=True, has_wiki=True)
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the BitBucket repository as 'bitbucket'")
             self.set_origin(opts, 'bitbucket')
@@ -581,7 +584,11 @@ class BitBucket(GitSpindle):
     def repos(self, opts):
         """[--no-forks] [<user>]
            List all repos of a user, by default yours"""
-        repos = self.bb.user(opts['<user>'] or self.my_login).repositories()
+        try:
+            repos = self.bb.user(opts['<user>'] or self.my_login).repositories()
+        except bbapi.BitBucketError:
+            if 'is a team account' in str(sys.exc_info()[1]):
+                repos = self.bb.team(opts['<user>']).repositories()
         if not repos:
             return
         maxlen = max([len(x.name) for x in repos])
