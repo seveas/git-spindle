@@ -501,10 +501,11 @@ class GitHub(GitSpindle):
                 break
 
     @command
-    def clone(self, opts):
+    def clone(self, opts, repo=None):
         """[--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
-        repo = self.repository(opts)
+        if not repo:
+            repo = self.repository(opts)
         url = self.clone_url(repo, opts)
         args = opts['extra-opts']
         args.append(url)
@@ -516,7 +517,7 @@ class GitHub(GitSpindle):
         self.gitm('clone', *args, redirect=False).returncode
         if repo.fork:
             os.chdir(dir)
-            self.set_origin(opts)
+            self.set_origin(opts, repo=repo)
 
     @command
     def collaborators(self, opts):
@@ -543,13 +544,13 @@ class GitHub(GitSpindle):
 
         if name in [x.name for x in dest.iter_repos() if x.owner.login == ns]:
             err("Repository already exists")
-        dest.create_repo(name=name, description=opts['--description'] or "", private=opts['--private'])
+        repo = dest.create_repo(name=name, description=opts['--description'] or "", private=opts['--private'])
 
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the GitHub repository as 'github'")
-            self.set_origin(opts, 'github')
+            self.set_origin(opts, repo=repo, remote='github')
         else:
-            self.set_origin(opts)
+            self.set_origin(opts, repo=repo)
 
     @command
     def create_token(self, opts):
@@ -654,15 +655,10 @@ class GitHub(GitSpindle):
                 err("Repository already exists")
 
         my_clone = repo.create_fork()
-        if isinstance(repo, github3.gists.Gist):
-            opts['<repo>'] = 'gist/%s' % my_clone.name
-        else:
-            opts['<repo>'] = my_clone.name
-
         if do_clone:
-            self.clone(opts)
+            self.clone(opts, repo=my_clone)
         else:
-            self.set_origin(opts)
+            self.set_origin(opts, repo=my_clone)
 
     @command
     @wants_parent
@@ -1316,16 +1312,17 @@ class GitHub(GitSpindle):
             os.chmod(goblet_dir, 0o777)
 
     @command
-    def set_origin(self, opts, remote='origin'):
+    def set_origin(self, opts, repo=None, remote='origin'):
         """[--ssh|--http|--git]
            Set the remote 'origin' to github.
            If this is a fork, set the remote 'upstream' to the parent"""
-        repo = self.repository(opts)
-        # Is this mine? No? Do I have a clone?
-        if repo.owner.login != self.my_login:
-            my_repo = self.gh.repository(self.me, repo.name)
-            if my_repo:
-                repo = my_repo
+        if not repo:
+            repo = self.repository(opts)
+            # Is this mine? No? Do I have a clone?
+            if repo.owner.login != self.my_login:
+                my_repo = self.gh.repository(self.me, repo.name)
+                if my_repo:
+                    repo = my_repo
 
         url = self.clone_url(repo, opts)
         if self.git('config', 'remote.%s.url' % remote).stdout.strip() != url:

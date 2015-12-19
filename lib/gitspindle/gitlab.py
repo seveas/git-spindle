@@ -351,10 +351,11 @@ class GitLab(GitSpindle):
                 sys.stderr.write("No such file: %s\n" % file)
 
     @command
-    def clone(self, opts):
+    def clone(self, opts, repo=None):
         """[--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
-        repo = self.repository(opts)
+        if not repo:
+            repo = self.repository(opts)
         url = self.clone_url(repo, opts)
 
         args = opts['extra-opts']
@@ -368,7 +369,7 @@ class GitLab(GitSpindle):
         self.gitm('config', 'remote.origin.gitlab-id', repo.id, cwd=dir)
         if hasattr(repo, 'forked_from_project'):
             os.chdir(dir)
-            self.set_origin(opts)
+            self.set_origin(opts, repo=repo)
 
     @command
     def create(self, opts):
@@ -391,12 +392,11 @@ class GitLab(GitSpindle):
             kwargs['namespace_id'] = group.id
         repo = glapi.Project(self.gl, kwargs)
         repo.save()
-        opts['<repo>'] = self.clone_url(repo, opts)
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the GitLab repository as 'gitlab'")
-            self.set_origin(opts, 'gitlab')
+            self.set_origin(opts, repo=repo, remote='gitlab')
         else:
-            self.set_origin(opts)
+            self.set_origin(opts, repo=repo)
 
     @command
     def fetch(self, opts):
@@ -429,12 +429,12 @@ class GitLab(GitSpindle):
         if my_repo:
             err("Repository already exists")
 
-        opts['<repo>'] = repo.fork().path
+        my_fork = repo.fork()
 
         if do_clone:
-            self.clone(opts)
+            self.clone(opts, repo=my_fork)
         else:
-            self.set_origin(opts)
+            self.set_origin(opts, repo=my_fork)
 
     @command
     def issue(self, opts):
@@ -779,16 +779,17 @@ class GitLab(GitSpindle):
             print(msg)
 
     @command
-    def set_origin(self, opts, remote='origin'):
+    def set_origin(self, opts, repo=None, remote='origin'):
         """[--ssh|--http]
            Set the remote 'origin' to gitlab.
            If this is a fork, set the remote 'upstream' to the parent"""
-        repo = self.repository(opts)
-        # Is this mine? No? Do I have a clone?
-        if repo.namespace.path != self.my_login:
-            my_repo = self.find_repo(self.my_login, repo.path)
-            if my_repo:
-                repo = my_repo
+        if not repo:
+            repo = self.repository(opts)
+            # Is this mine? No? Do I have a clone?
+            if repo.namespace.path != self.my_login:
+                my_repo = self.find_repo(self.my_login, repo.path)
+                if my_repo:
+                    repo = my_repo
 
         url = self.clone_url(repo, opts)
         if self.git('config', 'remote.%s.url' % remote).stdout.strip() != url:

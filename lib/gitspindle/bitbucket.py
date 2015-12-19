@@ -197,10 +197,11 @@ class BitBucket(GitSpindle):
                 os.write(sys.stdout.fileno(), content._data.encode('utf-8'))
 
     @command
-    def clone(self, opts):
+    def clone(self, opts, repo=None):
         """[--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
-        repo = self.repository(opts)
+        if not repo:
+            repo = self.repository(opts)
         url = self.clone_url(repo, opts)
 
         args = opts['extra-opts']
@@ -213,7 +214,7 @@ class BitBucket(GitSpindle):
         self.gitm('clone', *args, redirect=False).returncode
         if repo.is_fork:
             os.chdir(dir)
-            self.set_origin(opts)
+            self.set_origin(opts, repo=repo)
             self.gitm('fetch', 'upstream', redirect=False)
 
     @command
@@ -232,12 +233,12 @@ class BitBucket(GitSpindle):
         except bbapi.BitBucketError:
             pass
 
-        dest.create_repository(slug=name, description=opts['--description'], is_private=opts['--private'], has_issues=True, has_wiki=True)
+        repo = dest.create_repository(slug=name, description=opts['--description'], is_private=opts['--private'], has_issues=True, has_wiki=True)
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the BitBucket repository as 'bitbucket'")
-            self.set_origin(opts, 'bitbucket')
+            self.set_origin(opts, repo=repo, remote='bitbucket')
         else:
-            self.set_origin(opts)
+            self.set_origin(opts, repo=repo)
 
     @command
     def deploy_keys(self, opts):
@@ -277,12 +278,12 @@ class BitBucket(GitSpindle):
         except bbapi.BitBucketError:
             pass
 
-        opts['<repo>'] = repo.fork().name
+        my_fork = repo.fork()
 
         if do_clone:
-            self.clone(opts)
+            self.clone(opts, repo=my_fork)
         else:
-            self.set_origin(opts)
+            self.set_origin(opts, repo=my_fork)
 
     @command
     @wants_parent
@@ -604,17 +605,18 @@ class BitBucket(GitSpindle):
             print(wrap(fmt % (repo.name, '(%s)' % repo.scm, repo.description), *color))
 
     @command
-    def set_origin(self, opts, remote='origin'):
+    def set_origin(self, opts, repo=None, remote='origin'):
         """[--ssh|--http]
            Set the remote 'origin' to github.
            If this is a fork, set the remote 'upstream' to the parent"""
-        repo = self.repository(opts)
-        # Is this mine? No? Do I have a clone?
-        if repo.owner['username'] != self.my_login:
-            try:
-                repo = self.me.repository(repo.slug)
-            except bbapi.BitBucketError:
-                pass
+        if not repo:
+            repo = self.repository(opts)
+            # Is this mine? No? Do I have a clone?
+            if repo.owner['username'] != self.my_login:
+                try:
+                    repo = self.me.repository(repo.slug)
+                except bbapi.BitBucketError:
+                    pass
 
         url = self.clone_url(repo, opts)
         if self.git('config', 'remote.%s.url' % remote).stdout.strip() != url:

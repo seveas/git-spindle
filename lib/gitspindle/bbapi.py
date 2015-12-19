@@ -111,6 +111,7 @@ class User(BBobject):
         data = {'owner': self.username, 'slug': slug, 'description': description, 'is_private': is_private,
                 'scm': 'git', 'has_issues': has_issues, 'has_wiki': has_wiki}
         repo = self.post(uritemplate.expand(Repository.uri[1], slug=slug, owner=self.username), data=json.dumps(data), headers={'content-type': 'application/json'})
+        repo['is_fork'] = False
         return Repository(self.bb, mode=None, **repo)
 
     def create_key(self, key, label):
