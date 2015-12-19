@@ -187,7 +187,7 @@ Display GitLab user info:
   git lab whois <user>...
 
 Add an account to the configuration:
-  git bb add-account [--host=<host>] <alias>
+  git bb add-account <alias>
 Add a deploy key:
   git bb add-deploy-key <key>...
 Add privileges for a user to this repo:

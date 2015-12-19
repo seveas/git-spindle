@@ -68,6 +68,7 @@ class GitSpindle(object):
         self.accounts = {}
         self.my_login = {}
         self.use_credential_helper = self.git('config', 'credential.helper').stdout.strip() not in ('', 'cache')
+
         self.usage = """%s - %s integration for git
 A full manual can be found on http://seveas.github.com/git-spindle/
 
@@ -81,6 +82,8 @@ Usage:\n""" % (self.prog, self.what)
             name = name.replace('_', '-')
             self.commands[name] = fnc
             doc = [line.strip() for line in fnc.__doc__.splitlines()]
+            if self.__class__.__name__ == 'BitBucket' and name == 'add-account':
+                doc[0] = doc[0].replace('[--host=<host>] ', '')
             if doc[0]:
                 doc[0] = ' ' + doc[0]
             self.usage += '%s:\n  %s %s %s%s\n' % (doc[1], self.prog, '[options]', name, doc[0])
@@ -325,7 +328,7 @@ Options:
         """[--host=<host>] <alias>
            Add an account to the configuration"""
         self.account = opts['<alias>']
-        if opts['--host']:
+        if opts.get('--host', None):
             self.config('host', opts['--host'])
         self.login()
 
