@@ -53,18 +53,6 @@ EOF
     test_cmp expected actual
 "
 
-test_expect_success lab_local "Create a repo with a GitLab local install set as default" "
-    (export DEBUG=1; git_lab_local test-cleanup --repos) &&
-    host=\$(git_lab_local config host) &&
-    user=\$(git_lab_local config user) &&
-    token=\$(git_lab_local config token) &&
-    echo \"\$host \$user \$token\" &&
-    git_lab config host \$host &&
-    git_lab config user \$user &&
-    git_lab config token \$token &&
-    (cd whelk && git_lab create)
-"
-
 for spindle in hub lab bb; do
     test_expect_success $spindle "Create repo with description ($spindle)" "
         ( cd hacks &&
@@ -76,9 +64,11 @@ for spindle in hub lab bb; do
 done;
 
 export DEBUG=1
-test $(git hub run-shell -c 'print self.me.plan.name') != 'free' && test_set_prereq hub-nonfree
+if test_have_prereq hub; then
+    test $(git_hub_1 run-shell -c 'print self.me.plan.name') != 'free' && test_set_prereq hub-nonfree
+fi
 
-test_expect_success hub,hub-nonfree "Create private repo ($hub)" "
+test_expect_success hub,hub-nonfree "Create private repo (hub)" "
     ( cd python-zonediff &&
     echo True > expected &&
     git_hub_1 create --private &&
@@ -86,7 +76,7 @@ test_expect_success hub,hub-nonfree "Create private repo ($hub)" "
     test_cmp expected actual )
 "
 
-test_expect_success lab "Create private repo ($lab)" "
+test_expect_success lab "Create private repo (lab)" "
     ( cd python-zonediff &&
     echo True > expected &&
     git_lab_1 create --private &&
@@ -94,7 +84,7 @@ test_expect_success lab "Create private repo ($lab)" "
     test_cmp expected actual )
 "
 
-test_expect_success lab "Create internal repo ($lab)" "
+test_expect_success lab "Create internal repo (lab)" "
     ( cd python-snmpclient &&
     echo True > expected &&
     git_lab_1 create --internal &&
@@ -102,7 +92,7 @@ test_expect_success lab "Create internal repo ($lab)" "
     test_cmp expected actual )
 "
 
-test_expect_success bb "Create private repo ($bb)" "
+test_expect_success bb "Create private repo (bb)" "
     ( cd python-zonediff &&
     echo True > expected &&
     git_bb_1 create --private &&
@@ -134,6 +124,19 @@ test_expect_success bb "Create repo for a team (bb)" "
     git_bb_1 repos \$team > actual &&
     echo 'python-zonediff (git) ' > expected &&
     test_cmp expected actual )
+"
+
+# THIS MUST REMAIN THE LAST TEST
+test_expect_success lab_local "Create a repo with a GitLab local install set as default" "
+    (export DEBUG=1; git_lab_local test-cleanup --repos) &&
+    host=\$(git_lab_local config host) &&
+    user=\$(git_lab_local config user) &&
+    token=\$(git_lab_local config token) &&
+    echo \"\$host \$user \$token\" &&
+    git_lab config host \$host &&
+    git_lab config user \$user &&
+    git_lab config token \$token &&
+    (cd whelk && git_lab create)
 "
 
 test_done
