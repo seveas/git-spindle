@@ -98,7 +98,11 @@ class GitLab(GitSpindle):
 
     def find_repo(self, user, name):
         try:
-            return self.gl.Project('%s%%2F%s' % (user, name))
+            project = self.gl.Project('%s%%2F%s' % (user, name))
+            # Yes, we need to check the name. Requesting foo.broken returns the foo project.
+            if project.path != name:
+                return None
+            return project
         except glapi.GitlabGetError:
             pass
 
