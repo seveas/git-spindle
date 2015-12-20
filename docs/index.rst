@@ -12,16 +12,24 @@ For example, to fork and clone a repository on GitHub, one can now simply use::
 
 Install info
 ------------
-To install the latest released version::
+To install the latest released version on Ubuntu::
+
+    sudo add-apt-repository ppa:dennis/devtools
+    sudo apt-get install git-spindle
+
+To install the latest released version on Windows:
+
+* Install git from http://git-for-windows.github.io/
+* Install python 3.5 or newer from https://www.python.org/downloads/
+* Run the following 2 commands in a command prompt::
+
+    py -mensurepip
+    py -mpip install git-spindle
+
+To install the latest released version on other systems, assuming python and
+pip are installed::
 
     pip install git-spindle
-
-If you use windows, you'll want to install git and pip via msys2. Download
-`msys2 <http://msys2.github.io/>`_ and use pacman to install pip and git::
-
-    pacman -Syu
-    pacman -S git
-    pacman -S mingw-w64-i686-python2-pip
 
 Contents
 ========
