@@ -70,7 +70,10 @@ def branch(self, name):
     old_accept = self._session.headers.pop('Accept')
     self._session.headers['Accept'] = 'application/vnd.github.loki-preview+json'
     try:
-        branch = github3.repos.branch.Branch(self._json(self._get(url), 200))
+        data = self._json(self._get(url), 200)
+        if not data:
+            return
+        branch = github3.repos.branch.Branch(data)
         branch._session = self._session
         return branch
     finally:
