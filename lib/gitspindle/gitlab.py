@@ -570,7 +570,7 @@ class GitLab(GitSpindle):
         repo = self.repository(opts)
         members = repo.Member()
         members.sort(key=lambda member: (-member.access_level, member.username))
-        maxlen = max([len(member.username) for member in members])
+        maxlen = members and max([len(member.username) for member in members]) or 0
         fmt = "%%s %%-%ds (%%s)" % maxlen
         for member in members:
             print(fmt % (wrap("%-9s" % self.access_levels_r[member.access_level], attr.faint), member.username, member.name))

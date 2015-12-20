@@ -23,8 +23,7 @@ test_expect_success lab "Managing GitLab access control" "
     rm -rf whelk &&
     git_lab_1 clone whelk &&
     (cd whelk &&
-    echo \"master    $(username git_lab_1)\" > expected &&
-    echo \"developer $(username git_lab_2)\" >> expected &&
+    echo \"developer $(username git_lab_2)\" > expected &&
     echo \"reporter  $(username git_lab_3)\" >> expected &&
     git_lab_1 add-member $(username git_lab_2) &&
     git_lab_1 add-member --access-level=reporter $(username git_lab_3) &&
@@ -33,7 +32,7 @@ test_expect_success lab "Managing GitLab access control" "
     test_cmp expected actual &&
     git_lab_1 remove-member $(username git_lab_2) &&
     git_lab_1 remove-member $(username git_lab_3) &&
-    echo \"master    $(username git_lab_1)\" > expected &&
+    : > expected &&
     git_lab_1 members > actual &&
     sed -e 's/ (.*//' -i actual &&
     test_cmp expected actual)
