@@ -206,7 +206,7 @@ refs to fetch, and if you don't give a refspec, it will fetch all branches.
 
 Browse a repository (or its parent) on GitHub. By default the repository's
 homepage is opened, but you can specify a different section, such as issues,
-pulls, wiki, branches, releases, contributors, graphs, releases or settings.
+pulls, wiki, branches, releases, contributors, graphs or settings.
 
 .. describe:: git hub mirror [--ssh|--http|--git] [--goblet] [<repo>]
 
