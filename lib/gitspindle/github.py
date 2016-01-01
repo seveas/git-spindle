@@ -216,8 +216,7 @@ class GitHub(GitSpindle):
             if fork.owner.login in opts['<user>']:
                 url = self.clone_url(fork, opts)
                 name = opts['<name>'] or fork.owner.login
-                self.gitm('remote', 'add', name, url)
-                self.gitm('fetch', name, redirect=False)
+                self.gitm('remote', 'add', '-f', name, url, redirect=False)
 
     @command
     def add_public_keys(self, opts):

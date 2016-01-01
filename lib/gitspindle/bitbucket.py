@@ -115,8 +115,7 @@ class BitBucket(GitSpindle):
             if fork.owner['username'] in opts['<user>']:
                 name = opts['<name>'] or fork.owner['username']
                 url = self.clone_url(fork, opts)
-                self.gitm('remote', 'add', name, url)
-                self.gitm('fetch', name, redirect=False)
+                self.gitm('remote', 'add', '-f', name, url, redirect=False)
 
     @command
     @wants_parent
