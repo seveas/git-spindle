@@ -1189,6 +1189,50 @@ class GitHub(GitSpindle):
             err("No readme found")
 
     @command
+    def release(self, opts):
+        """[--draft] [--prerelease] <tag> [<releasename>]
+           Create a release"""
+        repo = self.repository(opts)
+        tag = opts['<tag>']
+        if tag.startswith('refs/tags/'):
+            tag = tag[10:]
+        name = opts['<releasename>'] or tag
+        ref = 'refs/tags/' + tag
+        ret = self.git('rev-parse', '--quiet', '--verify', ref + '^0')
+        if not ret:
+            err("Tag %s does not exist yet" % tag)
+        sha = ret.stdout.strip()
+        if not self.git('ls-remote', repo.remote, ref).stdout.strip():
+            if self.question("Tag %s does not exist in your GitHub repo, shall I push?" % tag):
+                self.gitm('push', repo.remote, '%s:%s' % (ref, ref), redirect=False)
+        body = ''
+        if self.git('cat-file', '-t', ref).stdout.strip() == 'tag':
+            body = self.git('--no-pager', 'log', '-1', '--format=%B', ref).stdout
+        body += """
+# Creating release %s based on tag %s
+#
+# Please enter a text to accompany your release. Lines starting with '#'
+# will be ignored
+#""" % (name, tag)
+        body = self.edit_msg(body, 'RELEASE_TEXT', split_title=False)
+        release = repo.create_release(tag, target_commitish=sha, name=name, body=body, draft=opts['--draft'], prerelease=opts['--prerelease'])
+        print("Release '%s' created %s" % (release.name, release.html_url))
+
+    @command
+    def releases(self, opts):
+        """[<repo>]
+           List all releases"""
+        repo = self.repository(opts)
+        for release in repo.iter_releases():
+            status = []
+            if release.draft:
+                status.append('draft')
+            if release.prerelease:
+                status.append('prerelease')
+            status = status and ' ' + wrap(','.join(status), attr.faint) or ''
+            print("%s (%s)%s %s" % (release.name, release.tag_name, status, release.html_url))
+
+    @command
     def remove_collaborator(self, opts):
         """<user>...
            Remove a user as collaborator """

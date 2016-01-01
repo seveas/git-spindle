@@ -109,6 +109,10 @@ Opens a pull request to merge your branch to an upstream branch:
   git hub pull-request [--issue=<issue>] [--yes] [<yours:theirs>]
 Get the README for a repository:
   git hub readme [<repo>]
+Create a release:
+  git hub release [--draft] [--prerelease] <tag> [<releasename>]
+List all releases:
+  git hub releases [<repo>]
 Remove a user as collaborator:
   git hub remove-collaborator <user>...
 Remove deploy key by id:

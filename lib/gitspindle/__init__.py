@@ -226,7 +226,7 @@ Options:
             return default
         return answer.lower() == 'y'
 
-    def edit_msg(self, msg, filename):
+    def edit_msg(self, msg, filename, split_title=True):
         if self.git('rev-parse'):
             temp_file = os.path.join(self.gitm('rev-parse', '--git-dir').stdout.strip(), filename)
         else:
@@ -237,11 +237,14 @@ Options:
         editor = shlex.split(self.gitm('var', 'GIT_EDITOR').stdout) + [temp_file]
         self.shell[editor[0]](*editor[1:], redirect=False)
         with open(temp_file) as fd:
-            title, body = (try_decode(fd.read()) +'\n').split('\n', 1)
+            msg = try_decode(fd.read())
         os.unlink(temp_file)
+        msg = re.compile('^#.*(:?\n|$)', re.MULTILINE).sub('', msg).strip()
+        if not split_title:
+            return msg
+        title, body = (msg + '\n').split('\n', 1)
         title = title.strip()
         body = body.strip()
-        body = re.compile('^#.*', re.MULTILINE).sub('', body).strip()
         return title, body
 
     def backup_message(self, title, body, filename):

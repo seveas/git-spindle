@@ -221,6 +221,14 @@ information from GitHub.
 
 Administering repositories
 --------------------------
+.. describe:: git hub release [--draft] [--prerelease] <tag> [<releasename>]
+
+Create a release on GitHub based on an existing tag.
+
+.. describe:: git hub releases [<repo>]
+
+List all releases for this repository.
+
 .. describe:: git hub collaborators [<repo>]
 
 List all people with push access to this repository.
