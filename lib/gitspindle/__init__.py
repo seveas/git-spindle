@@ -394,13 +394,13 @@ Options:
             if opts['--repos']:
                 if namespace != self.my_login:
                     for repo in self.gh.organization(namespace).iter_repos():
-                        print repo
+                        print(repo)
                         if not repo.delete():
                             raise RuntimeError("Deleting repository failed")
                 else:
                     for repo in self.gh.iter_repos():
                         if repo.owner.login == namespace:
-                            print repo
+                            print(repo)
                             if not repo.delete():
                                 raise RuntimeError("Deleting repository failed")
             if opts['--gists']:
