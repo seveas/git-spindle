@@ -1480,7 +1480,7 @@ class GitHub(GitSpindle):
             else:
                 keys = user.iter_keys()
             for pkey in keys:
-                algo, key = pkey.key.split()
+                algo, key = pkey.key.split()[:2]
                 algo = algo[4:].upper()
                 if pkey.title:
                     print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
