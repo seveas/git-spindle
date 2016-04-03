@@ -567,7 +567,7 @@ class GitHub(GitSpindle):
 
         if name in [x.name for x in dest.repositories() if x.owner.login == ns]:
             err("Repository already exists")
-        repo = dest.create_repo(name=name, description=opts['--description'] or "", private=opts['--private'])
+        repo = dest.create_repository(name=name, description=opts['--description'] or "", private=opts['--private'])
 
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the GitHub repository as 'github'")
@@ -1291,7 +1291,7 @@ will be ignored""" % (name, tag)
            Remove deploy key by id"""
         repo = self.repository(opts)
         for key in opts['<key>']:
-            repo.delete_key(key)
+            repo.key(key).delete()
 
     @command
     def remove_hook(self, opts):
