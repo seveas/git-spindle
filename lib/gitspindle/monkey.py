@@ -62,55 +62,6 @@ def request(self, *args, **kwargs):
 GitHubSession.orig_request = GitHubSession.request
 GitHubSession.request = request
 
-# Add missing protect_branch / unprotect_branch methods
-import json
-from github3.decorators import requires_auth
-def branch(self, name):
-    url = self._build_url('branches', name, base_url=self._api)
-    old_accept = self._session.headers.pop('Accept')
-    self._session.headers['Accept'] = 'application/vnd.github.loki-preview+json'
-    try:
-        data = self._json(self._get(url), 200)
-        if not data:
-            return
-        branch = github3.repos.branch.Branch(data)
-        branch._session = self._session
-        return branch
-    finally:
-        self._session.headers['Accept'] = old_accept
-
-from github3.structs import GitHubIterator
-def iter_branches(self, number=-1, etag=None, protected=False):
-    url = self._build_url('branches', base_url=self._api)
-    headers = {'Accept': 'application/vnd.github.loki-preview+json'}
-    return GitHubIterator(int(number), url, github3.repos.branch.Branch, self, etag=etag, headers=headers, params={'protected': int(protected)})
-
-@requires_auth
-def protect(self, contexts=[], enforcement_level=None):
-    data = {'enabled': True}
-    if contexts or enforcement_level:
-        data['required_status_checks'] = {'contexts': contexts, 'enforcement_level': enforcement_level or 'everyone'}
-    old_accept = self._session.headers.pop('Accept')
-    self._session.headers['Accept'] = 'application/vnd.github.loki-preview+json'
-    try:
-        return self._patch(self.links['self'], data=json.dumps({'protection': data}))
-    finally:
-        self._session.headers['Accept'] = old_accept
-
-@requires_auth
-def unprotect(self):
-    old_accept = self._session.headers.pop('Accept')
-    self._session.headers['Accept'] = 'application/vnd.github.loki-preview'
-    try:
-        return self._patch(self.links['self'], data=json.dumps({'protection': {'enabled': False}}))
-    finally:
-        self._session.headers['Accept'] = old_accept
-
-github3.repos.repo.Repository.branch = branch
-github3.repos.repo.Repository.iter_branches = iter_branches
-github3.repos.branch.Branch.protect = protect
-github3.repos.branch.Branch.unprotect = unprotect
-
 # Monkeypatch docopt to support our git-clone-options-hack
 import docopt
 known_options = {
