@@ -271,6 +271,27 @@ Options:
         path = path.replace(root, '')
         return path
 
+    def set_tracking_branches(self, remote, upstream=None, triangular=False):
+        for branch in self.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
+            branch = branch.split(None, 2)[-1][11:]
+            if triangular and upstream:
+                pushremote = remote
+                pullremote = upstream
+            else:
+                pushremote = None
+                pullremote = remote
+            if pullremote and self.git('for-each-ref', 'refs/remotes/%s/%s' % (pullremote, branch)).stdout.strip():
+                current = self.git('config', 'branch.%s.remote' % branch).stdout.strip()
+                if current in [remote, upstream, '']:
+                    print("Configuring branch %s to track remote %s" % (branch, pullremote))
+                    self.gitm('config', 'branch.%s.remote' % branch, pullremote)
+                    self.gitm('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
+            if pushremote and self.git('for-each-ref', 'refs/remotes/%s/%s' % (pushremote, branch)).stdout.strip():
+                current = self.git('config', 'branch.%s.pushremote' % branch).stdout.strip()
+                if current in [remote, upstream, '']:
+                    print("Configuring branch %s to push to remote %s" % (branch, pushremote))
+                    self.gitm('config', 'branch.%s.pushremote' % branch, pushremote)
+
     def main(self):
         argv = self.prog.split()[1:] + sys.argv[1:]
         opts = docopt.docopt(self.usage, argv)

@@ -197,7 +197,7 @@ class BitBucket(GitSpindle):
 
     @command
     def clone(self, opts, repo=None):
-        """[--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
+        """[--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
         if not repo:
             repo = self.repository(opts)
@@ -264,7 +264,7 @@ class BitBucket(GitSpindle):
 
     @command
     def fork(self, opts):
-        """[--ssh|--http] [<repo>]
+        """[--ssh|--http] [--triangular] [<repo>]
            Fork a repo and clone it"""
         do_clone = bool(opts['<repo>'])
         repo = self.repository(opts)
@@ -605,7 +605,7 @@ class BitBucket(GitSpindle):
 
     @command
     def set_origin(self, opts, repo=None, remote='origin'):
-        """[--ssh|--http]
+        """[--ssh|--http] [--triangular]
            Set the remote 'origin' to github.
            If this is a fork, set the remote 'upstream' to the parent"""
         if not repo:
@@ -639,13 +639,7 @@ class BitBucket(GitSpindle):
         if remote != 'origin':
             return
 
-        for branch in self.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
-            branch = branch.split(None, 2)[-1][11:]
-            if self.git('for-each-ref', 'refs/remotes/origin/%s' % branch).stdout.strip():
-                if self.git('config', 'branch.%s.remote' % branch).returncode != 0:
-                    print("Marking %s as remote-tracking branch" % branch)
-                    self.gitm('config', 'branch.%s.remote' % branch, 'origin')
-                    self.gitm('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
+        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'])
 
     @command
     def snippet(self, opts):
