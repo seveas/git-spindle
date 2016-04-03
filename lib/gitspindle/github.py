@@ -149,7 +149,7 @@ class GitHub(GitSpindle):
                     if file.startswith(template + '.'):
                         contents = files[file]
         if contents:
-            contents = contents.name, self.gh._session.get(contents._json_data['download_url'], stream=True).text
+            contents = contents.name, self.gh._session.get(contents.download_url, stream=True).text
         return contents
 
     # Commands
@@ -623,8 +623,7 @@ class GitHub(GitSpindle):
            Lists all keys for a repo"""
         repo = self.repository(opts)
         for key in repo.keys():
-            ro = key._json_data['read_only'] and 'ro' or 'rw'
-            print("%s %s (id: %s, %s)" % (key.key, key.title or '', key.id, ro))
+            print("%s %s (id: %s)" % (key.key, key.title or '', key.id))
 
     @command
     def edit_hook(self, opts):
@@ -905,7 +904,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
             elif event.type == 'IssueCommentEvent':
                 print("%s commented on issue #%s%s" % (ts, event.payload['issue'].number, repo_))
                 if verbose:
-                    print("%s %s %s" % (tss, event.payload['issue'].title, event.payload['comment']._json_data['html_url']))
+                    print("%s %s %s" % (tss, event.payload['issue'].title, event.payload['comment'].html_url))
             elif event.type == 'IssuesEvent':
                 print("%s %s issue #%s%s" % (ts, event.payload['action'], event.payload['issue'].number, repo_))
                 if verbose:
@@ -1093,7 +1092,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
         """\nList active branch protections"""
         repo = self.repository(opts)
         for branch in repo.branches(protected=True):
-            data = branch._json_data['protection']
+            data = branch.protection
             msg = branch.name
             if data['required_status_checks']['contexts'] and data['required_status_checks']['enforcement_level'] != 'off':
                 msg += ' (%s must pass for %s)' % (','.join(data['required_status_checks']['contexts']), data['required_status_checks']['enforcement_level'])
@@ -1353,10 +1352,8 @@ will be ignored""" % (name, tag)
         if not repos:
             return
         maxlen = max([len(x.name) for x in repos])
-        # XXX github3.py PR 193
-        # maxstar = len(str(max([x.stargazers for x in repos])))
-        maxstar = len(str(max([x._json_data['stargazers_count'] for x in repos])))
-        maxfork = len(str(max([x.forks for x in repos])))
+        maxstar = len(str(max([x.stargazers_count for x in repos])))
+        maxfork = len(str(max([x.forks_count for x in repos])))
         maxwatch = len(str(max([x.watchers for x in repos])))
         # XXX github support request filed: watchers is actually stars
         #fmt = u"%%-%ds \u2605 %%-%ds \u25c9 %%-%ds \u2919 %%-%ds %%s" % (maxlen, maxstar, maxwatch, maxfork)
@@ -1372,7 +1369,7 @@ will be ignored""" % (name, tag)
             name = repo.name
             if opts['<user>'][0] != repo.owner.login:
                 name = '%s/%s' % (repo.owner.login, name)
-            msg = wrap(fmt % (name, repo._json_data['stargazers_count'], repo.forks, repo.description), *color)
+            msg = wrap(fmt % (name, repo.stargazers_count, repo.forks_count, repo.description), *color)
             if not PY3:
                 msg = msg.encode('utf-8')
             print(msg)
