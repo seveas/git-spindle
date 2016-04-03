@@ -1085,10 +1085,11 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
 
     @command
     def protect(self, opts):
-        """[--enforcement-level=<level>] [--contexts=<contexts>] <branch>
+        """[--enforcement=<level>] [--status-checks=<contexts>] <branch>
            Protect a branch against deletions, force-pushes and failed status checks"""
         repo = self.repository(opts)
-        repo.branch(opts['<branch>']).protect(enforcement_level=opts['--enforcement-level'], contexts=(opts['--contexts'] or '').split(','))
+        repo.branch(opts['<branch>']).protect(enforcement=opts['--enforcement'],
+                                              status_checks=(opts['--status-checks'] or '').split(','))
 
     @command
     def protected(self, opts):
