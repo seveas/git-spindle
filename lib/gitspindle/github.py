@@ -137,10 +137,10 @@ class GitHub(GitSpindle):
         template = template.lower()
         contents = None
         for dir in ('/', '/.github/'):
-            files = repo.contents(dir)
+            files = repo.directory_contents(dir)
             if not files or not hasattr(files, 'items'):
                 continue
-            files = dict([(x[0].lower(), x[1]) for x in files.items()])
+            files = dict([(k.lower(), v) for k, v in files])
 
             if template in files:
                 contents = files[template]
@@ -371,18 +371,12 @@ class GitHub(GitSpindle):
             else:
                 repo = self.repository(opts)
                 file = self.rel2root(file)
-            if '/' in file:
-                dir, file = file.rsplit('/', 1)
-            else:
-                dir = ''
-            content = repo.contents(path=dir, ref=ref or repo.default_branch)
-            if not content or file not in content:
+            content = repo.file_contents(file, ref=ref or repo.default_branch)
+            if not content:
                 err("No such file: %s" % arg)
-            if content[file].type != 'file':
+            if content.type != 'file':
                 err("Not a regular file: %s" % arg)
-            resp = self.gh._session.get(content[file]._json_data['download_url'], stream=True)
-            for chunk in resp.iter_content(4096):
-                os.write(sys.stdout.fileno(), chunk)
+            os.write(sys.stdout.fileno(), content.decoded)
 
     @command
     def check_pages(self, opts):
@@ -970,17 +964,15 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
             else:
                 repo = self.repository(opts)
                 file = self.rel2root(file)
-            content = repo.contents(path=file, ref=ref or repo.default_branch)
+            content = repo.directory_contents(file, ref=ref or repo.default_branch)
             if not content:
                 err("No such directory: %s" % arg)
-            if not isinstance(content, dict):
-                err("Not a directory: %s" % arg)
-            content = sorted(content.values(), key=lambda file: file.name)
+            content = sorted([v for k, v in content], key=lambda file: file.name)
             mt = max([len(file.type) for file in content])
             ms = max([len(str(file.size)) for file in content])
             fmt = "%%(type)-%ds %%(size)-%ds %%(sha).7s %%(path)s" % (mt, ms)
             for file in content:
-                print(fmt % file._json_data)
+                print(fmt % file.__dict__)
 
     @command
     def mirror(self, opts):
