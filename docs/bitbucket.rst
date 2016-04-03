@@ -77,20 +77,29 @@ will be created on BitBucket and your local repository will have BitBucket as re
 By default the repository is created under your account, but you can specify a
 team to create the repository for.
 
-.. describe:: git bb set-origin [--ssh|--http]
+.. describe:: git bb set-origin [--ssh|--http] [--triangular]
 
-Fix the configuration of your repository's remotes. Remote "origin" will be set
-to your BitBucket repository. If that repository is a fork, remote "upstream" will
+Fix the configuration of your repository's remotes. The remote "origin" will be
+set to your BitBucket repository. If "origin" is a fork, an "upstream" remote will
 be set to the repository you forked from.
 
-For origin, an SSH url is used. For upstream, set-origin defaults to adding an
-http url, but this can be overridden. For private repos SSH is used.
+All non-tracking branches with a matching counterpart in "origin" will be set to
+track "origin" (push and pull to it). Use :option:`--triangular` to set remotes
+in a triangular fashion where :command:`git pull` pulls from "upstream" and
+:command:`git push` pushes to "origin".
 
-.. describe:: git bb clone [--ssh|--http] [--parent] [git-clone-options] <repo> [<dir>]
+For "origin", an SSH url is used. For "upstream", set-origin defaults to adding
+a git url, but this can be overridden. For private repos, SSH is used.
 
-Clone a BitBucket repository by name (e.g. seveas/whelk) or URL. If it's a fork,
-the "upstream" origin will be set up too. Defaults to cloning from an http url,
-but this can be overridden. For private repos SSH is used.
+.. describe:: git bb clone [--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+
+Clone a BitBucket repository by name (e.g. seveas/whelk) or URL. The "origin"
+remote will be set and, like with set-origin, if "origin" is a fork the
+"upstream" remote will be set too. The option :option:`--triangular` can be used
+for a triangular setup.
+
+Defaults to cloning from a git url, but this can be overridden. For private
+repos, SSH is used.
 
 This command accepts all options git clone accepts and will forward those to
 :command:`git clone`.
@@ -107,11 +116,14 @@ Display the contents of a directory on BitBucket. Directory can start with
 repository names and refs. For example: `master:bin/git-bb`,
 `git-spindle:master:bin/git-bb` or `seveas/git-spindle:master:bin/git-bb`.
 
-.. describe:: git bb fork [--ssh|--http] [<repo>]
+.. describe:: git bb fork [--ssh|--http] [--triangular] [<repo>]
 
 Fork another person's git repository on BitBucket and clone that repository
-locally. Repo can be specified as a (git) url or simply username/repo. Like
-with set-origin, the "origin" and "upstream" remotes will be set up too.
+locally. The repository can be specified as a (git) url or simply username/repo.
+Like with set-origin, the "origin" and "upstream" remotes will be set up too.
+The option :option:`--triangular` can be used for a triangular setup.
+
+Defaults to cloning from a git url, but this can be overridden.
 
 Calling fork in a previously cloned-but-not-forked repository will create a
 fork of that repository and set up your remotes.

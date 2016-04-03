@@ -10,13 +10,29 @@ test_expect_success "Cloning repository" "
 "
 
 for spindle in lab hub bb; do
+    test_expect_success $spindle "Setting triangular origin to $spindle" "
+        (cd whelk &&
+        host=\$(spindle_host git_${spindle}_2) &&
+        ( git branch --unset-upstream master || true ) &&
+        git_${spindle}_2 set-origin --triangular &&
+        git remote -v &&
+        git config remote.origin.url | grep -q git@\$host &&
+        git config remote.upstream.url | grep -q \"https://\\(.*@\\)\\?\$host\" &&
+        git config branch.master.remote | grep -q \"upstream\" &&
+        git config branch.master.pushremote | grep -q \"origin\")
+    "
+done
+
+for spindle in lab hub bb; do
     test_expect_success $spindle "Setting origin to $spindle" "
         (cd whelk &&
         host=\$(spindle_host git_${spindle}_2) &&
+        ( git branch --unset-upstream master || true ) &&
         git_${spindle}_2 set-origin &&
         git remote -v &&
         git config remote.origin.url | grep -q git@\$host &&
-        git config remote.upstream.url | grep -q \"https://\\(.*@\\)\\?\$host\")
+        git config remote.upstream.url | grep -q \"https://\\(.*@\\)\\?\$host\" &&
+        git config branch.master.remote | grep -q \"origin\")
     "
 done
 
