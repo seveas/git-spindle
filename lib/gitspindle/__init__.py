@@ -539,16 +539,16 @@ Options:
 
         if self.api.__name__ == 'github3':
             if opts['--keys']:
-                for key in self.gh.iter_keys():
+                for key in self.gh.keys():
                     key.delete()
             if opts['--repos']:
                 if namespace != self.my_login:
-                    for repo in self.gh.organization(namespace).iter_repos():
+                    for repo in self.gh.organization(namespace).repositories():
                         print(repo)
                         if not repo.delete():
                             raise RuntimeError("Deleting repository failed")
                 else:
-                    for repo in self.gh.iter_repos():
+                    for repo in self.gh.repositories():
                         if repo.owner.login == namespace:
                             print(repo)
                             if not repo.delete():
@@ -560,14 +560,14 @@ Options:
                 tries = 120/5
                 clean = False
                 while tries and not clean:
-                    clean = namespace not in [x.owner.login for x in self.gh.iter_repos()]
+                    clean = namespace not in [x.owner.login for x in self.gh.repositories()]
                     if not clean:
                         tries -= 1
                         time.sleep(5)
                 if not clean:
                     raise RuntimeError("Deleting repositories failed, try again in some minutes or increase the wait timeout in test_cleanup")
             if opts['--gists']:
-                for gist in self.gh.iter_gists():
+                for gist in self.gh.gists():
                     gist.delete()
 
         elif self.api.__name__ == 'gitspindle.bbapi':
