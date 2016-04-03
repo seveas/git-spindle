@@ -84,7 +84,8 @@ class GitHub(GitSpindle):
             err("No user or token specified")
         self.gh.login(username=user, token=token)
         try:
-            self.me = self.gh.user()
+
+            self.me = self.gh.me()
             self.my_login = self.me.login
         except github3.GitHubError:
             # Token obsolete
@@ -720,7 +721,7 @@ class GitHub(GitSpindle):
     def gists(self, opts):
         """[<user>]
            Show all gists for a user"""
-        user = (opts['<user>'] or [self.gh.user().login])[0]
+        user = (opts['<user>'] or [self.gh.me().login])[0]
         for gist in self.gh.iter_gists(user):
             print("%s - %s" % (gist.html_url, gist.description))
 
