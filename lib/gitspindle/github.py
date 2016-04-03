@@ -60,7 +60,7 @@ class GitHub(GitSpindle):
                 for error in response.json()['errors']:
                     if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
                         if os.getenv('DEBUG') or self.question('An OAuth token for this host already exists. Shall I delete it?', default=False):
-                            for auth in self.gh.iter_authorizations():
+                            for auth in self.gh.authorizations():
                                 if auth.app['name'] in (name, '%s (API)' % name):
                                     auth.delete()
                             auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
@@ -182,7 +182,7 @@ class GitHub(GitSpindle):
         """<name> [<setting>...]
            Add a repository hook"""
         repo = self.repository(opts)
-        for hook in repo.iter_hooks():
+        for hook in repo.hooks():
             if hook.name == opts['<name>']:
                 raise ValueError("Hook %s already exists" % opts['<name>'])
         settings = dict([x.split('=', 1) for x in opts['<setting>']])
@@ -237,7 +237,7 @@ class GitHub(GitSpindle):
     def add_remote(self, opts):
         """[--ssh|--http|--git] <user> [<name>]
            Add user's fork as a named remote. The name defaults to the user's loginname"""
-        for fork in self.repository(opts).iter_forks():
+        for fork in self.repository(opts).forks():
             if fork.owner.login in opts['<user>']:
                 url = self.clone_url(fork, opts)
                 name = opts['<name>'] or fork.owner.login
@@ -249,7 +249,7 @@ class GitHub(GitSpindle):
            Adds keys to your public keys"""
         if not opts['<key>']:
             opts['<key>'] = glob.glob(os.path.join(os.path.expanduser('~'), '.ssh', 'id_*.pub'))
-        existing = [x.key for x in self.gh.iter_keys()]
+        existing = [x.key for x in self.gh.keys()]
         for arg in opts['<key>']:
             with open(arg) as fd:
                 algo, key, title = fd.read().strip().split(None, 2)
@@ -475,7 +475,7 @@ class GitHub(GitSpindle):
 
         # Do we have unverified emails
         if repo.owner.login == self.me.login:
-            for mail in self.gh.iter_emails():
+            for mail in self.gh.emails():
                 if not mail['verified']:
                     error("Unverified %s email address: %s" % (mail['primary'] and 'primary' or 'secondary', mail['email']))
 
@@ -553,7 +553,7 @@ class GitHub(GitSpindle):
         """[<repo>]
            List collaborators of a repository"""
         repo = self.repository(opts)
-        users = list(repo.iter_collaborators())
+        users = list(repo.collaborators())
         users.sort(key = lambda user: user.login)
         for user in users:
             print(user.login)
@@ -571,7 +571,7 @@ class GitHub(GitSpindle):
             dest = self.gh
             ns = self.my_login
 
-        if name in [x.name for x in dest.iter_repos() if x.owner.login == ns]:
+        if name in [x.name for x in dest.repositories() if x.owner.login == ns]:
             err("Repository already exists")
         repo = dest.create_repo(name=name, description=opts['--description'] or "", private=opts['--private'])
 
@@ -605,7 +605,7 @@ class GitHub(GitSpindle):
                 for error in exc.response.json()['errors']:
                     if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
                         if os.getenv('DEBUG'):
-                            for auth in gh.iter_authorizations():
+                            for auth in gh.authorizations():
                                 if auth.app['name'] in (name, '%s (API)' % name):
                                     auth.delete()
                             auth = gh.authorize(self.my_login, password, scopes, name, "http://git-scm.com")
@@ -628,7 +628,7 @@ class GitHub(GitSpindle):
         """[<repo>]
            Lists all keys for a repo"""
         repo = self.repository(opts)
-        for key in repo.iter_keys():
+        for key in repo.keys():
             ro = key._json_data['read_only'] and 'ro' or 'rw'
             print("%s %s (id: %s, %s)" % (key.key, key.title or '', key.id, ro))
 
@@ -636,7 +636,7 @@ class GitHub(GitSpindle):
     def edit_hook(self, opts):
         """<name> [<setting>...]
            Edit a hook"""
-        for hook in self.repository(opts).iter_hooks():
+        for hook in self.repository(opts).hooks():
             if hook.name == opts['<name>']:
                 break
         else:
@@ -655,7 +655,7 @@ class GitHub(GitSpindle):
     def fetch(self, opts):
         """[--ssh|--http|--git] <user> [<refspec>]
            Fetch refs from a user's fork"""
-        for fork in self.repository(opts).iter_forks():
+        for fork in self.repository(opts).forks():
             if fork.owner.login in opts['<user>']:
                 url = self.clone_url(fork, opts)
                 refspec = opts['<refspec>'] or 'refs/heads/*'
@@ -676,11 +676,11 @@ class GitHub(GitSpindle):
             err("You cannot fork your own repos")
 
         if isinstance(repo, github3.gists.Gist):
-            for fork in repo.iter_forks():
+            for fork in repo.forks():
                 if fork.owner.login == self.my_login:
                     err("You already forked this gist as %s" % fork.html_url)
         else:
-            if repo.name in [x.name for x in self.gh.iter_repos() if x.owner.login == self.my_login]:
+            if repo.name in [x.name for x in self.gh.repos() if x.owner.login == self.my_login]:
                 err("Repository already exists")
 
         my_clone = repo.create_fork()
@@ -697,7 +697,7 @@ class GitHub(GitSpindle):
            List all forks of this repository"""
         repo = self.repository(opts)
         print("[%s] %s" % (wrap(repo.owner.login, attr.bright), repo.html_url))
-        for fork in repo.iter_forks():
+        for fork in repo.forks():
             print("[%s] %s" % (fork.owner.login, fork.html_url))
 
     @command
@@ -722,13 +722,13 @@ class GitHub(GitSpindle):
         """[<user>]
            Show all gists for a user"""
         user = (opts['<user>'] or [self.gh.me().login])[0]
-        for gist in self.gh.iter_gists(user):
+        for gist in self.gh.gists_by(user):
             print("%s - %s" % (gist.html_url, gist.description))
 
     @command
     def hooks(self, opts):
         """\nShow hooks that have been enabled"""
-        for hook in self.repository(opts).iter_hooks():
+        for hook in self.repository(opts).hooks():
             print(wrap("%s (%s)" % (hook.name, ', '.join(hook.events)), attr.bright))
             for key, val in sorted(hook.config.items()):
                 if val in (None, ''):
@@ -806,14 +806,14 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
             opts['<filter>'].insert(0, opts['<repo>'])
             opts['<repo>'] = None
         if (not opts['<repo>'] and not self.in_repo) or opts['<repo>'] == '--':
-            repos = list(self.gh.iter_repos(type='all'))
+            repos = list(self.gh.repositories(type='all'))
         else:
             repos = [self.repository(opts)]
         for repo in repos:
             repo = (opts['--parent'] and self.parent_repo(repo)) or repo
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
             try:
-                issues = list(repo.iter_issues(**filters))
+                issues = list(repo.issues(**filters))
             except github3.GitHubError:
                 _, err, _ = sys.exc_info()
                 if err.code == 410:
@@ -858,11 +858,11 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
                     err("User %s does not exist" % opts['<what>'])
 
         if not opts['--type']:
-            events = [x for x in what.iter_events(number=count)]
+            events = [x for x in what.events(number=count)]
         else:
             events = []
             etype = opts['--type'].lower() + 'event'
-            for event in what.iter_events(number=-1):
+            for event in what.events(number=-1):
                 if event.type.lower() == etype:
                     events.append(event)
                     if len(events) == count:
@@ -988,12 +988,12 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
            Mirror a repository, or all repositories for a user"""
         if opts['<repo>'] and opts['<repo>'].endswith('/*'):
             user = opts['<repo>'].rsplit('/', 2)[-2]
-            for repo in self.gh.iter_repos(type='all') if user == self.my_login else self.gh.iter_user_repos(user, type='all'):
+            for repo in self.gh.repositories(type='all') if user == self.my_login else self.gh.repositories_by(user, type='all'):
                 if repo.owner.login != self.my_login:
                     continue
                 opts['<repo>'] = '%s/%s' % (user, repo)
                 self.mirror(opts)
-            for repo in self.gh.iter_gists(user):
+            for repo in self.gh.gists_by(user):
                 opts['<repo>'] = 'gist/%s' % repo.name
                 self.mirror(opts)
             return
@@ -1051,17 +1051,17 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
 
                 sys.stderr.write("Looking at user %s\n" % login)
                 # Followers
-                for other in person.user.iter_followers():
+                for other in person.user.followers():
                     if other.login not in people:
                         people[other.login] = P(other)
                     people[other.login].rel_to[login].append('follows')
-                for other in person.user.iter_following():
+                for other in person.user.following():
                     if other.login not in people:
                         people[other.login] = P(other)
                     person.rel_to[other.login].append('follows')
 
                 # Forks
-                for repo in self.gh.iter_user_repos(login, type='owner'):
+                for repo in self.gh.repositories_by(login, type='owner'):
                     sys.stderr.write("Looking at repo %s\n" % repo.name)
                     if repo.fork:
                         if repo.owner.login not in people:
@@ -1069,7 +1069,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
                         parent = self.parent_repo(repo)
                         person.rel_to[parent.owner.login].append('forked %s' % parent.name)
                     else:
-                        for fork in repo.iter_forks():
+                        for fork in repo.forks():
                             if fork.owner.login == login:
                                 continue
                             if fork.owner.login not in people:
@@ -1100,7 +1100,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
     def protected(self, opts):
         """\nList active branch protections"""
         repo = self.repository(opts)
-        for branch in repo.iter_branches(protected=True):
+        for branch in repo.branches(protected=True):
             data = branch._json_data['protection']
             msg = branch.name
             if data['required_status_checks']['contexts'] and data['required_status_checks']['enforcement_level'] != 'off':
@@ -1113,9 +1113,9 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
            Lists all keys for a user"""
         user = opts['<user>'] and opts['<user>'][0] or self.my_login
         if self.my_login == user:
-            keys = self.gh.iter_keys()
+            keys = self.gh.keys()
         else:
-            keys = self.gh.user(user).iter_keys()
+            keys = self.gh.user(user).keys()
         for key in keys:
             print("%s %s" % (key.key, key.title or ''))
 
@@ -1276,7 +1276,7 @@ will be ignored""" % (name, tag)
         """[<repo>]
            List all releases"""
         repo = self.repository(opts)
-        for release in repo.iter_releases():
+        for release in repo.releases():
             status = []
             if release.draft:
                 status.append('draft')
@@ -1305,7 +1305,7 @@ will be ignored""" % (name, tag)
     def remove_hook(self, opts):
         """<name>
            Remove a hook"""
-        for hook in self.repository(opts).iter_hooks():
+        for hook in self.repository(opts).hooks():
             if hook.name == opts['<name>']:
                 hook.delete()
 
@@ -1354,9 +1354,9 @@ will be ignored""" % (name, tag)
         """[--no-forks] [<user>]
            List all repos of a user, by default yours"""
         if opts['<user>']:
-            repos = list(self.gh.iter_user_repos(opts['<user>'][0]))
+            repos = list(self.gh.repositories_by(opts['<user>'][0]))
         else:
-            repos = list(self.gh.iter_repos(type='all'))
+            repos = list(self.gh.repositories(type='all'))
             opts['<user>'] = [self.my_login]
         if not repos:
             return
@@ -1441,7 +1441,7 @@ will be ignored""" % (name, tag)
         else:
             # If issues are enabled, fetch pull requests
             try:
-                list(repo.iter_issues(number=1))
+                list(repo.issues(number=1))
             except github3.GitHubError:
                 pass
             else:
@@ -1503,7 +1503,7 @@ will be ignored""" % (name, tag)
                 continue
             emails = {}
             if user.login == self.my_login:
-                for email in self.gh.iter_emails():
+                for email in self.gh.emails():
                     emails[email['email']] = email
             print(wrap(user.name or user.login, attr.bright, attr.underline))
             print('Profile   %s' % user.html_url)
@@ -1528,9 +1528,9 @@ will be ignored""" % (name, tag)
             print('Repos     %d public, %d private' % (user.public_repos, user.total_private_repos))
             print('Gists     %d public, %d private' % (user.public_gists, user.total_private_gists))
             if user.login == self.my_login:
-                keys = self.gh.iter_keys()
+                keys = self.gh.keys()
             else:
-                keys = user.iter_keys()
+                keys = user.keys()
             for pkey in keys:
                 algo, key = pkey.key.split()[:2]
                 algo = algo[4:].upper()
@@ -1539,14 +1539,14 @@ will be ignored""" % (name, tag)
                 else:
                     print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
             if user.login == self.my_login:
-                orgs = self.gh.iter_orgs()
+                orgs = self.gh.organizations()
             else:
-                orgs = list(user.iter_orgs())
+                orgs = list(user.organizations())
             if orgs:
                 print("Member of %s" % ', '.join([x.login for x in orgs]))
             if user.type == 'Organization':
                 print('Members:')
-                for member in self.gh.organization(user.login).iter_members():
+                for member in self.gh.organization(user.login).members():
                     print(" - %s" % member.login)
 
 def prompt_for_2fa(user, cache={}):
