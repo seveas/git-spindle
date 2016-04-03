@@ -1087,7 +1087,8 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
         """[--enforcement-level=<level>] [--contexts=<contexts>] <branch>
            Protect a branch against deletions, force-pushes and failed status checks"""
         repo = self.repository(opts)
-        repo.branch(opts['<branch>']).protect(enforcement_level=opts['--enforcement-level'], contexts=(opts['--contexts'] or '').split(','))
+        repo.branch(opts['<branch>']).protect(enforcement=opts['--enforcement-level'],
+                                              status_checks=(opts['--contexts'] or '').split(','))
 
     @command
     def protected(self, opts):
