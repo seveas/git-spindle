@@ -361,8 +361,13 @@ class GitHub(GitSpindle):
 
     @command
     def check_pages(self, opts):
-        """\nCheck the github pages configuration and content of your repo"""
+        """[<repo>] [--parent]
+           Check the github pages configuration and content of your repo"""
         repo = self.repository(opts)
+
+        if opts['<repo>']:
+            self.clone(opts)
+            os.chdir(repo.name)
 
         def warning(msg, url=None):
             print(wrap(msg, fgcolor.yellow))
@@ -383,7 +388,7 @@ class GitHub(GitSpindle):
 #            error("You should not have capital letters in your repository name, please rename it from %s to %s" % (repo.name, repo.name.lower()))
 
         # Which branch do we check?
-        if repo.name.lower() in (repo.owner.login.lower() + '.github.com', repo.owner.login + '.github.io'):
+        if repo.name.lower() in (repo.owner.login.lower() + '.github.com', repo.owner.login.lower() + '.github.io'):
             branchname = 'master'
         else:
             branchname = 'gh-pages'
@@ -395,7 +400,7 @@ class GitHub(GitSpindle):
         # Do we have a pages branch?
         local = remote_tracking = remote = None
 
-        output = self.git('ls-remote', repo.remote, 'refs/heads/%s' % branchname).stdout
+        output = self.git('ls-remote', repo.remote or 'origin', 'refs/heads/%s' % branchname).stdout
         for line in output.splitlines():
             remote = line.split()[0]
         if not remote:
@@ -403,7 +408,7 @@ class GitHub(GitSpindle):
                   "https://help.github.com/articles/user-organization-and-project-pages/")
 
         output = self.git('for-each-ref', '--format=%(refname) %(objectname) %(upstream:trackshort)',
-                          'refs/remotes/%s/%s' % (repo.remote, branchname),
+                          'refs/remotes/%s/%s' % (repo.remote or 'origin', branchname),
                           'refs/heads/%s' % branchname,).stdout
         for line in output.splitlines():
             if line.startswith('refs/heads'):
@@ -477,7 +482,7 @@ class GitHub(GitSpindle):
                                 if rr.rdtype == dns.rdatatype.A and rr.address not in pages_ips:
                                     error("IP address %s is incorreect for a pages site, use only %s" % (rr.address, ', '.join(pages_ips)),
                                           "https://help.github.com/articles/tips-for-configuring-a-cname-record-with-your-dns-provider/")
-                                if rr.rdtype == 'CNAME' and rr.target != '%s.github.io.' % repo.owner.login:
+                                if rr.rdtype == dns.rdatatype.CNAME and rr.target != '%s.github.io.' % repo.owner.login:
                                     error("CNAME %s -> %s is incorrect, should be %s -> %s" % (name, rr.target, name, '%s.github.io.' % repo.owner.login),
                                           "https://help.github.com/articles/tips-for-configuring-an-a-record-with-your-dns-provider/")
                 except ImportError:
