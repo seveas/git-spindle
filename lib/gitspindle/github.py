@@ -1135,9 +1135,9 @@ class GitHub(GitSpindle):
             err("You don't have %s/%s configured as a remote repository" % (parent.owner.login, parent.name))
 
         # How many commits?
+        accept_empty_body = False
         commits = try_decode(self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout).strip().split()
         commits.reverse()
-        # 1: title/body from commit
         if not commits:
             err("Your branch has no commits yet")
         # Are we turning an issue into a commit?
@@ -1145,12 +1145,15 @@ class GitHub(GitSpindle):
             pull = parent.create_pull_from_issue(base=dst, head='%s:%s' % (repo.owner.login, src), issue=int(opts['--issue']))
             print("Pull request %d created %s" % (pull.number, pull.html_url))
             return
+
+        # 1 commit: title/body from commit
         if len(commits) == 1:
             title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
             title = title.strip()
             body = body.strip()
+            accept_empty_body = not bool(body)
 
-        # More: title from branchname (titlecased, s/-/ /g), body comments from shortlog
+        # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
         else:
             title = src
             if '/' in title:
@@ -1167,7 +1170,7 @@ class GitHub(GitSpindle):
         body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
         body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
         title, body = self.edit_msg("%s\n\n%s" % (title,body), 'PULL_REQUEST_EDIT_MSG')
-        if not body:
+        if not body and not accept_empty_body:
             err("No pull request message specified")
 
         try:

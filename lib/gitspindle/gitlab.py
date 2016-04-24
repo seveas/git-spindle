@@ -635,17 +635,20 @@ class GitLab(GitSpindle):
             err("You don't have %s/%s configured as a remote repository" % (parent.namespace.path, parent.path))
 
         # How many commits?
+        accept_empty_body = False
         commits = try_decode(self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout).strip().split()
         commits.reverse()
-        # 1: title/body from commit
         if not commits:
             err("Your branch has no commits yet")
+
+        # 1 commit: title/body from commit
         if len(commits) == 1:
             title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
             title = title.strip()
             body = body.strip()
+            accept_empty_body = not bool(body)
 
-        # More: title from branchname (titlecased, s/-/ /g), body comments from shortlog
+        # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
         else:
             title = src
             if '/' in title:
@@ -662,7 +665,7 @@ class GitLab(GitSpindle):
         body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
         body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
         title, body = self.edit_msg("%s\n\n%s" % (title,body), 'MERGE_REQUEST_EDIT_MSG')
-        if not body:
+        if not body and not accept_empty_body:
             err("No merge request message specified")
 
         try:
