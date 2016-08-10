@@ -15,7 +15,9 @@ creating or forking a repository from the command line.
 
 To install the latest released version on Ubuntu:
 
+    sudo add-apt-repository ppa:dennis/python
     sudo add-apt-repository ppa:dennis/devtools
+    sudo apt-get update
     sudo apt-get install git-spindle
 
 To install the latest released version on Windows:
