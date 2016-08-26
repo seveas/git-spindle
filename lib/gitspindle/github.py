@@ -127,6 +127,25 @@ class GitHub(GitSpindle):
             return 'https://api.github.com'
         return host.rstrip('/') + '/api/v3'
 
+    def find_template(self, repo, template):
+        template = template.lower()
+        contents = None
+        for dir in ('/', '/.github/'):
+            files = repo.contents(dir)
+            if not files:
+                continue
+            files = dict([(x[0].lower(), x[1]) for x in files.items()])
+
+            if template in files:
+                contents = files[template]
+            else:
+                for file in files:
+                    if file.startswith(template + '.'):
+                        contents = files[file]
+        if contents:
+            contents = try_decode(self.gh._session.get(contents._json_data['download_url'], stream=True).content)
+        return contents
+
     # Commands
 
     @command
@@ -745,7 +764,7 @@ class GitHub(GitSpindle):
             print(issue.body)
             print(issue.pull_request and issue.pull_request['html_url'] or issue.html_url)
         if not opts['<issue>']:
-            body = """
+            body = self.find_template(repo, 'ISSUE_TEMPLATE') or """
 # Reporting an issue on %s/%s
 # Please describe the issue as clarly as possible. Lines starting with '#' will
 # be ignored, the first line will be used as title for the issue.
@@ -1151,20 +1170,22 @@ class GitHub(GitSpindle):
             print("Pull request %d created %s" % (pull.number, pull.html_url))
             return
 
+        body = self.find_template(repo, 'PULL_REQUEST_TEMPLATE')
         # 1 commit: title/body from commit
-        if len(commits) == 1:
-            title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
-            title = title.strip()
-            body = body.strip()
-            accept_empty_body = not bool(body)
+        if not body:
+            if len(commits) == 1:
+                title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
+                title = title.strip()
+                body = body.strip()
+                accept_empty_body = not bool(body)
 
-        # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
-        else:
-            title = src
-            if '/' in title:
-                title = title[title.rfind('/') + 1:]
-            title = title.title().replace('-', ' ')
-            body = ""
+            # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
+            else:
+                title = src
+                if '/' in title:
+                    title = title[title.rfind('/') + 1:]
+                title = title.title().replace('-', ' ')
+                body = ""
 
         body += """
 # Requesting a pull from %s/%s into %s/%s
