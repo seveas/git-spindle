@@ -1309,7 +1309,10 @@ class GitHub(GitSpindle):
 </html>"""
         with open(opts['<file>'][0]) as fd:
             data = fd.read()
-        html = template % (os.path.basename(opts['<file>'][0]), github3.markdown(data))
+        rendered = github3.markdown(data)
+        if isinstance(rendered, bytes):
+            rendered = rendered.decode('utf-8')
+        html = template % (os.path.basename(opts['<file>'][0]), rendered)
         if opts['--save']:
             with open(opts['--save'], 'w') as fd:
                 fd.write(html)
