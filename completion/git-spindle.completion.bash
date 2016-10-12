@@ -70,7 +70,7 @@ _git_hub() {
     local completion_func="_git_spindle_${subcommand//-/_}"
     declare -f $completion_func >/dev/null && $completion_func hub
     # Default to no completion, subcommands that expect filenames call _filedir
-    # explicitely.
+    # explicitly.
     compopt +o default
 }
 
@@ -126,7 +126,7 @@ _git_lab() {
     local completion_func="_git_spindle_${subcommand//-/_}"
     declare -f $completion_func >/dev/null && $completion_func lab
     # Default to no completion, subcommands that expect filenames call _filedir
-    # explicitely.
+    # explicitly.
     compopt +o default
 }
 
@@ -182,7 +182,7 @@ _git_bb() {
     local completion_func="_git_spindle_${subcommand//-/_}"
     declare -f $completion_func >/dev/null && $completion_func bb
     # Default to no completion, subcommands that expect filenames call _filedir
-    # explicitely.
+    # explicitly.
     compopt +o default
 }
 

@@ -770,7 +770,7 @@ class GitHub(GitSpindle):
         if not opts['<issue>']:
             body = self.find_template(repo, 'ISSUE_TEMPLATE') or """
 # Reporting an issue on %s/%s
-# Please describe the issue as clarly as possible. Lines starting with '#' will
+# Please describe the issue as clearly as possible. Lines starting with '#' will
 # be ignored, the first line will be used as title for the issue.
 #""" % (repo.owner.login, repo.name)
             title, body = self.edit_msg(body, 'ISSUE_EDITMSG')

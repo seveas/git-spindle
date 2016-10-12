@@ -129,7 +129,7 @@ Options:
         DocoptExit.help += tail
 
     def gitm(self, *args, **kwargs):
-        """A git command thas must be succesfull"""
+        """A git command that must be successful"""
         result = self.git(*args, **kwargs)
         if not result:
             if result.stderr:
@@ -196,7 +196,7 @@ Options:
         #   - Do we recognize the host? No -> discard
         #   - Do we have an account? Is it on there? No -> discard
         #   - Is it mine? Yes -> return it('s parent), No -> remember it
-        #   - Return the first rememered one(s parent)
+        #   - Return the first remembered one('s parent)
         #  FIXME: errors should mention account if available
         remote = host = repo = None
         if opts['<repo>']:
@@ -334,7 +334,7 @@ Options:
             self.hosts.append(host)
 
         # Which account do we use?
-        # 1: Explicitely configured
+        # 1: Explicitly configured
         self.account = opts['--account'] or os.environ.get('GITSPINDLE_ACCOUNT', None)
         if self.account and not self.config('user') and not opts['config']:
             err("%s does not yet know about %s. Use %s add-account to configure it" % (self.prog, self.account, self.prog))

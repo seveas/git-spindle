@@ -466,7 +466,7 @@ class GitLab(GitSpindle):
         if not opts['<issue>']:
             body = """
 # Reporting an issue on %s/%s
-# Please describe the issue as clarly as possible. Lines starting with '#' will
+# Please describe the issue as clearly as possible. Lines starting with '#' will
 # be ignored, the first line will be used as title for the issue.
 #""" % (repo.namespace.path, repo.path)
             title, body = self.edit_msg(body, 'ISSUE_EDITMSG')
