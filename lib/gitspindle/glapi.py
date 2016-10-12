@@ -139,7 +139,7 @@ class Gitlab(object):
     """Represents a GitLab server connection"""
     def __init__(self, url, private_token=None,
                  email=None, password=None, ssl_verify=True, timeout=None):
-        """Stores informations about the server
+        """Stores information about the server
 
         url: the URL of the Gitlab server
         private_token: the user private token

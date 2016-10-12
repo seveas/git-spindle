@@ -279,7 +279,7 @@ List all deploy keys for this repository
 .. describe:: git hub add-deploy-key [--read-only] <key>...
 
 Add a deploy key to a repository, which can be used to fetch and push data via
-ssh. Read-only keys acan only fetch.
+ssh. Read-only keys can only fetch.
 
 .. describe:: git hub remove-deploy-key <key>...
 

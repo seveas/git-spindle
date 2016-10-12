@@ -28,7 +28,7 @@ To install the latest released version on Windows:
     py -mensurepip
     py -mpip install git-spindle
 
-To install the latest released version on other systems, assumin python and
+To install the latest released version on other systems, assuming python and
 pip are installed:
 
     pip install git-spindle
