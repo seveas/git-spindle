@@ -466,7 +466,7 @@ class BitBucket(GitSpindle):
 
     @command
     def pull_request(self, opts):
-        """[--yes] [<yours:theirs>]
+        """[--yes] [--reviewers=username1,username2] [<yours:theirs>]
            Opens a pull request to merge your branch to an upstream branch"""
         repo = self.repository(opts)
         if repo.is_fork:
@@ -560,8 +560,12 @@ class BitBucket(GitSpindle):
         if not body and not accept_empty_body:
             err("No pull request message specified")
 
+        reviewers = opts['--reviewers']
+        if reviewers:
+            reviewers = reviewers.split(',')
+
         try:
-            pull = parent.create_pull_request(src=srcb, dst=dstb, title=title, body=body)
+            pull = parent.create_pull_request(src=srcb, dst=dstb, title=title, body=body, reviewers=reviewers)
             print("Pull request %d created %s" % (pull.id, pull.links['html']['href']))
         except:
             filename = self.backup_message(title, body, 'pull-request-message-')

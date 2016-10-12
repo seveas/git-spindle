@@ -190,8 +190,10 @@ class Repository(BBobject):
         owner, slug = self.full_name.split('/')
         return PullRequest(self.bb, owner=owner, slug=slug, id=number)
 
-    def create_pull_request(self, src, dst, title, body):
+    def create_pull_request(self, src, dst, title, body, reviewers):
         data = {'title': title, 'description': body}
+        if reviewers:
+            data['reviewers'] = [{"username": username} for username in reviewers]
         data['source'] = {'branch': {'name': src.branch}, 'repository': {'full_name': src.repository.full_name}}
         data['destination'] = {'branch': {'name': dst.branch}}
         pr = self.post(self.url[1] + '/pullrequests', data=json.dumps(data), headers={'content-type': 'application/json'})
