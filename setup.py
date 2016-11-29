@@ -9,6 +9,7 @@ setup(name='git-spindle',
     scripts=['bin/git-hub', 'bin/git-lab', 'bin/git-bb', 'bin/git-bucket'],
     packages=['gitspindle'],
     package_dir={'': 'lib'},
+    data_files=[('share/bash-completion/completions/', ['completion/git-spindle.completion.bash'])],
     classifiers=[
         "Intended Audience :: Developers",
         "Topic :: Software Development",
