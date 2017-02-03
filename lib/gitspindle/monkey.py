@@ -158,13 +158,20 @@ docopt.orig_parse_atom = docopt.parse_atom
 docopt.parse_atom = parse_atom
 
 def formal_usage(printable_usage):
-    usage = real_printable_usage(printable_usage).splitlines()
+    stripped_printable_usage = []
+    printable_usage_lines = printable_usage.splitlines()
+    for num, line in enumerate(printable_usage_lines):
+        if (len(line) == 0) and printable_usage_lines[num+1][0].isupper() and printable_usage_lines[num+2].startswith('  git'):
+            continue
+        stripped_printable_usage.append(line)
+    usage = real_printable_usage('\n'.join(stripped_printable_usage)).splitlines()
     ret = []
     for num, line in enumerate(usage):
         if line[0].isupper() and usage[num+1].startswith('  git'):
             continue
         ret.append(line)
     return docopt.orig_formal_usage('\n'.join(ret))
+
 real_printable_usage = docopt.printable_usage
 docopt.printable_usage = lambda x: x
 docopt.orig_formal_usage = docopt.formal_usage

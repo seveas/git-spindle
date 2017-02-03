@@ -86,7 +86,7 @@ Usage:\n""" % (self.prog, self.what)
                 doc[0] = doc[0].replace('[--host=<host>] ', '')
             if doc[0]:
                 doc[0] = ' ' + doc[0]
-            self.usage += '%s:\n  %s %s %s%s\n' % (doc[1], self.prog, '[options]', name, doc[0])
+            self.usage += '\n%s:\n  %s %s %s%s\n' % (doc[1], self.prog, '[options]', name, doc[0])
         self.usage += """
 Options:
   -h --help              Show this help message and exit
