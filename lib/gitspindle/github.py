@@ -1312,6 +1312,7 @@ class GitHub(GitSpindle):
         rendered = github3.markdown(data)
         if isinstance(rendered, bytes):
             rendered = rendered.decode('utf-8')
+        rendered = rendered.replace('user-content-', '')
         html = template % (os.path.basename(opts['<file>'][0]), rendered)
         if opts['--save']:
             with open(opts['--save'], 'w') as fd:
