@@ -46,6 +46,10 @@ Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 Display all public keys of a user, in a format that can be added to
 :file:`~/.authorized_keys`.
 
+.. describe:: git bb help <command>
+
+Display the help for the specified command.
+
 Using multiple accounts
 -----------------------
 :command:`git bb` supports using more than one account. To use a non-default,
