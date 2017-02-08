@@ -81,12 +81,7 @@ Usage:\n""" % (self.prog, self.what)
                 name = name[:-1]
             name = name.replace('_', '-')
             self.commands[name] = fnc
-            doc = [line.strip() for line in fnc.__doc__.splitlines()]
-            if self.__class__.__name__ == 'BitBucket' and name == 'add-account':
-                doc[0] = doc[0].replace('[--host=<host>] ', '')
-            if doc[0]:
-                doc[0] = ' ' + doc[0]
-            self.usage += '%s:\n  %s %s %s%s\n' % (doc[1], self.prog, '[options]', name, doc[0])
+            self.usage += '%s\n' % self.command_usage(name)
         self.usage += """
 Options:
   -h --help              Show this help message and exit
@@ -99,6 +94,16 @@ Options:
   --git                  Use git:// urls for cloning 3rd party repos
   --goblet               When mirroring, set up goblet configuration
   --account=<account>    Use another account than the default\n"""
+
+    def command_usage(self, name):
+        if name not in self.commands.keys():
+            return 'Unknown command "%s"' % name
+        doc = [line.strip() for line in self.commands[name].__doc__.splitlines()]
+        if self.__class__.__name__ == 'BitBucket' and name == 'add-account':
+            doc[0] = doc[0].replace('[--host=<host>] ', '')
+        if doc[0]:
+            doc[0] = ' ' + doc[0]
+        return '%s:\n  %s %s %s%s' % (doc[1], self.prog, '[options]', name, doc[0])
 
     def gitm(self, *args, **kwargs):
         """A git command thas must be succesfull"""
@@ -345,6 +350,13 @@ Options:
                 except KeyboardInterrupt:
                     sys.exit(1)
                 break
+
+    @command
+    @no_login
+    def help(self, opts):
+        """<command>
+           Display the help for a command"""
+        print(self.command_usage(opts['<command>']))
 
     @command
     @no_login
