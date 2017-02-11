@@ -77,7 +77,7 @@ will be created on BitBucket and your local repository will have BitBucket as re
 By default the repository is created under your account, but you can specify a
 team to create the repository for.
 
-.. describe:: git bb set-origin [--ssh|--http] [--triangular]
+.. describe:: git bb set-origin [--ssh|--http] [--triangular [--upstream-branch=<branch>]]
 
 Fix the configuration of your repository's remotes. The remote "origin" will be
 set to your BitBucket repository. If "origin" is a fork, an "upstream" remote will
@@ -86,12 +86,17 @@ be set to the repository you forked from.
 All non-tracking branches with a matching counterpart in "origin" will be set to
 track "origin" (push and pull to it). Use :option:`--triangular` to set remotes
 in a triangular fashion where :command:`git pull` pulls from "upstream" and
-:command:`git push` pushes to "origin".
+:command:`git push` pushes to "origin". This also sets the configuration option
+:option:`remote.pushDefault`, so that new branches are pushed to "origin" even
+if they track a branch in "upstream". All non-tracking branches are set up to
+track a matching counterpart in "upstream" except if :option:`--upstream-branch`
+explicitly specifies a branch like "master" in "upstream" that all branches should
+track.
 
 For "origin", an SSH url is used. For "upstream", set-origin defaults to adding
 a git url, but this can be overridden. For private repos, SSH is used.
 
-.. describe:: git bb clone [--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+.. describe:: git bb clone [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
 
 Clone a BitBucket repository by name (e.g. seveas/whelk) or URL. The "origin"
 remote will be set and, like with set-origin, if "origin" is a fork the
@@ -116,7 +121,7 @@ Display the contents of a directory on BitBucket. Directory can start with
 repository names and refs. For example: `master:bin/git-bb`,
 `git-spindle:master:bin/git-bb` or `seveas/git-spindle:master:bin/git-bb`.
 
-.. describe:: git bb fork [--ssh|--http] [--triangular] [<repo>]
+.. describe:: git bb fork [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
 
 Fork another person's git repository on BitBucket and clone that repository
 locally. The repository can be specified as a (git) url or simply username/repo.

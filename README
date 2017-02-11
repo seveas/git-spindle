@@ -60,7 +60,7 @@ Display the contents of a file on GitHub:
 Check the github pages configuration and content of your repo:
   git hub check-pages
 Clone a repository by name:
-  git hub clone [--ssh|--http|--git] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+  git hub clone [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
 List collaborators of a repository:
   git hub collaborators [<repo>]
 Configure git-spindle, similar to git-config:
@@ -76,7 +76,7 @@ Edit a hook:
 Fetch refs from a user's fork:
   git hub fetch [--ssh|--http|--git] <user> [<refspec>]
 Fork a repo and clone it:
-  git hub fork [--ssh|--http|--git] [--triangular] [<repo>]
+  git hub fork [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [<repo>]
 List all forks of this repository:
   git hub forks [<repo>]
 Create a new gist from files or stdin:
@@ -128,7 +128,7 @@ List all repos of a user, by default yours:
 Let the octocat speak to you:
   git hub say [<msg>]
 Set the remote 'origin' to github.:
-  git hub set-origin [--ssh|--http|--git] [--triangular]
+  git hub set-origin [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]]
 Set up goblet config based on GitHub config:
   git hub setup-goblet
 Display current and historical GitHub service status:
@@ -157,7 +157,7 @@ Show a timeline of a user's activity:
 Display the contents of a file on GitLab:
   git lab cat <file>...
 Clone a repository by name:
-  git lab clone [--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+  git lab clone [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
 Configure git-spindle, similar to git-config:
   git lab config [--unset] <key> [<value>]
 Create a repository on gitlab to push to:
@@ -165,7 +165,7 @@ Create a repository on gitlab to push to:
 Fetch refs from a user's fork:
   git lab fetch [--ssh|--http] <user> [<refspec>]
 Fork a repo and clone it:
-  git lab fork [--ssh|--http] [--triangular] [<repo>]
+  git lab fork [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
 Show issue details or report an issue:
   git lab issue [<repo>] [--parent] [<issue>...]
 List issues in a repository:
@@ -191,7 +191,7 @@ Remove a user's membership:
 List all your repos:
   git lab repos [--no-forks]
 Set the remote 'origin' to gitlab.:
-  git lab set-origin [--ssh|--http] [--triangular]
+  git lab set-origin [--ssh|--http] [--triangular [--upstream-branch=<branch>]]
 Remove force-push protection from a branch:
   git lab unprotect <branch>
 Display GitLab user info:
@@ -216,7 +216,7 @@ Open the GitHub page for a repository in a browser:
 Display the contents of a file on BitBucket:
   git bb cat <file>...
 Clone a repository by name:
-  git bb clone [--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+  git bb clone [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
 Configure git-spindle, similar to git-config:
   git bb config [--unset] <key> [<value>]
 Create a repository on bitbucket to push to:
@@ -226,7 +226,7 @@ Lists all keys for a repo:
 Fetch refs from a user's fork:
   git bb fetch [--ssh|--http] <user> [<refspec>]
 Fork a repo and clone it:
-  git bb fork [--ssh|--http] [--triangular] [<repo>]
+  git bb fork [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
 List all forks of this repository:
   git bb forks [<repo>]
 Invite users to collaborate on this repository:
@@ -252,7 +252,7 @@ Remove a user's privileges:
 List all repos of a user, by default yours:
   git bb repos [--no-forks] [<user>]
 Set the remote 'origin' to github.:
-  git bb set-origin [--ssh|--http] [--triangular]
+  git bb set-origin [--ssh|--http] [--triangular [--upstream-branch=<branch>]]
 Create a new snippet from files or stdin:
   git bb snippet [--description=<description>] <file>...
 Show all snippets for a user:
