@@ -147,7 +147,7 @@ class GitHub(GitSpindle):
                     if file.startswith(template + '.'):
                         contents = files[file]
         if contents:
-            contents = try_decode(self.gh._session.get(contents._json_data['download_url'], stream=True).content)
+            contents = self.gh._session.get(contents._json_data['download_url'], stream=True).text
         return contents
 
     # Commands
