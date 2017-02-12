@@ -231,7 +231,9 @@ used to create a new issue.
 .. describe:: git lab merge-request [--yes] [<yours:theirs>]
 
 Files a pull request to merge branch "yours" (default: the current branch) into
-the upstream branch "theirs" (default: master). Like for a commit message, your
+the upstream branch "theirs" (default: the tracked branch of "yours" if it is in
+the upstream repository, otherwise the default branch of the upstream
+repository, usually "master"). Like for a commit message, your
 editor will be opened to write a pull request message. The comments of said
 message contain the shortlog and diffstat of the commits that you're asking to
 be merged. Note that if you use any characterset in your logs and filenames
