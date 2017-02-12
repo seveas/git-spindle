@@ -73,6 +73,25 @@ for spindle in hub lab bb; do
         grep -q $id-1 issues)
     "
 
+    if [ $spindle != bb ]; then
+        export FAKE_EDITOR_DATA="Pull request for the same source branch $id-8\n\nThis is a pull request done by git-spindle's test suite\n"
+        test_expect_success $spindle "Filing a pull request twice for the same source branch saves the message and gives an error ($spindle)" "
+            (cd python-hpilo &&
+            git checkout -b pull-request-branch-7 upstream/master &&
+            test_commit &&
+            git_2 push -f origin pull-request-branch-7 &&
+            git_${spindle}_2 $pull-request &&
+            export FAKE_EDITOR_DATA='Pull request for the same source branch $id-9\n\nThis is a pull request done by git-spindle'\''s test suite\n' &&
+            (git_${spindle}_2 $pull-request || true) > pr-output 2>&1 &&
+            cat pr-output &&
+            git_${spindle}_2 issues --parent > issues &&
+            grep -q $id-8 issues &&
+            ! grep -q $id-9 issues &&
+            grep -q ' text has been saved in ' pr-output &&
+            pr_output=\$(cat pr-output) &&
+            grep -q '$id-9' \${pr_output##* })
+        "
+    fi
 done
 
 test_expect_failure "Pull request with no commits" "false"
