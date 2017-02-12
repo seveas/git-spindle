@@ -251,7 +251,7 @@ Options:
         msg = "%s\n\n%s" % (title, body)
         fd, temp_file = tempfile.mkstemp(prefix=filename)
         with os.fdopen(fd,'w') as fd:
-            fd.write(msg.encode('utf-8'))
+            fd.write(msg)
         return temp_file
 
     def repo_root(self):
