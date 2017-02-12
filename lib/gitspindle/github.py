@@ -106,7 +106,8 @@ class GitHub(GitSpindle):
 
     def parent_repo(self, repo):
         if repo.fork:
-            return repo.parent
+            # In search results or lists parent info is not returned with a repository
+            return repo.parent or self.gh.repository(repo.owner.login, repo.name).parent
 
     def clone_url(self, repo, opts):
         if opts['--ssh'] or repo.private:
@@ -789,8 +790,7 @@ class GitHub(GitSpindle):
         else:
             repos = [self.repository(opts)]
         for repo in repos:
-            if repo.fork and opts['--parent']:
-                repo = repo.parent
+            repo = (opts['--parent'] and self.parent_repo(repo)) or repo
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
             try:
                 issues = list(repo.iter_issues(**filters))
@@ -1042,11 +1042,10 @@ class GitHub(GitSpindle):
                 for repo in self.gh.iter_user_repos(login, type='owner'):
                     sys.stderr.write("Looking at repo %s\n" % repo.name)
                     if repo.fork:
-                        # Sigh. GH doesn't return parent info in iter_repos
-                        repo = self.gh.repository(repo.owner.login, repo.name)
                         if repo.owner.login not in people:
                             people[repo.owner.login] = P(repo.owner)
-                        person.rel_to[repo.parent.owner.login].append('forked %s' % repo.parent.name)
+                        parent = self.parent_repo(repo)
+                        person.rel_to[parent.owner.login].append('forked %s' % parent.name)
                     else:
                         for fork in repo.iter_forks():
                             if fork.owner.login == login:
@@ -1103,10 +1102,7 @@ class GitHub(GitSpindle):
         """[--issue=<issue>] [--yes] [<yours:theirs>]
            Opens a pull request to merge your branch to an upstream branch"""
         repo = self.repository(opts)
-        if repo.fork:
-            parent = repo.parent
-        else:
-            parent = repo
+        parent = self.parent_repo(repo) or repo
         # Which branch?
         src = opts['<yours:theirs>'] or ''
         dst = None
@@ -1406,7 +1402,7 @@ class GitHub(GitSpindle):
         self.gitm('config', '--replace-all', 'remote.%s.fetch' % remote, '+refs/heads/*:refs/remotes/%s/*' % remote)
 
         if repo.fork:
-            parent = repo.parent
+            parent = self.parent_repo(repo)
             url = self.clone_url(parent, opts)
             if self.git('config', 'remote.upstream.url').stdout.strip() != url:
                 print("Pointing upstream to %s" % url)
