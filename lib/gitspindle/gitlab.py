@@ -131,10 +131,6 @@ class GitLab(GitSpindle):
     def profile_url(self, user):
         return '%s/u/%s' % (self.host, user.username)
 
-    def issue_url(self, issue):
-        repo = self.gl.Project(issue.project_id)
-        return '%s/issues/%d' % (repo.web_url, issue.iid)
-
     def merge_url(self, merge):
         repo = self.gl.Project(merge.project_id)
         return '%s/merge_requests/%d' % (repo.web_url, merge.iid)
@@ -457,14 +453,15 @@ class GitLab(GitSpindle):
             opts['<issue>'].insert(0, opts['<repo>'])
             opts['<repo>'] = None
         repo = self.repository(opts)
-        # There's no way to fetch an issue by iid. Abuse search.
-        issues = repo.Issue()
-        for issue in opts['<issue>']:
-            issue = int(issue)
-            issue = [x for x in issues if x.iid == issue][0]
-            print(wrap(issue.title, attr.bright, attr.underline))
-            print(issue.description)
-            print(self.issue_url(issue))
+        for issue_no in opts['<issue>']:
+            issues = repo.Issue(iid=issue_no)
+            if len(issues):
+                issue = issues[0]
+                print(wrap(issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), attr.bright, attr.underline))
+                print(issue.description.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding))
+                print(issue.web_url)
+            else:
+                print('No issue with id %s found in repository %s' % (issue_no, repo.path_with_namespace))
         if not opts['<issue>']:
             extra = """Reporting an issue on %s/%s
 Please describe the issue as clearly as possible. Lines starting with '#' will
@@ -476,7 +473,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
             try:
                 issue = glapi.ProjectIssue(self.gl, {'project_id': repo.id, 'title': title, 'description': body})
                 issue.save()
-                print("Issue %d created %s" % (issue.iid, self.issue_url(issue)))
+                print("Issue %d created %s" % (issue.iid, issue.web_url))
             except:
                 filename = self.backup_message(title, body, 'issue-message-')
                 err("Failed to create an issue, the issue text has been saved in %s" % filename)
@@ -503,11 +500,11 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
             if issues:
                 print(wrap("Issues for %s/%s" % (repo.namespace.path, repo.path), attr.bright))
                 for issue in issues:
-                    print("[%d] %s %s" % (issue.iid, issue.title, self.issue_url(issue)))
+                    print("[%d] %s %s" % (issue.iid, issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), issue.web_url))
             if mergerequests:
                 print(wrap("Merge requests for %s/%s" % (repo.namespace.path, repo.path), attr.bright))
                 for mr in mergerequests:
-                    print("[%d] %s %s" % (mr.iid, mr.title, self.merge_url(mr)))
+                    print("[%d] %s %s" % (mr.iid, mr.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), self.merge_url(mr)))
 
     @command
     def log(self, opts):

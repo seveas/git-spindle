@@ -154,6 +154,11 @@ def ssh_fix(url):
 class PullRequest(BBobject):
     uri = 'https://api.bitbucket.org/2.0/repositories/{owner}/{slug}/pullrequests/{id}'
 
+    def get_url(self):
+        return self.links['html']['href']
+
+    html_url = property(get_url)
+
 class Repository(BBobject):
     uri = ('https://bitbucket.org/api/1.0/repositories/{owner}/{slug}',
            'https://bitbucket.org/api/2.0/repositories/{owner}/{slug}')
@@ -202,8 +207,8 @@ class Repository(BBobject):
         return [Repository(self.bb, mode=None, **repo) for repo in data]
 
     def issues(self, **params):
-        url = 'https://bitbucket.org/api/1.0/repositories/%s/issues' % self.full_name
-        data = self.get(url, data=params)['issues']
+        url = 'https://bitbucket.org/api/2.0/repositories/%s/issues' % self.full_name
+        data = self.get(url, data=params)['values']
         return [Issue(self.bb, mode=None, **issue) for issue in data]
 
     def issue(self, id):
@@ -213,7 +218,7 @@ class Repository(BBobject):
         data = {'title': title, 'content': body}
         issue = self.post(self.url[0] + '/issues', data=data)
         issue['repo'] = self
-        return Issue(self.bb, mode=None, **issue)
+        return Issue(self.bb, owner=self.owner['username'], slug=self.slug, id=issue['local_id'], repo=self)
 
     def src(self, revision, path):
         return Source(self.bb, owner=self.owner['username'], slug=self.slug, revision=revision, path=path.split('/'))
@@ -268,10 +273,10 @@ class Key(BBobject):
         self.delete_(self.url[0] + '/%d' % self.pk)
 
 class Issue(BBobject):
-    uri = 'https://bitbucket.org/api/1.0/repositories/{owner}/{slug}/issues/{id}'
+    uri = 'https://bitbucket.org/api/2.0/repositories/{owner}/{slug}/issues/{id}'
 
     def get_url(self):
-        return 'https://bitbucket.org/%s/%s/issue/%s/' % (self.repo.owner['username'], self.repo.slug, self.local_id)
+        return self.links['html']['href']
 
     html_url = property(get_url)
 
