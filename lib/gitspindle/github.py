@@ -757,6 +757,7 @@ class GitHub(GitSpindle):
         if opts['<repo>'] and opts['<repo>'].isdigit():
             # Let's assume it's an issue
             opts['<issue>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         repo = self.repository(opts)
         for issue in opts['<issue>']:
             issue = repo.issue(issue)

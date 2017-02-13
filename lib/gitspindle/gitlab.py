@@ -447,6 +447,7 @@ class GitLab(GitSpindle):
         if opts['<repo>'] and opts['<repo>'].isdigit():
             # Let's assume it's an issue
             opts['<issue>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         repo = self.repository(opts)
         # There's no way to fetch an issue by iid. Abuse search.
         issues = repo.Issue()
