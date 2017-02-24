@@ -96,6 +96,10 @@ The token is shown in the output of the command. If you specify
 :option:`--store`, the token will also be stored using the git credential
 helpers.
 
+.. describe:: git hub help <command>
+
+Display the help for the specified command.
+
 .. _`profile page`: https://github.com/settings/applications
 
 Using multiple accounts

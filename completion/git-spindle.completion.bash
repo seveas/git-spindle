@@ -28,6 +28,7 @@ _git_hub() {
         fork
         gist
         gists
+        help
         hooks
         ignore
         ip-addresses
@@ -89,6 +90,7 @@ _git_lab() {
         create
         fetch
         fork
+        help
         issue
         issues
         log
@@ -145,6 +147,7 @@ _git_bb() {
         deploy-keys
         fetch
         fork
+        help
         invite
         issue
         issues
@@ -281,7 +284,7 @@ _git_spindle_clone() {
         --*)
             __gitcompappend "
                 --parent
-                --local 
+                --local
                 --no-hardlinks
                 --shared
                 --reference
@@ -337,6 +340,10 @@ _git_spindle_gist() {
     _filedir
 }
 
+_git_spindle_help() {
+    __gitcomp "$subcommands"
+}
+
 _git_spindle_ignore() {
     test "$GIT_SPINDLE_COMPLETE_REMOTE" = no && return
     __gitcomp_nl "$(git hub ignore | sed -ne 's/^ *\* *//p')"
@@ -361,7 +368,7 @@ _git_spindle_issues() {
 _git_spindle_log() {
     __git_spindle_options "--type= --count= --verbose"
     # TODO actually complete the types
-}  
+}
 
 _git_spindle_ls() {
     _filedir
