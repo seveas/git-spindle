@@ -125,7 +125,7 @@ List issues in a repository:
   git hub issues [<repo>] [--parent] [<filter>...]
 
 Display github log for yourself or other users. Or for an organisation or a repo:
-  git hub log [--type=<type>] [--count=<count>] [--verbose] [<what>]
+  git hub log [--type=<type>...] [--count=<count>] [--verbose] [<what>]
 
 Display the contents of a directory on GitHub:
   git hub ls [<dir>...]

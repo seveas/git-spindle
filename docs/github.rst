@@ -74,16 +74,17 @@ Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 Display all public keys of a user, in a format that can be added to
 :file:`~/.authorized_keys`.
 
-.. describe:: git hub log [--type=<type>] [--count=<count>] [--verbose] [<what>]
+.. describe:: git hub log [--type=<type>...] [--count=<count>] [--verbose] [<what>]
 
 Displays a log of your GitHub actions, such as pushes and issue comments. You
 can also specify a user or repository and the relevant log will be shown
 instead of yours.
 
 If you are only interested in events of a specific type, you can filter for it,
-e.g. :option:`--type=push`. You can also get more (or less) than the default 30
-items in the log by specifying a count. Finally, :option:`--verbose` will give
-slightly more verbose output for some log items.
+e.g. :option:`--type=Push`. You can also request multiple event types, e. g.
+:option:`--type=CommitComment --type=IssueComment`. You can also get more (or less)
+than the default 30 items in the log by specifying a count. Finally,
+:option:`--verbose` will give slightly more verbose output for some log items.
 
 .. describe:: git hub create-token [--store]
 

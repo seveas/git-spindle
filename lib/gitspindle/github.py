@@ -815,7 +815,7 @@ class GitHub(GitSpindle):
 
     @command
     def log(self, opts):
-        """[--type=<type>] [--count=<count>] [--verbose] [<what>]
+        """[--type=<type>...] [--count=<count>] [--verbose] [<what>]
            Display github log for yourself or other users. Or for an organisation or a repo"""
         logtype = 'user'
         count = int(opts['--count'] or 30)
@@ -845,9 +845,9 @@ class GitHub(GitSpindle):
             events = [x for x in what.iter_events(number=count)]
         else:
             events = []
-            etype = opts['--type'].lower() + 'event'
+            etypes = [x.lower() + 'event' for x in opts['--type']]
             for event in what.iter_events(number=-1):
-                if event.type.lower() == etype:
+                if event.type.lower() in etypes:
                     events.append(event)
                     if len(events) == count:
                         break
