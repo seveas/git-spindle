@@ -268,13 +268,13 @@ Options:
 
     def rel2root(self, path):
         if path.startswith('/'):
-            return os.path.normpath(path)
+            return os.path.normpath(path).replace('\\', '/')
         path = os.path.abspath(path)
         root = self.repo_root()
         if not path.startswith(root):
             raise ValueError("Path not inside the git repository")
-        path = path.replace(root, '')
-        return path
+        path = path[len(root):]
+        return path.replace('\\', '/')
 
     def set_tracking_branches(self, remote, upstream=None, triangular=False, upstream_branch=None):
         if triangular and upstream:
