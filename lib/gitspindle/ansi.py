@@ -18,7 +18,7 @@ bgcolor = Attr(black=40, red=41, green=42, yellow=43, blue=44, magenta=45, cyan=
 attr    = Attr(normal=0, bright=1, faint=2, underline=4, negative=7, conceal=8, crossed=9, none=None)
 
 esc = '\033'
-mode = lambda *args: "%s[%sm" % (esc, ';'.join([str(x) for x in args if x is not None]))
+mode = lambda *args: "%s[%s;%s;%sm" % (esc, str(fgcolor.default), str(bgcolor.default), ';'.join([str(x) for x in args if x is not None]))
 reset = mode(attr.normal)
 if sys.stdout.isatty():
     wrap = lambda text, *args: "%s%s%s" % (mode(*args), text, reset)
