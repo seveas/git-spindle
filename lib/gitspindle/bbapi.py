@@ -206,9 +206,11 @@ class Repository(BBobject):
         data = self.get(self.links['forks']['href'])['values']
         return [Repository(self.bb, mode=None, **repo) for repo in data]
 
-    def issues(self, **params):
+    def issues(self, query=None):
         url = 'https://bitbucket.org/api/2.0/repositories/%s/issues' % self.full_name
-        data = self.get(url, data=params)['values']
+        if query:
+            url = '%s?q=%s' % (url, query)
+        data = self.get(url)['values']
         return [Issue(self.bb, mode=None, **issue) for issue in data]
 
     def issue(self, id):

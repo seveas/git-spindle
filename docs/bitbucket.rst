@@ -208,9 +208,9 @@ see the id's of your deploy keys.
 Issues and pull requests
 ------------------------
 
-.. describe:: git bb issues [<repo>] [--parent] [<filter>...]
+.. describe:: git bb issues [<repo>] [--parent] [<query>]
 
-List all open issues. You can specify filters to filter issues. When you
+List all open issues. You can specify a query string to filter issues. When you
 specify :option:`--parent`, list all open issues for the parent repository.
 
 .. describe:: git bb issue [<repo>] [--parent] [<issue>...]

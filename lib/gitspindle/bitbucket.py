@@ -348,7 +348,7 @@ class BitBucket(GitSpindle):
 
     @command
     def issues(self, opts):
-        """[<repo>] [--parent] [<filter>...]
+        """[<repo>] [--parent] [<query>]
            List issues in a repository"""
         if not opts['<repo>'] and not self.in_repo:
             repos = self.me.repositories()
@@ -357,9 +357,14 @@ class BitBucket(GitSpindle):
         for repo in repos:
             if repo.fork and opts['--parent']:
                 repo = self.parent_repo(repo) or repo
-            filters = dict([x.split('=', 1) for x in opts['<filter>']])
+            query = opts['<query>']
+            if query:
+                if not 'state' in query:
+                    query = '(state != "resolved" AND state != "invalid" AND state != "duplicate" AND state != "wontfix" AND state != "closed") AND %s' % query
+            else:
+                query = 'state != "resolved" AND state != "invalid" AND state != "duplicate" AND state != "wontfix" AND state != "closed"'
             try:
-                issues = repo.issues(**filters)
+                issues = repo.issues(query)
             except bbapi.BitBucketError:
                 issues = None
             try:

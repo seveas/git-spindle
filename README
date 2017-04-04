@@ -338,7 +338,7 @@ Show issue details or report an issue:
   git bb issue [<repo>] [--parent] [<issue>...]
 
 List issues in a repository:
-  git bb issues [<repo>] [--parent] [<filter>...]
+  git bb issues [<repo>] [--parent] [<query>]
 
 Display the contents of a directory on BitBucket:
   git bb ls [<dir>...]
