@@ -165,7 +165,7 @@ class GitHub(GitSpindle):
         url = repo._build_url('keys', base_url=repo._api)
         for arg in opts['<key>']:
             with open(arg) as fd:
-                algo, key, title = fd.read().strip().split(None, 2)
+                algo, key, title = (fd.read().strip().split(None, 2) + [None])[:3]
             key = "%s %s" % (algo, key)
             print("Adding deploy key %s" % arg)
             # repo.create_key(title=title, key=key, read_only=opts['--read-only'])
@@ -247,7 +247,7 @@ class GitHub(GitSpindle):
         existing = [x.key for x in self.gh.iter_keys()]
         for arg in opts['<key>']:
             with open(arg) as fd:
-                algo, key, title = fd.read().strip().split(None, 2)
+                algo, key, title = (fd.read().strip().split(None, 2) + [None])[:3]
             key = "%s %s" % (algo, key)
             if key in existing:
                 continue
