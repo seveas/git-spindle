@@ -484,6 +484,8 @@ class GitLab(GitSpindle):
             if opts['--parent']:
                 repo = self.parent_repo(repo) or repo
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
+            if not 'state' in filters:
+                filters['state'] = 'opened'
             issues = repo.Issue(**filters)
             mergerequests = repo.MergeRequest(state='opened')
             if not issues and not mergerequests:
