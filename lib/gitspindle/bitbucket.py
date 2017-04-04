@@ -83,10 +83,10 @@ class BitBucket(GitSpindle):
            Add privileges for a user to this repo"""
         repo = self.repository(opts)
         priv = 'read'
-        if opts['--write']:
-            priv = 'write'
-        elif opts['--admin']:
+        if opts['--admin']:
             priv = 'admin'
+        elif opts['--write']:
+            priv = 'write'
         for user in opts['<user>']:
             repo.add_privilege(user, priv)
 
@@ -300,10 +300,10 @@ class BitBucket(GitSpindle):
            Invite users to collaborate on this repository"""
         repo = self.repository(opts)
         priv = 'read'
-        if opts['--write']:
-            priv = 'write'
-        elif opts['--admin']:
+        if opts['--admin']:
             priv = 'admin'
+        elif opts['--write']:
+            priv = 'write'
         for email in opts['<email>']:
             invitation = repo.invite(email, priv)
             print("Invitation with %s privileges sent to %s" % (invitation['permission'], invitation['email']))
