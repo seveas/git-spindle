@@ -150,8 +150,8 @@ or `seveas/git-spindle:master:bin/git-lab`.
 .. describe:: git lab ls [<dir>...]
 
 Display the contents of a directory on GitLab. Directory can start with
-repository names and refs. For example: `master:bin/git-lab`,
-`git-spindle:master:bin/git-lab` or `seveas/git-spindle:master:bin/git-lab`.
+repository names and refs. For example: `master:/lib/gitspindle`,
+`git-spindle:master:/lib/gitspindle` or `seveas/git-spindle:master:/lib/gitspindle`.
 
 .. describe:: git lab fork [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
 

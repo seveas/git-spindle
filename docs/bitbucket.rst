@@ -122,8 +122,8 @@ names and refs. For example: `master:bin/git-bb`,
 .. describe:: git bb ls [<dir>...]
 
 Display the contents of a directory on BitBucket. Directory can start with
-repository names and refs. For example: `master:bin/git-bb`,
-`git-spindle:master:bin/git-bb` or `seveas/git-spindle:master:bin/git-bb`.
+repository names and refs. For example: `master:/lib/gitspindle`,
+`git-spindle:master:/lib/gitspindle` or `seveas/git-spindle:master:/lib/gitspindle`.
 
 .. describe:: git bb fork [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
 

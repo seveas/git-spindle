@@ -191,8 +191,8 @@ or `seveas/git-spindle:master:bin/git-hub`.
 .. describe:: git hub ls [<dir>...]
 
 Display the contents of a directory on GitHub. Directory can start with
-repository names and refs. For example: `master:bin/git-hub`,
-`git-spindle:master:bin/git-hub` or `seveas/git-spindle:master:bin/git-hub`.
+repository names and refs. For example: `master:/lib/gitspindle`,
+`git-spindle:master:/lib/gitspindle` or `seveas/git-spindle:master:/lib/gitspindle`.
 
 .. describe:: git hub readme [<repo>]
 
