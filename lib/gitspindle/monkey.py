@@ -114,13 +114,16 @@ github3.repos.branch.Branch.unprotect = unprotect
 # Monkeypatch docopt to support our git-clone-options-hack
 import docopt
 known_options = {
+    # Git clone options as of Git 2.11.0
     'clone': (
-        '-q', '--quiet', '-v', '--verbose', '-n', '--no-checkout', '--bare',
-        '--mirror', '--reference=<repository>', '--progress', '-o <oname>', '--origin=<oname>',
-        '-b <name>', '--branch=<name>', '-u <upload-pack>', '--upload-pack=<upload-pack>',
+        '-q', '--quiet', '-v', '--verbose', '-n', '--no-checkout', '--bare', '--mirror',
+        '--reference=<repository>', '--reference-if-able=<repository>', '--progress', '-o <oname>',
+        '--origin=<oname>', '-b <name>', '--branch=<name>', '-u <upload-pack>', '--upload-pack=<upload-pack>',
         '--template=<template-directory>', '-c <key-value>', '--config=<key-value>',
         '--depth=<depth>', '--single-branch', '--no-single-branch', '--recursive', '--recurse-submodules',
-        '--separate-git-dir=<git_dir>'),
+        '--separate-git-dir=<git_dir>', '-l', '--local', '--no-hardlinks', '-s', '--shared',
+        '-j <n>', '--jobs=<n>', '--dissociate', '--shallow-since=<date>', '--shallow-exclude=<revision>',
+        '--shallow-submodules', '--no-shallow-submodules', '-4', '--ipv4', '-6', '--ipv6'),
 }
 
 class GitOption(docopt.Option):
