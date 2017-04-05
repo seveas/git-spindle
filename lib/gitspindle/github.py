@@ -177,9 +177,10 @@ class GitHub(GitSpindle):
         """<name> [<setting>...]
            Add a repository hook"""
         repo = self.repository(opts)
-        for hook in repo.iter_hooks():
-            if hook.name == opts['<name>']:
-                raise ValueError("Hook %s already exists" % opts['<name>'])
+        if opts['<name>'] != 'web':
+            for hook in repo.iter_hooks():
+                if hook.name == opts['<name>']:
+                    raise ValueError("Hook '%s' already exists" % opts['<name>'])
         settings = dict([x.split('=', 1) for x in opts['<setting>']])
         for key in settings:
             if settings[key].isdigit():
@@ -631,12 +632,21 @@ class GitHub(GitSpindle):
     def edit_hook(self, opts):
         """<name> [<setting>...]
            Edit a hook"""
-        for hook in self.repository(opts).iter_hooks():
-            if hook.name == opts['<name>']:
-                break
+        if opts['<name>'] == 'web' or not opts['<name>'][4:].isdigit():
+            raise ValueError("Hook '%s' does not exist" % opts['<name>'])
+        elif opts['<name>'].startswith('web-'):
+            id = int(opts['<name>'][4:])
+            for hook in self.repository(opts).iter_hooks():
+                if hook.name == 'web' and hook.id == id:
+                    break
+            else:
+                raise ValueError("Hook '%s' does not exist" % opts['<name>'])
         else:
-            raise ValueError("Hook %s does not exist" % opts['<name>'])
-
+            for hook in self.repository(opts).iter_hooks():
+                if hook.name == opts['<name>']:
+                    break
+            else:
+                raise ValueError("Hook '%s' does not exist" % opts['<name>'])
         settings = dict([x.split('=', 1) for x in opts['<setting>']])
         for key in settings:
             if settings[key].isdigit():
@@ -723,7 +733,10 @@ class GitHub(GitSpindle):
     def hooks(self, opts):
         """\nShow hooks that have been enabled"""
         for hook in self.repository(opts).iter_hooks():
-            print(wrap("%s (%s)" % (hook.name, ', '.join(hook.events)), attr.bright))
+            if hook.name == 'web':
+                print(wrap("%s-%d (%s)" % (hook.name, hook.id, ', '.join(hook.events)), attr.bright))
+            else:
+                print(wrap("%s (%s)" % (hook.name, ', '.join(hook.events)), attr.bright))
             for key, val in sorted(hook.config.items()):
                 if val in (None, ''):
                     continue
@@ -1287,9 +1300,16 @@ class GitHub(GitSpindle):
     def remove_hook(self, opts):
         """<name>
            Remove a hook"""
-        for hook in self.repository(opts).iter_hooks():
-            if hook.name == opts['<name>']:
-                hook.delete()
+        if opts['<name>'].startswith('web-'):
+            if opts['<name>'][4:].isdigit():
+                id = int(opts['<name>'][4:])
+                for hook in self.repository(opts).iter_hooks():
+                    if hook.name == 'web' and hook.id == id:
+                        hook.delete()
+        elif not opts['<name>'] == 'web':
+            for hook in self.repository(opts).iter_hooks():
+                if hook.name == opts['<name>']:
+                    hook.delete()
 
     @command
     def render(self, opts):
