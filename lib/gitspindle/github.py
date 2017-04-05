@@ -644,7 +644,7 @@ class GitHub(GitSpindle):
         events = settings.pop('events', ','.join(hook.events)).split(',')
         config = hook.config
         config.update(settings)
-        hook.edit(opts['<name>'], config, events)
+        hook.edit(config, events)
 
     @command
     def fetch(self, opts):
