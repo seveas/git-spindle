@@ -255,6 +255,22 @@ class GitHub(GitSpindle):
             print("Adding %s" % arg)
             self.gh.create_key(title=title, key=key)
 
+    @hidden_command
+    def available_hooks(self, opts):
+        """[<name>]
+           List information about available hooks or hook options (for completion)"""
+        url = self.gh._build_url('hooks')
+        json = self.gh._json(self.gh._get(url), 200)
+        for hook in json:
+            name = hook['name']
+            if opts['<name>']:
+                if name == opts['<name>']:
+                    print(' '.join(hook['supported_events']))
+                    if hook['schema']:
+                        print('%s=' % '= '.join(schema_element[1] for schema_element in hook['schema']))
+            else:
+                print(name)
+
     @command
     def browse(self, opts):
         """[--parent] [<repo>] [<section>]
