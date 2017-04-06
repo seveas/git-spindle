@@ -897,16 +897,25 @@ class GitHub(GitSpindle):
             elif event.type == 'FollowEvent':
                 print("%s started following %s" % (ts, event.payload['target'].login))
             elif event.type == 'ForkEvent':
-                print("%s forked %s to %s/%s" % (ts, repo, event.payload['forkee'].owner.login, event.payload['forkee'].name))
+                print("%s forked %s to %s" % (ts, repo, event.payload['forkee'].full_name))
             elif event.type == 'ForkApplyEvent':
                 print("%s applied %s to %s%s" % (ts, event.payload['after'][:7], event.payload['head'], repo_))
+                if verbose:
+                    shas = '%s...%s' % (event.payload['before'][:7], event.payload['after'][:7])
+                    print("%s %s/compare/%s" % (tss, self.gh.repository(*event.repo).html_url, shas))
             elif event.type == 'GistEvent':
                 print("%s %sd gist #%s" % (ts, event.payload['action'], event.payload['gist'].html_url))
+            elif event.type == 'GistHistoryEvent':
+                # this comes from from monkey patching gists, not from the standard GitHub API
+                print("%s committed %s additions, %s deletions" % (ts, event.additions, event.deletions))
             elif event.type == 'GollumEvent':
                 pages = len(event.payload['pages'])
                 print("%s updated %d wikipage%s%s" % (ts, pages, {1:''}.get(pages, 's'), repo_))
+                if verbose:
+                    for page in event.payload['pages']:
+                        print("%s %s '%s' (%s%s)" % (tss, page['action'], page['title'], '/'.join(self.me.html_url.split('/', 4)[:3]), page['html_url']))
             elif event.type == 'IssueCommentEvent':
-                print("%s commented on issue #%s%s" % (ts, event.payload['issue'].number, repo_))
+                print("%s %s comment on %s #%s%s" % (ts, event.payload['action'], 'pull request' if event.payload['issue'].pull_request else 'issue', event.payload['issue'].number, repo_))
                 if verbose:
                     print("%s %s %s" % (tss, event.payload['issue'].title, event.payload['comment']._json_data['html_url']))
             elif event.type == 'IssuesEvent':
@@ -917,39 +926,23 @@ class GitHub(GitSpindle):
                 print("%s %s %s to %s" % (ts, event.payload['action'], event.payload['member'].login, repo))
             elif event.type == 'PublicEvent':
                 print("%s made %s open source" % repo)
-            elif event.type == 'PullRequestReviewCommentEvent':
-                print("%s commented on a pull request for commit %s%s" % (ts, event.payload['comment'].commit_id[:7], repo_))
             elif event.type == 'PullRequestEvent':
-                print("%s %s pull_request #%s%s" % (ts, event.payload['action'], event.payload['pull_request'].number, repo_))
+                print("%s %s pull request #%s%s" % (ts, event.payload['action'], event.payload['pull_request'].number, repo_))
                 if verbose:
                     print("%s %s %s" % (tss, event.payload['pull_request'].title, event.payload['pull_request'].html_url))
-
-            elif event.type == 'PushEvent':
-                # Old push events have shas and not commits
-                if 'commits' in event.payload:
-                    commits = len(event.payload['commits'])
-                else:
-                    commits = len(event.payload['shas'])
-                print("%s pushed %d commits to %s%s" % (ts, commits, event.payload['ref'][11:], repo_))
+            elif event.type == 'PullRequestReviewCommentEvent':
+                print("%s commented on a pull request for commit %s%s" % (ts, event.payload['comment'].commit_id[:7], repo_))
                 if verbose:
-                    shas = '%s...%s' % (event.payload['before'][:8], event.payload['head'][:8])
-                    print("%s %s/%s/compare/%s" % (tss, self.me.html_url, event.repo[1], shas))
+                    print("%s %s %s" % (tss, event.payload['pull_request'].title, event.payload['comment']._json_data['html_url']))
+            elif event.type == 'PushEvent':
+                print("%s pushed %d commits to %s%s" % (ts, event.payload['size'], event.payload['ref'][11:], repo_))
+                if verbose:
+                    shas = '%s...%s' % (event.payload['before'][:7], event.payload['head'][:7])
+                    print("%s %s/compare/%s" % (tss, self.gh.repository(*event.repo).html_url, shas))
             elif event.type == 'ReleaseEvent':
-                print("%s released %s" % (ts, event.payload['name']))
-            elif event.type == 'StatusEvent':
-                print("%s commit %s changed to %s" % (ts, event.payload['sha'][:7], event.payload['state']))
-            elif event.type == 'TeamAddEvent':
-                if 'user' in event.payload:
-                    what = 'user'
-                    name = isinstance(event.payload['user'], dict) and event.payload['user']['name'] or event.payload['user'].name
-                else:
-                    what = 'repository'
-                    name = isinstance(event.payload['repository'], dict) and event.payload['repository']['name'] or event.payload['repository'].name
-                    print("%s %s %s was added to team %s" % (ts, what, name, event.payload['team'].name))
+                print("%s %s release '%s'" % (ts, event.payload['action'], event.payload['release'].name))
             elif event.type == 'WatchEvent':
                 print("%s %s watching %s" % (ts, event.payload['action'], repo))
-            elif event.type == 'GistHistoryEvent':
-                print("%s committed %s additions, %s deletions" % (ts, event.additions, event.deletions))
             else:
                 print(wrap("Cannot display %s. Please file a bug at github.com/seveas/git-spindle\nincluding the following output:" % event.type, attr.bright))
                 pprint(event.payload)
