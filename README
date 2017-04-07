@@ -68,7 +68,7 @@ Display the contents of a file on GitHub:
   git hub cat <file>...
 
 Check the github pages configuration and content of your repo:
-  git hub check-pages
+  git hub check-pages [<repo>] [--parent]
 
 Clone a repository by name:
   git hub clone [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
