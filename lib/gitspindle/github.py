@@ -1448,14 +1448,8 @@ class GitHub(GitSpindle):
                 print("Pointing upstream to %s" % url)
                 self.gitm('config', 'remote.upstream.url', url)
             self.gitm('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
-        else:
-            # If issues are enabled, fetch pull requests
-            try:
-                list(repo.iter_issues(number=1))
-            except github3.GitHubError:
-                pass
-            else:
-                self.gitm('config', '--add', 'remote.%s.fetch' % remote, '+refs/pull/*/head:refs/pull/*/head')
+
+        self.gitm('config', '--add', 'remote.%s.fetch' % remote, '+refs/pull/*/head:refs/pull/*/head')
 
         if self.git('ls-remote', remote).stdout.strip():
             self.gitm('fetch', remote, redirect=False)
