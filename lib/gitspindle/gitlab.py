@@ -820,6 +820,8 @@ class GitLab(GitSpindle):
                 self.gitm('config', 'remote.upstream.gitlab-id', parent.id)
             self.gitm('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
 
+        self.gitm('config', '--add', 'remote.%s.fetch' % remote, '+refs/merge-requests/*/head:refs/merge-requests/*/head')
+
         if self.git('ls-remote', remote).stdout.strip():
             self.gitm('fetch', remote, redirect=False)
         if parent:
