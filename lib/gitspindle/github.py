@@ -791,8 +791,8 @@ class GitHub(GitSpindle):
         for issue_no in opts['<issue>']:
             issue = repo.issue(issue_no)
             if issue:
-                print(wrap(issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), attr.bright, attr.underline))
-                print(issue.body.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding))
+                print(wrap(issue.title, attr.bright, attr.underline))
+                print(issue.body)
                 print(issue.pull_request and issue.pull_request['html_url'] or issue.html_url)
             else:
                 print('No issue with id %s found in repository %s' % (issue_no, repo.full_name))
@@ -839,7 +839,7 @@ class GitHub(GitSpindle):
             print(wrap("Issues for %s/%s" % (repo.owner.login, repo.name), attr.bright))
             for issue in issues:
                 url = issue.pull_request and issue.pull_request['html_url'] or issue.html_url
-                print("[%d] %s %s" % (issue.number, issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), url))
+                print("[%d] %s %s" % (issue.number, issue.title, url))
 
     @command
     def log(self, opts):
@@ -1391,8 +1391,6 @@ class GitHub(GitSpindle):
             if opts['<user>'][0] != repo.owner.login:
                 name = '%s/%s' % (repo.owner.login, name)
             msg = wrap(fmt % (name, repo._json_data['stargazers_count'], repo.forks, repo.description), *color)
-            if not PY3:
-                msg = msg.encode('utf-8')
             print(msg)
 
     @command

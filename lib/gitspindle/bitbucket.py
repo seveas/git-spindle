@@ -318,8 +318,8 @@ class BitBucket(GitSpindle):
         for issue_no in opts['<issue>']:
             try:
                 issue = repo.issue(issue_no)
-                print(wrap(issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), attr.bright, attr.underline))
-                print(issue.content['raw'].encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding))
+                print(wrap(issue.title, attr.bright, attr.underline))
+                print(issue.content['raw'])
                 print(issue.html_url)
             except bbapi.BitBucketError:
                 bbe = sys.exc_info()[1]
@@ -373,11 +373,11 @@ class BitBucket(GitSpindle):
             if issues:
                 print(wrap("Issues for %s" % repo.full_name, attr.bright))
                 for issue in issues:
-                    print("[%d] %s %s" % (issue.id, issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), issue.html_url))
+                    print("[%d] %s %s" % (issue.id, issue.title, issue.html_url))
             if pullrequests:
                 print(wrap("Pull requests for %s" % repo.full_name, attr.bright))
                 for pr in pullrequests:
-                    print("[%d] %s %s" % (pr.id, pr.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), pr.html_url))
+                    print("[%d] %s %s" % (pr.id, pr.title, pr.html_url))
 
 
     @command

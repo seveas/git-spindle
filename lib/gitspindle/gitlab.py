@@ -448,8 +448,8 @@ class GitLab(GitSpindle):
             issues = repo.Issue(iid=issue_no)
             if len(issues):
                 issue = issues[0]
-                print(wrap(issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), attr.bright, attr.underline))
-                print(issue.description.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding))
+                print(wrap(issue.title, attr.bright, attr.underline))
+                print(issue.description)
                 print(issue.web_url)
             else:
                 print('No issue with id %s found in repository %s' % (issue_no, repo.path_with_namespace))

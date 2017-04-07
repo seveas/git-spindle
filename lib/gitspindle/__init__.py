@@ -31,6 +31,15 @@ import pprint
 __builtins__['pprint'] = pprint.pprint
 del pprint
 
+orig_print = print
+def safe_print(*args, sep=' ', end='\n', file=None):
+    if not file or hasattr(file, 'encoding'):
+        encoding = file.encoding if file else sys.stdout.encoding
+        orig_print(*[str(arg).encode(encoding, errors='backslashreplace').decode(encoding) for arg in args], sep=sep, end=end, file=file)
+    else:
+        orig_print(*args, sep=sep, end=end, file=file)
+__builtins__['print'] = safe_print
+
 def command(fnc):
     fnc.is_command = True
     if not hasattr(fnc, 'no_login'):
