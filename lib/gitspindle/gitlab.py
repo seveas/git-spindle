@@ -356,7 +356,7 @@ class GitLab(GitSpindle):
 
     @command
     def clone(self, opts, repo=None):
-        """[--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+        """[--ssh|--http] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
         if not repo:
             repo = self.repository(opts)
@@ -422,7 +422,7 @@ class GitLab(GitSpindle):
 
     @command
     def fork(self, opts):
-        """[--ssh|--http] [--triangular] [<repo>]
+        """[--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
            Fork a repo and clone it"""
         do_clone = bool(opts['<repo>'])
         repo = self.repository(opts)
@@ -589,7 +589,14 @@ class GitLab(GitSpindle):
         if not src:
             src = self.gitm('rev-parse', '--abbrev-ref', 'HEAD').stdout.strip()
         if not dst:
-            dst = parent.default_branch
+            tracking_remote = None
+            tracking_branch = self.git('rev-parse', '--abbrev-ref', '%s@{u}' % src).stdout.strip()
+            if '/' in tracking_branch:
+                tracking_remote, tracking_branch = tracking_branch.split('/', 1)
+            if (parent == repo and tracking_remote == 'origin') or (parent != repo and tracking_remote == 'upstream'):
+                dst = tracking_branch
+            else:
+                dst = parent.default_branch
 
         if src == dst and parent == repo:
             err("Cannot file a merge request on the same branch")
@@ -787,7 +794,7 @@ class GitLab(GitSpindle):
 
     @command
     def set_origin(self, opts, repo=None, remote='origin'):
-        """[--ssh|--http] [--triangular]
+        """[--ssh|--http] [--triangular [--upstream-branch=<branch>]]
            Set the remote 'origin' to gitlab.
            If this is a fork, set the remote 'upstream' to the parent"""
         if not repo:
@@ -822,7 +829,7 @@ class GitLab(GitSpindle):
         if remote != 'origin':
             return
 
-        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'])
+        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'], upstream_branch=opts['--upstream-branch'])
 
     @command
     def unprotect(self, opts):

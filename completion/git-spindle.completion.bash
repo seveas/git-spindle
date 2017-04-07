@@ -26,6 +26,7 @@ _git_hub() {
         edit-hook
         fetch
         fork
+        forks
         gist
         gists
         help
@@ -147,6 +148,7 @@ _git_bb() {
         deploy-keys
         fetch
         fork
+        forks
         help
         invite
         issue
@@ -280,9 +282,7 @@ _git_spindle_cat() {
 
 _git_spindle_clone() {
     __git_spindle_protocols $1
-    case "$cur" in
-        --*)
-            __gitcompappend "
+    __git_spindle_options "
                 --parent
                 --local
                 --no-hardlinks
@@ -298,9 +298,9 @@ _git_spindle_clone() {
                 --depth
                 --single-branch
                 --branch
-            " "" "$cur" " "
-            ;;
-    esac
+                --triangular
+                --upstream-branch=
+            " append
 }
 
 _git_spindle_config() {
@@ -333,6 +333,10 @@ _git_spindle_create_token() {
 _git_spindle_fetch() {
     __git_spindle_protocols $1
     __git_spindle_forks $1
+}
+
+_git_spindle_fork() {
+    _git_spindle_set_origin $1
 }
 
 _git_spindle_gist() {
@@ -376,11 +380,7 @@ _git_spindle_ls() {
 
 _git_spindle_mirror() {
     __git_spindle_protocols $1
-    case "$cur" in
-        --*)
-            __gitcompappend "--goblet" "" "$cur" " "
-            ;;
-    esac
+    __git_spindle_options "--goblet" append
 }
 
 _git_spindle_protect() {
@@ -422,7 +422,8 @@ _git_spindle_snippet() {
 }
 
 _git_spindle_set_origin() {
-    __git_spindle_protocols
+    __git_spindle_protocols $1
+    __git_spindle_options "--triangular --upstream-branch=" append
 }
 
 _git_spindle_unprotect() {
@@ -462,8 +463,12 @@ __git_spindle_repos() {
 }
 
 __git_spindle_options() {
-    case "$cur" in
-        --*)
+    case "$2,$cur" in
+        append,--*)
+            __gitcompappend "$1" "" "$cur" " "
+            return
+            ;;
+        *,--*)
             __gitcomp "$1"
             return
             ;;

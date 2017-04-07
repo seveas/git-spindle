@@ -109,7 +109,7 @@ have GitLab as remote "origin", so :command:`git push origin master` will work.
 By default the repository is created under your account, but you can specify a
 group to create the repository for.
 
-.. describe:: git lab set-origin [--ssh|--http] [--triangular]
+.. describe:: git lab set-origin [--ssh|--http] [--triangular [--upstream-branch=<branch>]]
 
 Fix the configuration of your repository's remotes. The remote "origin" will be
 set to your GitLab repository. If "origin" is a fork, an "upstream" remote will
@@ -118,12 +118,17 @@ be set to the repository you forked from.
 All non-tracking branches with a matching counterpart in "origin" will be set to
 track "origin" (push and pull to it). Use :option:`--triangular` to set remotes
 in a triangular fashion where :command:`git pull` pulls from "upstream" and
-:command:`git push` pushes to "origin".
+:command:`git push` pushes to "origin". This also sets the configuration option
+:option:`remote.pushDefault`, so that new branches are pushed to "origin" even
+if they track a branch in "upstream". All non-tracking branches are set up to
+track a matching counterpart in "upstream" except if :option:`--upstream-branch`
+explicitly specifies a branch like "master" in "upstream" that all branches should
+track.
 
 For "origin", an SSH url is used. For "upstream", set-origin defaults to adding
 a git url, but this can be overridden. For private repos, SSH is used.
 
-.. describe:: git lab clone [--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+.. describe:: git lab clone [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
 
 Clone a GitLab repository by name (e.g. seveas/hacks) or URL. The "origin"
 remote will be set and, like with set-origin, if "origin" is a fork t
@@ -148,7 +153,7 @@ Display the contents of a directory on GitLab. Directory can start with
 repository names and refs. For example: `master:bin/git-lab`,
 `git-spindle:master:bin/git-lab` or `seveas/git-spindle:master:bin/git-lab`.
 
-.. describe:: git lab fork [--ssh|--http] [--triangular] [<repo>]
+.. describe:: git lab fork [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
 
 Fork another person's git repository on GitLab and clones that repository
 locally. Repo can be specified as a (git) url or simply username/repo. Like with
@@ -235,7 +240,9 @@ used to create a new issue.
 .. describe:: git lab merge-request [--yes] [<yours:theirs>]
 
 Files a pull request to merge branch "yours" (default: the current branch) into
-the upstream branch "theirs" (default: master). Like for a commit message, your
+the upstream branch "theirs" (default: the tracked branch of "yours" if it is in
+the upstream repository, otherwise the default branch of the upstream
+repository, usually "master"). Like for a commit message, your
 editor will be opened to write a pull request message. The comments of said
 message contain the shortlog and diffstat of the commits that you're asking to
 be merged. Note that if you use any characterset in your logs and filenames
