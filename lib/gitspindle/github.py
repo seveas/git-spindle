@@ -556,9 +556,8 @@ class GitHub(GitSpindle):
         args.append(dir)
 
         self.gitm('clone', *args, redirect=False).returncode
-        if repo.fork:
-            os.chdir(dir)
-            self.set_origin(opts, repo=repo)
+        os.chdir(dir)
+        self.set_origin(opts, repo=repo)
 
     @command
     def collaborators(self, opts):

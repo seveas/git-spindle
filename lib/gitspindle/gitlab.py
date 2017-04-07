@@ -367,9 +367,8 @@ class GitLab(GitSpindle):
 
         self.gitm('clone', *args, redirect=False).returncode
         self.gitm('config', 'remote.origin.gitlab-id', repo.id, cwd=dir)
-        if hasattr(repo, 'forked_from_project'):
-            os.chdir(dir)
-            self.set_origin(opts, repo=repo)
+        os.chdir(dir)
+        self.set_origin(opts, repo=repo)
 
     @command
     def create(self, opts):

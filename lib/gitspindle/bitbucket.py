@@ -211,10 +211,8 @@ class BitBucket(GitSpindle):
         args.append(dir)
 
         self.gitm('clone', *args, redirect=False).returncode
-        if repo.is_fork:
-            os.chdir(dir)
-            self.set_origin(opts, repo=repo)
-            self.gitm('fetch', 'upstream', redirect=False)
+        os.chdir(dir)
+        self.set_origin(opts, repo=repo)
 
     @command
     def create(self, opts):
