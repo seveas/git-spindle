@@ -10,6 +10,9 @@ def check(resp):
         except (KeyError, ValueError):
             message = resp.content
 
+        if isinstance(message, bytes):
+            message = message.decode('utf-8')
+
         if resp.status_code == 401:
             raise BitBucketAuthenticationError(message)
         raise BitBucketError(message)
