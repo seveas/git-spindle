@@ -296,22 +296,22 @@ ssh. Read-only keys acan only fetch.
 Remove a deploy key by id. Use the :command:`git hub deploy-keys` command to
 see the id's of your deploy keys.
 
-.. describe:: git hub hooks
+.. describe:: git hub hooks [<repo>]
 
 Show all service hooks for this repository.
 
-.. describe:: git hub add-hook <name> [<setting>...]
+.. describe:: git hub add-hook <name> [<repo>] [<setting>...]
 
 Add a hook to this repository with the appropriate settings. Settings can be
 found in the hooks page on GitHub. One setting all hooks accept is
 :data:`events`, a comma-separated list of events this hook will be triggered
 for. A list of all events can be found on the `GitHub API page`_
 
-.. describe:: git hub edit-hook <name> [<setting>...]
+.. describe:: git hub edit-hook <name> [<repo>] [<setting>...]
 
 Edit one or more settings for a hook.
 
-.. describe:: git hub remove-hook <name>
+.. describe:: git hub remove-hook <name> [<repo>]
 
 Remove a service hook.
 

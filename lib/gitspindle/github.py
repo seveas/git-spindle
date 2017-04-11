@@ -174,8 +174,12 @@ class GitHub(GitSpindle):
 
     @command
     def add_hook(self, opts):
-        """<name> [<setting>...]
+        """<name> [<repo>] [<setting>...]
            Add a repository hook"""
+        if opts['<repo>'] and '=' in opts['<repo>']:
+            # Let's assume it's a setting
+            opts['<setting>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         repo = self.repository(opts)
         if opts['<name>'] != 'web':
             for hook in repo.iter_hooks():
@@ -645,8 +649,12 @@ class GitHub(GitSpindle):
 
     @command
     def edit_hook(self, opts):
-        """<name> [<setting>...]
+        """<name> [<repo>] [<setting>...]
            Edit a hook"""
+        if opts['<repo>'] and '=' in opts['<repo>']:
+            # Let's assume it's a setting
+            opts['<setting>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         if opts['<name>'] == 'web' or not opts['<name>'][4:].isdigit():
             raise ValueError("Hook '%s' does not exist" % opts['<name>'])
         elif opts['<name>'].startswith('web-'):
@@ -746,7 +754,8 @@ class GitHub(GitSpindle):
 
     @command
     def hooks(self, opts):
-        """\nShow hooks that have been enabled"""
+        """[<repo>]
+           Show hooks that have been enabled"""
         for hook in self.repository(opts).iter_hooks():
             if hook.name == 'web':
                 print(wrap("%s-%d (%s)" % (hook.name, hook.id, ', '.join(hook.events)), attr.bright))
@@ -1306,7 +1315,7 @@ class GitHub(GitSpindle):
 
     @command
     def remove_hook(self, opts):
-        """<name>
+        """<name> [<repo>]
            Remove a hook"""
         if opts['<name>'].startswith('web-'):
             if opts['<name>'][4:].isdigit():
@@ -1314,10 +1323,13 @@ class GitHub(GitSpindle):
                 for hook in self.repository(opts).iter_hooks():
                     if hook.name == 'web' and hook.id == id:
                         hook.delete()
+                        return
         elif not opts['<name>'] == 'web':
             for hook in self.repository(opts).iter_hooks():
                 if hook.name == opts['<name>']:
                     hook.delete()
+                    return
+        raise ValueError("Hook '%s' does not exist" % opts['<name>'])
 
     @command
     def render(self, opts):

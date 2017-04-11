@@ -282,6 +282,13 @@ _git_spindle_add_hook() {
             ;;
         *)
             __git_spindle_hook_settings
+            case "${#previous_args[@]},$cur" in
+                *,*=*)
+                    ;;
+                2,*)
+                    __git_spindle_repos $1
+                    ;;
+            esac
             ;;
     esac
 }
@@ -511,6 +518,13 @@ _git_spindle_edit_hook() {
             ;;
         *)
             __git_spindle_hook_settings "-*"
+            case "${#previous_args[@]},$cur" in
+                *,*=*)
+                    ;;
+                2,*)
+                    __git_spindle_repos $1
+                    ;;
+            esac
             ;;
     esac
 }
@@ -550,6 +564,12 @@ _git_spindle_help() {
     __git_spindle_options && return
 
     [ ${#previous_args[@]} -eq 1 ] && __gitcomp "$subcommands"
+}
+
+_git_spindle_hooks() {
+    __git_spindle_options && return
+
+    [ ${#previous_args[@]} -eq 1 ] && __git_spindle_repos $1
 }
 
 _git_spindle_ignore() {
@@ -882,7 +902,14 @@ _git_spindle_remove_deploy_key() {
 _git_spindle_remove_hook() {
     __git_spindle_options && return
 
-    [ ${#previous_args[@]} -eq 1 ] && __git_spindle_hooks
+    case ${#previous_args[@]} in
+        1)
+            __git_spindle_hooks
+            ;;
+        2)
+            __git_spindle_repos $1
+            ;;
+    esac
 }
 
 _git_spindle_remove_member() {

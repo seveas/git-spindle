@@ -47,7 +47,7 @@ Add a deploy key:
   git hub add-deploy-key [--read-only] <key>...
 
 Add a repository hook:
-  git hub add-hook <name> [<setting>...]
+  git hub add-hook <name> [<repo>] [<setting>...]
 
 Adds keys to your public keys:
   git hub add-public-keys [<key>...]
@@ -89,7 +89,7 @@ Lists all keys for a repo:
   git hub deploy-keys [<repo>]
 
 Edit a hook:
-  git hub edit-hook <name> [<setting>...]
+  git hub edit-hook <name> [<repo>] [<setting>...]
 
 Fetch refs from a user's fork:
   git hub fetch [--ssh|--http|--git] <user> [<refspec>]
@@ -110,7 +110,7 @@ Display the help for a command:
   git hub help <command>
 
 Show hooks that have been enabled:
-  git hub hooks
+  git hub hooks [<repo>]
 
 Show gitignore patterns for one or more languages:
   git hub ignore [<language>...]
@@ -164,7 +164,7 @@ Remove deploy key by id:
   git hub remove-deploy-key <key>...
 
 Remove a hook:
-  git hub remove-hook <name>
+  git hub remove-hook <name> [<repo>]
 
 Render a markdown document:
   git hub render [--save=<outfile>] <file>
