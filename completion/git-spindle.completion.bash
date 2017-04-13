@@ -617,9 +617,6 @@ _git_spindle_issues() {
     __git_spindle_options "--parent" && return
 
     case $1,${#previous_args[@]} in
-        *,1)
-            __git_spindle_repos $1
-            ;;
         hub,*)
             case "$cur" in
                 milestone=*)
@@ -676,6 +673,14 @@ _git_spindle_issues() {
                     __gitcompadd "state= labels= labels_name= milestone= order_by= sort=" "" "$cur"
                     ;;
             esac
+            ;;
+    esac
+
+    case "$cur" in
+        *=*)
+            ;;
+        *)
+            [ ${#previous_args[@]} -eq 1 ] && __git_spindle_repos $1
             ;;
     esac
 }

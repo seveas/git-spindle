@@ -475,6 +475,10 @@ class GitLab(GitSpindle):
     def issues(self, opts):
         """[<repo>] [--parent] [<filter>...]
            List issues in a repository"""
+        if opts['<repo>'] and '=' in opts['<repo>']:
+            # Let's assume it's a filter
+            opts['<filter>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         if not opts['<repo>'] and not self.in_repo:
             repos = list(self.gl.Project())
         else:
