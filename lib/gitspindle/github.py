@@ -1107,14 +1107,15 @@ class GitHub(GitSpindle):
 
     @command
     def protect(self, opts):
-        """[--enforcement-level=<level>] [--contexts=<contexts>] <branch>
+        """[--enforcement-level=<level>] [--contexts=<contexts>] <branch> [<repo>]
            Protect a branch against deletions, force-pushes and failed status checks"""
         repo = self.repository(opts)
         repo.branch(opts['<branch>']).protect(enforcement_level=opts['--enforcement-level'], contexts=(opts['--contexts'] or '').split(',') if opts['--contexts'] else None)
 
     @command
     def protected(self, opts):
-        """\nList active branch protections"""
+        """[<repo>]
+           List active branch protections"""
         repo = self.repository(opts)
         for branch in repo.iter_branches(protected=True):
             data = branch._json_data['protection']
@@ -1499,7 +1500,7 @@ class GitHub(GitSpindle):
 
     @command
     def unprotect(self, opts):
-        """ <branch>
+        """<branch> [<repo>]
            Remove branch protections from a branch"""
         repo = self.repository(opts)
         repo.branch(opts['<branch>']).unprotect()

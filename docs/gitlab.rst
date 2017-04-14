@@ -208,17 +208,17 @@ Grant people access to this repository.
 
 Revoke access to this repository.
 
-.. describe:: git lab protected
+.. describe:: git lab protected [<repo>]
 
 List all protected branches. Protected branches cannot be force-pushed or
 deleted, and can only be pushed to by people with the master or owner access
 level.
 
-.. describe:: git lab protect <branch>
+.. describe:: git lab protect <branch> [<repo>]
 
 Mark a branch as protected.
 
-.. describe:: git lab unprotect <branch>
+.. describe:: git lab unprotect <branch> [<repo>]
 
 Remove a branch's protection.
 

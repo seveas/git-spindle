@@ -137,10 +137,10 @@ Create a graphviz graph of followers and forks:
   git hub network [<level>]
 
 Protect a branch against deletions, force-pushes and failed status checks:
-  git hub protect [--enforcement-level=<level>] [--contexts=<contexts>] <branch>
+  git hub protect [--enforcement-level=<level>] [--contexts=<contexts>] <branch> [<repo>]
 
 List active branch protections:
-  git hub protected
+  git hub protected [<repo>]
 
 Lists all keys for a user:
   git hub public-keys [<user>]
@@ -185,7 +185,7 @@ Display current and historical GitHub service status:
   git hub status
 
 Remove branch protections from a branch:
-  git hub unprotect <branch>
+  git hub unprotect <branch> [<repo>]
 
 Display GitHub user info:
   git hub whoami
@@ -257,10 +257,10 @@ Mirror a repository, or all your repositories:
   git lab mirror [--ssh|--http] [--goblet] [<repo>]
 
 Protect a branch against force-pushes:
-  git lab protect <branch>
+  git lab protect <branch> [<repo>]
 
 List protected branches:
-  git lab protected
+  git lab protected [<repo>]
 
 Lists all keys for a user:
   git lab public-keys [<user>]
@@ -275,7 +275,7 @@ Set the remote 'origin' to gitlab.:
   git lab set-origin [--ssh|--http] [--triangular [--upstream-branch=<branch>]]
 
 Remove force-push protection from a branch:
-  git lab unprotect <branch>
+  git lab unprotect <branch> [<repo>]
 
 Display GitLab user info:
   git lab whoami

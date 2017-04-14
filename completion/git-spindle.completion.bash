@@ -817,7 +817,20 @@ _git_spindle_protect() {
 
     __git_spindle_options && return
 
-    [ ${#previous_args[@]} -eq 1 ] && __gitcomp_nl "$(__git_heads)"
+    case ${#previous_args[@]} in
+        1)
+            __gitcomp_nl "$(__git_heads)"
+            ;;
+        2)
+            __git_spindle_repos $1
+            ;;
+    esac
+}
+
+_git_spindle_protected() {
+    __git_spindle_options && return
+
+    [ ${#previous_args[@]} -eq 1 ] && __git_spindle_repos $1
 }
 
 _git_spindle_pull_request() {
@@ -971,7 +984,14 @@ _git_spindle_snippet() {
 _git_spindle_unprotect() {
     __git_spindle_options && return
 
-    [ ${#previous_args[@]} -eq 1 ] && __gitcomp_nl "$(__git_heads)"
+    case ${#previous_args[@]} in
+        1)
+            __gitcomp_nl "$(__git_heads)"
+            ;;
+        2)
+            __git_spindle_repos $1
+            ;;
+    esac
 }
 
 ##########################################################################
