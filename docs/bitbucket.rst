@@ -11,6 +11,14 @@ The first time you use :command:`git bb`, it will ask you for your BitBucket
 username and password. These are stored in :file:`~/.gitspindle`. Never share
 this file with anyone as it gives full access to your BitBucket account.
 
+If you have two-factor authentication enabled for your account, you need to create
+an app password at https://bitbucket.org/account/user/<user>/app-passwords and provide
+that instead of your regular password when being asked. If you want to make it the easy
+way, just grant all scopes to the app password. You can also assign fewer scopes and
+as soon as you use an operation that needs a scope that is not assigned, you will get
+notified about the present and missing scopes. You then need to create a new app password
+with the additional scopes and replace the old one in :file:`~/.gitspindle`.
+
 .. describe:: git bb whoami
 
 A simple command to try out is :command:`git bb whoami`, which tells you what

@@ -151,7 +151,7 @@ Options:
         if value == NO_VALUE_SENTINEL:
             credential.password = ''
             credential.fill_noninteractive()
-            return credential.password
+            return credential.username, credential.password
         elif value is None:
             credential.reject()
         else:

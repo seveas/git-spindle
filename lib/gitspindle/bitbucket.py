@@ -15,29 +15,61 @@ class BitBucket(GitSpindle):
     hosts = ['bitbucket.org', 'www.bitbucket.org']
     api = bbapi
 
+    def __init__(self):
+        super(BitBucket, self).__init__()
+        if self.use_credential_helper:
+            # Git Credential Manager creates a token with too few scopes
+            self.use_credential_helper = self.git('config', 'credential.helper').stdout.strip() != 'manager'
+
     # Support functions
     def login(self):
-        user = self.config('user')
+        passwordConfig = self.config('password')
+        user, password = passwordConfig if isinstance(passwordConfig, tuple) else (None, passwordConfig)
+
+        if not user:
+            user = self.config('user')
         if not user:
             user = raw_input("BitBucket user: ").strip()
-            self.config('user', user)
+            if not user:
+                print('Please do not specify an empty user')
+                self.login()
+                return
+        self.config('user', user)
 
-        password = self.config('password')
         if not password:
-            password = getpass.getpass("BitBucket password: ")
+            password = getpass.getpass("BitBucket password for '%s': " % user)
+            if not password:
+                print('Please do not specify an empty password')
+                self.login()
+                return
+            wrong_password = False
             try:
-                bbapi.Bitbucket(user, password).user(user)
-            except:
-                err("Authentication failed")
+                self.bb = bbapi.Bitbucket(user, password)
+                self.me = self.bb.user(user)
+            except bbapi.BitBucketAuthenticationError:
+                wrong_password = True
+            if wrong_password:
+                self.login()
+                return
             self.config('password', password)
             location = '%s - do not share this file' % self.config_file
             if self.use_credential_helper:
                 location = 'git\'s credential helper'
             print("Your BitBucket authentication password is now stored in %s" % location)
 
-        self.bb = bbapi.Bitbucket(user, password)
-        self.me = self.bb.user(user)
-        self.my_login = self.me.username
+        try:
+            self.bb = None
+            self.me = None
+            if not self.bb:
+                self.bb = bbapi.Bitbucket(user, password)
+            if not self.me:
+                self.me = self.bb.user(user)
+            self.my_login = self.me.username
+            return
+        except bbapi.BitBucketAuthenticationError:
+            self.config('password', None)
+
+        self.login()
 
     def parse_url(self, url):
         return ([self.my_login] + url.path.split('/'))[-2:]

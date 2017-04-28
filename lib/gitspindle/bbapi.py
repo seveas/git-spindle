@@ -15,6 +15,16 @@ def check(resp):
 
         if resp.status_code == 401:
             raise BitBucketAuthenticationError(message)
+        elif resp.status_code == 403:
+            if message == 'To make an API call, you need to use an app password.':
+                print('You have two-factor authorization enabled, please create and provide an app password with the scopes according to the documentation')
+            elif message == 'Your credentials lack one or more required privilege scopes.':
+                print('Your app password misses the scope%s [%s] for this operation. Currently granted scope%s [%s]'
+                      % ('s' if len(resp.headers['X-Accepted-OAuth-Scopes']) == 1 else '',
+                         resp.headers['X-Accepted-OAuth-Scopes'],
+                         's are' if len(resp.headers['X-OAuth-Scopes']) == 1 else ' is',
+                         resp.headers['X-OAuth-Scopes']))
+            raise BitBucketAuthenticationError(message)
         raise BitBucketError(message)
     if not resp.content:
         return None

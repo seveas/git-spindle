@@ -28,43 +28,78 @@ class GitLab(GitSpindle):
     access_levels_r = dict([(value, key) for (key, value) in access_levels.items()])
 
     # Support functions
-    def login(self):
+    def login(self, password=None):
         self.gl = None
         host = self.config('host') or 'https://gitlab.com'
         if not host.startswith(('http://', 'https://')):
             host = 'https://' + host
         self.host = host
 
-        user = self.config('user')
+        user = None
+        token = None
+        if not password:
+            tokenConfig = self.config('token')
+            user, token = tokenConfig if isinstance(tokenConfig, tuple) else (None, tokenConfig)
+
+        if not user:
+            user = self.config('user')
         if not user:
             user = raw_input("GitLab user: ").strip()
-            self.config('user', user)
+            if not user:
+                print('Please do not specify an empty user')
+                self.login(password)
+                return
+        self.config('user', user)
 
-        token = self.config('token')
         if not token:
-            password = getpass.getpass("GitLab password: ")
+            if not password:
+                password = getpass.getpass("GitLab password for '%s': " % user)
+            if not password:
+                print('Please do not specify an empty password')
+                self.login()
+                return
             self.gl = glapi.Gitlab(host, email=user, password=password)
-            self.gl.auth()
-            token = self.gl.user.private_token
+            wrong_password = False
+            try:
+                self.gl.auth()
+            except glapi.GitlabAuthenticationError:
+                if sys.exc_info()[1].response_code != 401:
+                    raise
+                wrong_password = True
+            if wrong_password:
+                self.login()
+                return
+            token = self.gl.private_token
             self.config('token', token)
             location = '%s - do not share this file' % self.config_file
             if self.use_credential_helper:
                 location = 'git\'s credential helper'
             print("Your GitLab authentication token is now stored in %s" % location)
 
-        if not user or not token:
-            err("No user or token specified")
+        if not token:
+            err("No token specified")
 
         if not self.gl:
             self.gl = glapi.Gitlab(host, email=user, private_token=token)
+            wrong_password = False
             try:
                 self.gl.auth()
             except glapi.GitlabAuthenticationError:
-                # Token obsolete
+                if sys.exc_info()[1].response_code != 401:
+                    raise
+                wrong_password = True
+
+                # Token obsolete or token is a password
                 self.config('token', None)
-                self.login()
+
+            if wrong_password:
+                # Try Token as password
+                self.login(token)
+                return
+
         self.me = self.gl.user
         self.my_login = self.me.username
+        self.config('user', self.my_login)
 
     def parse_url(self, url):
         return ([self.my_login] + url.path.split('/'))[-2:]

@@ -21,8 +21,14 @@ class GitHub(GitSpindle):
     hosts = ['github.com', 'www.github.com', 'gist.github.com']
     api = github3
 
+    def __init__(self):
+        super(GitHub, self).__init__()
+        if self.use_credential_helper:
+            # Git Credential Manager creates a token with too few scopes
+            self.use_credential_helper = self.git('config', 'credential.helper').stdout.strip() != 'manager'
+
     # Support functions
-    def login(self):
+    def login(self, password=None):
         host = self.config('host')
         if host and host not in ('https://api.github.com', 'api.github.com'):
             if not host.startswith(('http://', 'https://')):
@@ -31,19 +37,33 @@ class GitHub(GitSpindle):
         else:
             self.gh = github3.GitHub()
 
-        user = self.config('user')
-        if not user:
-            user = raw_input("GitHub user: ").strip()
-            self.config('user', user)
-
-        token = self.config('token')
+        user = None
+        token = None
+        if not password:
+            tokenConfig = self.config('token')
+            user, token = tokenConfig if isinstance(tokenConfig, tuple) else (None, tokenConfig)
         if not token:
-            password = getpass.getpass("GitHub password: ")
+            if not user:
+                user = self.config('user')
+            if not user:
+                user = raw_input("GitHub user: ").strip()
+                if not user:
+                    print('Please do not specify an empty user')
+                    self.login(password)
+                    return
+            self.config('user', user)
+            if not password:
+                password = getpass.getpass("GitHub password for '%s': " % user)
+            if not password:
+                print('Please do not specify an empty password')
+                self.login()
+                return
             self.gh.login(user, password, two_factor_callback=lambda: prompt_for_2fa(user))
             scopes = ['user', 'repo', 'gist', 'admin:public_key', 'admin:repo_hook', 'admin:org']
             if user.startswith('git-spindle-test-'):
                 scopes.append('delete_repo')
             name = "GitSpindle on %s" % socket.gethostname()
+            wrong_password = False
             try:
                 auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
             except github3.GitHubError:
@@ -51,20 +71,26 @@ class GitHub(GitSpindle):
                 if not hasattr(exc, 'response'):
                     raise
                 response = exc.response
-                if response.status_code != 422:
-                    raise
-                for error in response.json()['errors']:
-                    if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
-                        if os.getenv('DEBUG') or self.question('An OAuth token for this host already exists. Shall I delete it?', default=False):
-                            for auth in self.gh.iter_authorizations():
-                                if auth.app['name'] in (name, '%s (API)' % name):
-                                    auth.delete()
-                            auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
-                        else:
-                            err('Unable to create an OAuth token')
-                        break
+                if response.status_code == 401:
+                    wrong_password = True
                 else:
-                    raise
+                    if response.status_code != 422:
+                        raise
+                    for error in response.json()['errors']:
+                        if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
+                            if os.getenv('DEBUG') or self.question('An OAuth token for this host already exists. Shall I delete it?', default=False):
+                                for auth in self.gh.iter_authorizations():
+                                    if auth.app['name'] in (name, '%s (API)' % name):
+                                        auth.delete()
+                                auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
+                            else:
+                                err('Unable to create an OAuth token')
+                            break
+                    else:
+                        raise
+            if wrong_password:
+                self.login()
+                return
             if auth is None:
                 err("Authentication failed")
             token = auth.token
@@ -74,18 +100,25 @@ class GitHub(GitSpindle):
             if self.use_credential_helper:
                 location = 'git\'s credential helper'
             print("A GitHub authentication token is now stored in %s" % location)
-            print("To revoke access, visit https://github.com/settings/applications")
+            print("To revoke access, visit https://github.com/settings/tokens")
 
-        if not user or not token:
-            err("No user or token specified")
-        self.gh.login(username=user, token=token)
+        if not token:
+            err("No token specified")
+        self.gh.login(token=token)
         try:
             self.me = self.gh.user()
             self.my_login = self.me.login
+            self.config('user', self.my_login)
+            return
         except github3.GitHubError:
-            # Token obsolete
-            self.config('token', None)
-            self.login()
+            if sys.exc_info()[1].code != 401:
+                raise
+
+        # Token obsolete or token is a password
+        self.config('token', None)
+
+        # Try Token as password
+        self.login(token)
 
     def parse_url(self, url):
         if url.hostname == 'gist.github.com':
