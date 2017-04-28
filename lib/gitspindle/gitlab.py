@@ -291,28 +291,49 @@ class GitLab(GitSpindle):
         rows = [[],[],[],[],[],[],[]]
         commits = []
 
-        data = requests.get(user.web_url + '/calendar').text
+        kwargs = {'headers': {'PRIVATE-TOKEN': self.gl.private_token}}
+        data = requests.get(user.web_url).text
+        i = data.find('class="user-calendar"')
+        data = data[i:data.find('>', i)].split('"')[-2]
+        data = data if data else "/users/" + user.username + "/calendar"
+        data = requests.get(self.host + data, **kwargs).text
         data = data[data.find('<script>')+8:data.find('</script>')]
         data = data[data.find('{')+1:data.find('}')].replace('"', '')
-        data = [(datetime.datetime.fromtimestamp(int(key)), int(value)) for (key,value) in [item.split(':') for item in data.split(',')]]
+        data = dict([(datetime.datetime.strptime(key, '%Y-%m-%d').date(), int(value)) for (key,value) in [item.split(':') for item in (data.split(',') if data else [])]])
 
-        wd = (data[0][0].weekday()+1) % 7
+        end_date = datetime.date.today()
+        current_date = end_date.replace(end_date.year - 1)
+
+        wd = (current_date.weekday() + 1) % 7
         for i in range(wd):
-            rows[i].append((None,None))
+            rows[i].append((None, None))
         if wd:
-            months.append(data[0][0].month)
-        for (date, count) in data:
-            wd = (date.weekday()+1) % 7
-            rows[wd].append((date.day, count))
-            if not wd:
-                months.append(date.month)
+            months.append(0)
+        while current_date <= end_date:
+            # print(str(current_date) + ('*' if current_date in data else ''))
+            wd = (current_date.weekday() + 1) % 7
+            count = data[current_date] if current_date in data else 0
+            rows[wd].append((current_date.day, count))
+            if not (len(months) and months[-1]):
+                first_of_next_month = current_date.replace(
+                    year=current_date.year + (1 if current_date.month + 1 >= 12 else 0),
+                    month=(current_date.month + 1) % 12,
+                    day=1)
+                if not wd:
+                    if (first_of_next_month + datetime.timedelta(7 - first_of_next_month.weekday()) - current_date) >= datetime.timedelta(14):
+                        months.append(current_date.month)
+                    else:
+                        months.append(0)
+            elif not wd:
+                months.append(current_date.month)
             if count:
                 commits.append(count)
+            current_date += datetime.timedelta(1)
 
         # Print months
         sys.stdout.write("  ")
-        last = -1
-        skip = months[2] != months[0]
+        last = 0
+        skip = False
         monthtext = ('', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
         for month in months:
             if month != last:
@@ -328,11 +349,18 @@ class GitLab(GitSpindle):
         # Print commits
         days = 'SMTWTFS'
         commits.sort()
-        p5  = commits[int(round(len(commits) * 0.95))]
-        p15 = commits[int(round(len(commits) * 0.85))]
-        p35 = commits[int(round(len(commits) * 0.65))]
-        blob1 = b'\xe2\x96\xa0'.decode('utf-8')
-        blob2 = b'\xe2\x97\xbc'.decode('utf-8')
+        if len(commits) < 2:
+            p5 = p15 = p35 = 0
+        else:
+            p5  = commits[int(round(len(commits) * 0.95))]
+            p15 = commits[int(round(len(commits) * 0.85))]
+            p35 = commits[int(round(len(commits) * 0.65))]
+        blob1 = b'\xe2\x96\xa0'.decode('utf-8').encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding)
+        if len(blob1) != 1:
+            blob1 = 'x'
+        blob2 = b'\xe2\x97\xbc'.decode('utf-8').encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding)
+        if len(blob2) != 1:
+            blob2 = blob1
         for rnum, row in enumerate(rows):
             if rnum % 2:
                 sys.stdout.write(days[rnum] + " ")
@@ -340,8 +368,9 @@ class GitLab(GitSpindle):
                 sys.stdout.write("  ")
             for (day, count) in row:
                 if count is None:
-                    color = attr.conceal
-                elif count > p5:
+                    sys.stdout.write('  ')
+                    continue
+                if count > p5:
                     color = fgcolor.xterm(22)
                 elif count > p15:
                     color = fgcolor.xterm(28)
@@ -352,7 +381,10 @@ class GitLab(GitSpindle):
                 else:
                     color = fgcolor.xterm(237)
                 if day == 1:
-                    msg = wrap(blob2, attr.underline, color)
+                    if blob1 == blob2:
+                        msg = wrap(blob2, attr.underline, color, bgcolor.red)
+                    else:
+                        msg = wrap(blob2, attr.underline, color)
                     if not PY3:
                         msg = msg.encode('utf-8')
                     sys.stdout.write(msg)
@@ -363,7 +395,6 @@ class GitLab(GitSpindle):
                     sys.stdout.write(msg)
                 sys.stdout.write(' ')
             print("")
-
 
     @command
     def cat(self, opts):

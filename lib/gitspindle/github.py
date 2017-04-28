@@ -333,26 +333,35 @@ class GitHub(GitSpindle):
         data = requests.get('https://github.com/users/%s/contributions' % user).text
         # Sorry, zalgo!
         data = re.findall(r'data-count="(.*?)" data-date="(.*?)"', data)
-        y, m, d = [int(x) for x in data[0][1].split('-')]
-        wd = (datetime.date(y,m,d).weekday()+1) % 7
+        data = [(datetime.datetime.strptime(date, '%Y-%m-%d').date(), int(count)) for (count, date) in data]
+
+        wd = (data[0][0].weekday() + 1) % 7
         for i in range(wd):
-            rows[i].append((None,None))
+            rows[i].append((None, None))
         if wd:
-            months.append(m)
-        for (count, date) in data:
-            count = int(count)
-            y, m, d = [int(x) for x in date.split('-')]
-            wd = (datetime.date(y,m,d).weekday()+1) % 7
-            rows[wd].append((d, count))
-            if not wd:
-                months.append(m)
+            months.append(0)
+        for (date, count) in data:
+            wd = (date.weekday() + 1) % 7
+            rows[wd].append((date.day, count))
+            if not (len(months) and months[-1]):
+                first_of_next_month = date.replace(
+                    year=date.year + (1 if date.month + 1 >= 12 else 0),
+                    month=(date.month + 1) % 12,
+                    day=1)
+                if not wd:
+                    if (first_of_next_month + datetime.timedelta(7 - first_of_next_month.weekday()) - date) >= datetime.timedelta(14):
+                        months.append(date.month)
+                    else:
+                        months.append(0)
+            elif not wd:
+                months.append(date.month)
             if count:
                 commits.append(count)
 
         # Print months
         sys.stdout.write("  ")
-        last = -1
-        skip = months[2] != months[0]
+        last = 0
+        skip = False
         monthtext = ('', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
         for month in months:
             if month != last:
@@ -374,8 +383,12 @@ class GitHub(GitSpindle):
             p5  = commits[int(round(len(commits) * 0.95))]
             p15 = commits[int(round(len(commits) * 0.85))]
             p35 = commits[int(round(len(commits) * 0.65))]
-        blob1 = b'\xe2\x96\xa0'.decode('utf-8')
-        blob2 = b'\xe2\x97\xbc'.decode('utf-8')
+        blob1 = b'\xe2\x96\xa0'.decode('utf-8').encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding)
+        if len(blob1) != 1:
+            blob1 = 'x'
+        blob2 = b'\xe2\x97\xbc'.decode('utf-8').encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding)
+        if len(blob2) != 1:
+            blob2 = blob1
         for rnum, row in enumerate(rows):
             if rnum % 2:
                 sys.stdout.write(days[rnum] + " ")
@@ -383,8 +396,9 @@ class GitHub(GitSpindle):
                 sys.stdout.write("  ")
             for (day, count) in row:
                 if count is None:
-                    color = attr.conceal
-                elif count > p5:
+                    sys.stdout.write('  ')
+                    continue
+                if count > p5:
                     color = fgcolor.xterm(22)
                 elif count > p15:
                     color = fgcolor.xterm(28)
@@ -395,7 +409,10 @@ class GitHub(GitSpindle):
                 else:
                     color = fgcolor.xterm(237)
                 if day == 1:
-                    msg = wrap(blob2, attr.underline, color)
+                    if blob1 == blob2:
+                        msg = wrap(blob2, attr.underline, color, bgcolor.red)
+                    else:
+                        msg = wrap(blob2, attr.underline, color)
                     if not PY3:
                         msg = msg.encode('utf-8')
                     sys.stdout.write(msg)
