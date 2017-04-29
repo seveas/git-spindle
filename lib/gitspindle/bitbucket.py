@@ -764,3 +764,8 @@ class BitBucket(GitSpindle):
                     print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.label))
                 else:
                     print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
+            if user.username == self.my_login:
+                teams = [x.username for x in self.bb.teams()]
+                if teams:
+                    teams.sort()
+                    print("Member of %s" % ', '.join(teams))

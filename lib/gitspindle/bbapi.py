@@ -41,6 +41,9 @@ class Bitbucket(object):
     def team(self, username):
         return Team(self, username=username)
 
+    def teams(self):
+        return Team.list(self, username=None, params={'role': 'member'})
+
     def repository(self, owner, slug):
         if isinstance(owner, BBobject):
             owner = owner.username
@@ -73,12 +76,16 @@ class BBobject(object):
                 self.data.update(self.get(url))
         elif mode == 'list':
             self.instances = []
-            for instance in self.get(self.url[0]):
-                kw = kwargs.copy()
-                kw.update(instance)
-                instance = type(self)(self.bb, mode=None, **kw)
-                instance.url = [uritemplate.expand(x, **kw) for x in instance.uri]
-                self.instances.append(instance)
+            url = self.url[0]
+            while url:
+                instances = self.get(url)
+                url = instances['next'] if 'next' in instances else None
+                for instance in instances['values'] if 'values' in instances else instances:
+                    kw = kwargs.copy()
+                    kw.update(instance)
+                    instance = type(self)(self.bb, mode=None, **kw)
+                    instance.url = [uritemplate.expand(x, **kw) for x in instance.uri]
+                    self.instances.append(instance)
         else:
             self.data = kwargs
         for datum in self.data:
@@ -157,7 +164,7 @@ class User(BBobject):
         return self.get(url)
 
 class Team(User):
-    uri = 'https://bitbucket.org/api/2.0/teams/{username}'
+    uri = 'https://bitbucket.org/api/2.0/teams/{username}?role=member'
 
 def ssh_fix(url):
     if not url.startswith('ssh://'):
