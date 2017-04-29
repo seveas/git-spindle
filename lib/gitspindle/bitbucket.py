@@ -653,6 +653,8 @@ class BitBucket(GitSpindle):
         except bbapi.BitBucketError:
             if 'is a team account' in str(sys.exc_info()[1]):
                 repos = self.bb.team(opts['<user>']).repositories()
+            else:
+                raise
         if not repos:
             return
         maxlen = max([len(x.name) for x in repos])
