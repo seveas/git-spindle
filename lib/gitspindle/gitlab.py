@@ -159,9 +159,6 @@ class GitLab(GitSpindle):
         except glapi.GitlabListError:
             pass
 
-    def profile_url(self, user):
-        return '%s/u/%s' % (self.host, user.username)
-
     def merge_url(self, merge):
         repo = self.gl.Project(merge.project_id)
         return '%s/merge_requests/%d' % (repo.web_url, merge.iid)
@@ -924,43 +921,50 @@ class GitLab(GitSpindle):
         """<user>...
            Display GitLab user info"""
         for user in opts['<user>']:
-            if not isinstance(user, (glapi.User, glapi.CurrentUser)):
+            if not isinstance(user, (glapi.User, glapi.CurrentUser, glapi.Group)):
                 user_ = self.find_user(user)
                 if not user_:
-                    print("No such user: %s" % user)
-                    continue
+                    user_ = self.find_group(user)
+                    if not user_:
+                        print("No such user or group: %s" % user)
+                        continue
                 user = user_
-            print(wrap("%s (id %d)" % (user.name or user.username, user.id), attr.bright, attr.underline))
-            print('Profile   %s' % self.profile_url(user))
-            if hasattr(user, 'email'):
-                if user.email:
-                    print('Email     %s' % user.email)
-                if user.website_url:
-                    print('Website   %s' % user.website_url)
-                if user.twitter:
-                    print('Twitter   %s' % user.twitter)
-                if user.linkedin:
-                    print('LinkedIn  %s' % user.linkedin)
-                if user.bio:
-                    if '\n' in user.bio:
-                        bio = user.bio[:user.bio.index('\n')] + '...'
-                    else:
-                        bio = user.bio
-                    print('Bio       %s' % user.bio)
-            try:
-                for pkey in user.Key():
-                    algo, key = pkey.key.split()[:2]
-                    algo = algo[4:].upper()
-                    if pkey.title:
-                        print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
-                    else:
-                        print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
+            print(wrap("%s (id %d)" % (user.name or (user.username if hasattr(user, 'username') else None), user.id), attr.bright, attr.underline))
+            print('Profile   %s' % user.web_url)
+            if hasattr(user, 'username'):
+                if hasattr(user, 'email'):
+                    if user.email:
+                        print('Email     %s' % user.email)
+                    if user.website_url:
+                        print('Website   %s' % user.website_url)
+                    if user.twitter:
+                        print('Twitter   %s' % user.twitter)
+                    if user.linkedin:
+                        print('LinkedIn  %s' % user.linkedin)
+                    if user.bio:
+                        if '\n' in user.bio:
+                            bio = user.bio[:user.bio.index('\n')] + '...'
+                        else:
+                            bio = user.bio
+                        print('Bio       %s' % user.bio)
+                try:
+                    for pkey in user.Key():
+                        algo, key = pkey.key.split()[:2]
+                        algo = algo[4:].upper()
+                        if pkey.title:
+                            print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
+                        else:
+                            print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
+                except glapi.GitlabListError:
+                    # Permission denied, ignore
+                    pass
 
-            except glapi.GitlabListError:
-                # Permission denied, ignore
-                pass
+                if user.username == self.my_login:
+                    groups = self.gl.Group()
+                    if groups:
+                        print("Member of %s" % ', '.join([x.path for x in groups]))
 
-            if user.username == self.my_login:
-                groups = self.gl.Group()
-                if groups:
-                    print("Member of %s" % ', '.join([x.path for x in groups]))
+            else:
+                print('Members:')
+                for member in user.Member():
+                    print(" - %s" % member.username)
