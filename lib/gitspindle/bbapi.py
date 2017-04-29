@@ -166,6 +166,12 @@ class User(BBobject):
 class Team(User):
     uri = 'https://bitbucket.org/api/2.0/teams/{username}?role=member'
 
+    def members(self):
+        return TeamMembers.list(self.bb, username=self.username)
+
+class TeamMembers(User):
+    uri = 'https://bitbucket.org/api/2.0/teams/{username}/members'
+
 def ssh_fix(url):
     if not url.startswith('ssh://'):
         return url

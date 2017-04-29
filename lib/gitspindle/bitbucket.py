@@ -743,15 +743,19 @@ class BitBucket(GitSpindle):
         """<user>...
            Display GitHub user info"""
         for user_ in opts['<user>']:
-            user = self.bb.user(user_)
-            if not user:
-                print("No such user: %s" % user_)
-                continue
+            try:
+                user = self.bb.user(user_)
+            except:
+                if 'is a team account' in str(sys.exc_info()[1]):
+                    user = self.bb.team(user_)
+                else:
+                    print("No such user: %s" % user_)
+                    continue
             print(wrap(user.display_name or user.username, attr.bright, attr.underline))
             print("Profile:  %s" % user.links['html']['href'])
-            if user.website:
+            if hasattr(user, 'website') and user.website:
                 print("Website:  %s" % user.website)
-            if user.location:
+            if hasattr(user, 'location') and user.location:
                 print("Location: %s" % user.location)
             try:
                 keys = user.keys()
@@ -769,3 +773,7 @@ class BitBucket(GitSpindle):
                 if teams:
                     teams.sort()
                     print("Member of %s" % ', '.join(teams))
+            if user.type == 'team':
+                print('Members:')
+                for member in user.members():
+                    print(" - %s" % member.username)
