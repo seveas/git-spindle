@@ -462,10 +462,10 @@ _git_spindle_config() {
 
 _git_spindle_create() {
     case "$1,$prev" in
-        *,--description|lab,--group)
+        *,--description)
             unset COMPREPLY
             ;;
-        hub,--org|bb,--team)
+        hub,--org|bb,--team|lab,--group)
             unset COMPREPLY
 
             [ ${GIT_SPINDLE_COMPLETE_REMOTE-no} = no ] && return

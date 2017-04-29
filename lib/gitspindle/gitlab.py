@@ -959,3 +959,8 @@ class GitLab(GitSpindle):
             except glapi.GitlabListError:
                 # Permission denied, ignore
                 pass
+
+            if user.username == self.my_login:
+                groups = self.gl.Group()
+                if groups:
+                    print("Member of %s" % ', '.join([x.path for x in groups]))
