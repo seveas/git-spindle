@@ -833,10 +833,19 @@ class GitHub(GitSpindle):
     def ip_addresses(self, opts):
         """[--git] [--hooks] [--importer] [--pages]
            Show the IP addresses for github.com services in CIDR format"""
-        ip_addresses = self.gh.meta()
+        count = -1
         for what in ('git', 'hooks', 'importer', 'pages'):
             if opts['--' + what]:
-                print("\n".join(ip_addresses[what]))
+                count += 1
+        ip_addresses = self.gh.meta()
+        for what in ('git', 'hooks', 'importer', 'pages'):
+            if count == -1:
+                print('[%s]\n\t%s' % (what, '\n\t'.join(ip_addresses[what])))
+            elif opts['--' + what]:
+                if count:
+                    print('[%s]\n\t%s' % (what, '\n\t'.join(ip_addresses[what])))
+                else:
+                    print('\n'.join(ip_addresses[what]))
 
     @command
     def issue(self, opts):
