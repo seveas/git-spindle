@@ -8,9 +8,9 @@ glapi.Project.spindle = 'gitlab'
 glapi.UserProject.spindle = 'gitlab'
 
 # Monkeypatch github3.gists.Gist to behave more like a repo
-github3.gists.Gist.ssh_url = property(lambda self: 'git@gist.github.com:/%s.git' % self.id)
+github3.gists.Gist.ssh_url = property(lambda self: self.git_pull_url.replace('https://', 'git@', 1).replace('http://', 'git@', 1).replace('/', ':/', 1))
 github3.gists.Gist.clone_url = property(lambda self: self.git_pull_url)
-github3.gists.Gist.git_url = property(lambda self: 'git://gist.github.com/%s.git' % self.id)
+github3.gists.Gist.git_url = property(lambda self: self.git_pull_url.replace('https://', 'git://', 1).replace('http://', 'git://', 1))
 github3.gists.Gist.name = property(lambda self: self.id)
 github3.gists.Gist.private = property(lambda self: not self.public)
 github3.gists.Gist.create_fork = github3.gists.Gist.fork

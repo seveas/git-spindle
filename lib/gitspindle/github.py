@@ -330,7 +330,8 @@ class GitHub(GitSpindle):
         rows = [[],[],[],[],[],[],[]]
         commits = []
 
-        data = requests.get('https://github.com/users/%s/contributions' % user).text
+        user = self.gh.user(user)
+        data = requests.get(re.sub(r'/%s$' % user.login, '/users/%s/contributions' % user.login, user.html_url, 1)).text
         # Sorry, zalgo!
         data = re.findall(r'data-count="(.*?)" data-date="(.*?)"', data)
         data = [(datetime.datetime.strptime(date, '%Y-%m-%d').date(), int(count)) for (count, date) in data]
