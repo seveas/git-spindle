@@ -1420,7 +1420,7 @@ class GitHub(GitSpindle):
 </html>"""
         with open(opts['<file>'][0]) as fd:
             data = fd.read()
-        rendered = github3.markdown(data)
+        rendered = self.gh.markdown(data)
         if isinstance(rendered, bytes):
             rendered = rendered.decode('utf-8')
         rendered = rendered.replace('user-content-', '')
@@ -1474,7 +1474,7 @@ class GitHub(GitSpindle):
     def say(self, opts):
         """[<msg>]
            Let the octocat speak to you"""
-        msg = github3.octocat(opts['<msg>'] or None)
+        msg = self.gh.octocat(opts['<msg>'] or None)
         if isinstance(msg, bytes):
             msg = msg.decode('utf-8')
         print(msg)
