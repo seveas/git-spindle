@@ -619,10 +619,17 @@ class GitHub(GitSpindle):
         """[<repo>]
            List collaborators of a repository"""
         repo = self.repository(opts)
-        users = list(repo.iter_collaborators())
-        users.sort(key = lambda user: user.login)
-        for user in users:
-            print(user.login)
+        try:
+            users = list(repo.iter_collaborators())
+            users.sort(key = lambda user: user.login)
+            for user in users:
+                print(user.login)
+        except github3.GitHubError:
+            exc = sys.exc_info()[1]
+            if exc.code == 403 and 'push' in exc.message:
+                err(exc.message)
+            else:
+                raise
 
     @command
     def create(self, opts):
