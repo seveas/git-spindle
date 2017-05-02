@@ -910,6 +910,9 @@ class GitHub(GitSpindle):
             if any([not '=' in x for x in opts['<filter>']]):
                 err('<filter> must be an equals sign separated key-value pair')
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
+            valid_filters = repo.iter_issues.__code__.co_varnames[1:repo.iter_issues.__code__.co_argcount]
+            if any([not x in valid_filters for x in filters]):
+                err('Invalid filter specified. Valid filters: "%s"' % '", "'.join(sorted(valid_filters)))
             try:
                 issues = list(repo.iter_issues(**filters))
             except github3.GitHubError:
