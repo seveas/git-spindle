@@ -218,6 +218,8 @@ class GitHub(GitSpindle):
             for hook in repo.iter_hooks():
                 if hook.name == opts['<name>']:
                     raise ValueError("Hook '%s' already exists" % opts['<name>'])
+        if any([not '=' in x for x in opts['<setting>']]):
+            err('<setting> must be an equals sign separated key-value pair')
         settings = dict([x.split('=', 1) for x in opts['<setting>']])
         for key in settings:
             if settings[key].isdigit():
@@ -728,6 +730,8 @@ class GitHub(GitSpindle):
                     break
             else:
                 raise ValueError("Hook '%s' does not exist" % opts['<name>'])
+        if any([not '=' in x for x in opts['<setting>']]):
+            err('<setting> must be an equals sign separated key-value pair')
         settings = dict([x.split('=', 1) for x in opts['<setting>']])
         for key in settings:
             if settings[key].isdigit():
@@ -903,14 +907,16 @@ class GitHub(GitSpindle):
             repos = [self.repository(opts)]
         for repo in repos:
             repo = (opts['--parent'] and self.parent_repo(repo)) or repo
+            if any([not '=' in x for x in opts['<filter>']]):
+                err('<filter> must be an equals sign separated key-value pair')
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
             try:
                 issues = list(repo.iter_issues(**filters))
             except github3.GitHubError:
-                _, err, _ = sys.exc_info()
-                if err.code == 410:
+                _, error, _ = sys.exc_info()
+                if error.code == 410:
                     if len(repos) == 1:
-                        print(err.message)
+                        print(error.message)
                     continue
                 else:
                     raise

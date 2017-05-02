@@ -549,6 +549,8 @@ class GitLab(GitSpindle):
         for repo in repos:
             if opts['--parent']:
                 repo = self.parent_repo(repo) or repo
+            if any([not '=' in x for x in opts['<filter>']]):
+                err('<filter> must be an equals sign separated key-value pair')
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
             if not 'state' in filters:
                 filters['state'] = 'opened'
