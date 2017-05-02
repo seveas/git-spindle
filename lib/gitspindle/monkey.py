@@ -8,9 +8,9 @@ glapi.Project.spindle = 'gitlab'
 glapi.UserProject.spindle = 'gitlab'
 
 # Monkeypatch github3.gists.Gist to behave more like a repo
-github3.gists.Gist.ssh_url = property(lambda self: 'git@gist.github.com:/%s.git' % self.id)
+github3.gists.Gist.ssh_url = property(lambda self: self.git_pull_url.replace('https://', 'git@', 1).replace('http://', 'git@', 1).replace('/', ':/', 1))
 github3.gists.Gist.clone_url = property(lambda self: self.git_pull_url)
-github3.gists.Gist.git_url = property(lambda self: 'git://gist.github.com/%s.git' % self.id)
+github3.gists.Gist.git_url = property(lambda self: self.git_pull_url.replace('https://', 'git://', 1).replace('http://', 'git://', 1))
 github3.gists.Gist.name = property(lambda self: self.id)
 github3.gists.Gist.private = property(lambda self: not self.public)
 github3.gists.Gist.create_fork = github3.gists.Gist.fork
@@ -114,13 +114,16 @@ github3.repos.branch.Branch.unprotect = unprotect
 # Monkeypatch docopt to support our git-clone-options-hack
 import docopt
 known_options = {
+    # Git clone options as of Git 2.11.0
     'clone': (
-        '-q', '--quiet', '-v', '--verbose', '-n', '--no-checkout', '--bare',
-        '--mirror', '--reference=<repository>', '--progress', '-o <oname>', '--origin=<oname>',
-        '-b <name>', '--branch=<name>', '-u <upload-pack>', '--upload-pack=<upload-pack>',
+        '-q', '--quiet', '-v', '--verbose', '-n', '--no-checkout', '--bare', '--mirror',
+        '--reference=<repository>', '--reference-if-able=<repository>', '--progress', '-o <oname>',
+        '--origin=<oname>', '-b <name>', '--branch=<name>', '-u <upload-pack>', '--upload-pack=<upload-pack>',
         '--template=<template-directory>', '-c <key-value>', '--config=<key-value>',
         '--depth=<depth>', '--single-branch', '--no-single-branch', '--recursive', '--recurse-submodules',
-        '--separate-git-dir=<git_dir>'),
+        '--separate-git-dir=<git_dir>', '-l', '--local', '--no-hardlinks', '-s', '--shared',
+        '-j <n>', '--jobs=<n>', '--dissociate', '--shallow-since=<date>', '--shallow-exclude=<revision>',
+        '--shallow-submodules', '--no-shallow-submodules', '-4', '--ipv4', '-6', '--ipv6'),
 }
 
 class GitOption(docopt.Option):
@@ -158,13 +161,20 @@ docopt.orig_parse_atom = docopt.parse_atom
 docopt.parse_atom = parse_atom
 
 def formal_usage(printable_usage):
-    usage = real_printable_usage(printable_usage).splitlines()
+    stripped_printable_usage = []
+    printable_usage_lines = printable_usage.splitlines()
+    for num, line in enumerate(printable_usage_lines):
+        if (len(line) == 0) and printable_usage_lines[num+1][0].isupper() and printable_usage_lines[num+2].startswith('  git'):
+            continue
+        stripped_printable_usage.append(line)
+    usage = real_printable_usage('\n'.join(stripped_printable_usage)).splitlines()
     ret = []
     for num, line in enumerate(usage):
         if line[0].isupper() and usage[num+1].startswith('  git'):
             continue
         ret.append(line)
     return docopt.orig_formal_usage('\n'.join(ret))
+
 real_printable_usage = docopt.printable_usage
 docopt.printable_usage = lambda x: x
 docopt.orig_formal_usage = docopt.formal_usage

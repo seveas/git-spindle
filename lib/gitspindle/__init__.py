@@ -7,7 +7,7 @@ import sys
 import tempfile
 import whelk
 
-__all__ = ['GitSpindle', 'Credential', 'command', 'wants_parent']
+__all__ = ['GitSpindle', 'Credential', 'command', 'wants_parent', 'hidden_command']
 NO_VALUE_SENTINEL = 'NO_VALUE_SENTINEL'
 
 __builtins__['PY3'] = sys.version_info[0] > 2
@@ -30,6 +30,15 @@ __builtins__['err'] = err
 import pprint
 __builtins__['pprint'] = pprint.pprint
 del pprint
+
+orig_print = print
+def safe_print(*args, sep=' ', end='\n', file=None):
+    if not file or hasattr(file, 'encoding'):
+        encoding = file.encoding if file else sys.stdout.encoding
+        orig_print(*[str(arg).encode(encoding, errors='backslashreplace').decode(encoding) for arg in args], sep=sep, end=end, file=file)
+    else:
+        orig_print(*args, sep=sep, end=end, file=file)
+__builtins__['print'] = safe_print
 
 def command(fnc):
     fnc.is_command = True
@@ -81,12 +90,7 @@ Usage:\n""" % (self.prog, self.what)
                 name = name[:-1]
             name = name.replace('_', '-')
             self.commands[name] = fnc
-            doc = [line.strip() for line in fnc.__doc__.splitlines()]
-            if self.__class__.__name__ == 'BitBucket' and name == 'add-account':
-                doc[0] = doc[0].replace('[--host=<host>] ', '')
-            if doc[0]:
-                doc[0] = ' ' + doc[0]
-            self.usage += '%s:\n  %s %s %s%s\n' % (doc[1], self.prog, '[options]', name, doc[0])
+            self.usage += '\n%s\n' % self.command_usage(name)
         self.usage += """
 Options:
   -h --help              Show this help message and exit
@@ -99,6 +103,16 @@ Options:
   --git                  Use git:// urls for cloning 3rd party repos
   --goblet               When mirroring, set up goblet configuration
   --account=<account>    Use another account than the default\n"""
+
+    def command_usage(self, name):
+        if name not in self.commands.keys():
+            return 'Unknown command "%s"' % name
+        doc = [line.strip() for line in self.commands[name].__doc__.splitlines()]
+        if self.__class__.__name__ == 'BitBucket' and name == 'add-account':
+            doc[0] = doc[0].replace('[--host=<host>] ', '')
+        if doc[0]:
+            doc[0] = ' ' + doc[0]
+        return '%s:\n  %s %s %s%s' % (doc[1], self.prog, '[options]', name, doc[0])
 
     def gitm(self, *args, **kwargs):
         """A git command thas must be succesfull"""
@@ -137,7 +151,7 @@ Options:
         if value == NO_VALUE_SENTINEL:
             credential.password = ''
             credential.fill_noninteractive()
-            return credential.password
+            return credential.username, credential.password
         elif value is None:
             credential.reject()
         else:
@@ -251,7 +265,7 @@ Options:
         msg = "%s\n\n%s" % (title, body)
         fd, temp_file = tempfile.mkstemp(prefix=filename)
         with os.fdopen(fd,'w') as fd:
-            fd.write(msg.encode('utf-8'))
+            fd.write(msg)
         return temp_file
 
     def repo_root(self):
@@ -263,29 +277,49 @@ Options:
 
     def rel2root(self, path):
         if path.startswith('/'):
-            return os.path.normpath(path)
+            return os.path.normpath(path).replace('\\', '/')
         path = os.path.abspath(path)
         root = self.repo_root()
         if not path.startswith(root):
             raise ValueError("Path not inside the git repository")
-        path = path.replace(root, '')
-        return path
+        path = path[len(root):]
+        return path.replace('\\', '/')
 
-    def set_tracking_branches(self, remote, upstream=None, triangular=False):
+    def set_tracking_branches(self, remote, upstream=None, triangular=False, upstream_branch=None):
+        if triangular and upstream:
+            pushremote = remote
+            pullremote = upstream
+            self.gitm('config', 'remote.pushDefault', pushremote)
+        else:
+            pushremote = None
+            pullremote = remote
+            upstream_branch = None
+
         for branch in self.git('for-each-ref', 'refs/heads/**').stdout.strip().splitlines():
             branch = branch.split(None, 2)[-1][11:]
-            if triangular and upstream:
-                pushremote = remote
-                pullremote = upstream
+            if triangular and upstream and not upstream_branch:
+                upstream_branch = branch
+
+            if upstream_branch and self.git('for-each-ref', 'refs/remotes/%s/%s' % (pullremote, upstream_branch)).stdout.strip():
+                tracking_remote = pullremote
+                tracking_branch = upstream_branch
+            elif self.git('for-each-ref', 'refs/remotes/%s/%s' % (pullremote, branch)).stdout.strip():
+                tracking_remote = pullremote
+                tracking_branch = branch
+            elif pushremote and self.git('for-each-ref', 'refs/remotes/%s/%s' % (pushremote, branch)).stdout.strip():
+                tracking_remote = pushremote
+                tracking_branch = branch
             else:
-                pushremote = None
-                pullremote = remote
-            if pullremote and self.git('for-each-ref', 'refs/remotes/%s/%s' % (pullremote, branch)).stdout.strip():
+                tracking_remote = None
+                tracking_branch = None
+
+            if tracking_remote and tracking_branch:
                 current = self.git('config', 'branch.%s.remote' % branch).stdout.strip()
                 if current in [remote, upstream, '']:
-                    print("Configuring branch %s to track remote %s" % (branch, pullremote))
-                    self.gitm('config', 'branch.%s.remote' % branch, pullremote)
-                    self.gitm('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % branch)
+                    print("Configuring branch %s to track branch %s on remote %s" % (branch, tracking_branch, tracking_remote))
+                    self.gitm('config', 'branch.%s.remote' % branch, tracking_remote)
+                    self.gitm('config', 'branch.%s.merge' % branch, 'refs/heads/%s' % tracking_branch)
+
             if pushremote and self.git('for-each-ref', 'refs/remotes/%s/%s' % (pushremote, branch)).stdout.strip():
                 current = self.git('config', 'branch.%s.pushremote' % branch).stdout.strip()
                 if current in [remote, upstream, '']:
@@ -345,6 +379,13 @@ Options:
                 except KeyboardInterrupt:
                     sys.exit(1)
                 break
+
+    @command
+    @no_login
+    def help(self, opts):
+        """<command>
+           Display the help for a command"""
+        print(self.command_usage(opts['<command>']))
 
     @command
     @no_login

@@ -10,7 +10,20 @@ def check(resp):
         except (KeyError, ValueError):
             message = resp.content
 
+        if isinstance(message, bytes):
+            message = message.decode('utf-8')
+
         if resp.status_code == 401:
+            raise BitBucketAuthenticationError(message)
+        elif resp.status_code == 403:
+            if message == 'To make an API call, you need to use an app password.':
+                print('You have two-factor authorization enabled, please create and provide an app password with the scopes according to the documentation')
+            elif message == 'Your credentials lack one or more required privilege scopes.':
+                print('Your app password misses the scope%s [%s] for this operation. Currently granted scope%s [%s]'
+                      % ('s' if len(resp.headers['X-Accepted-OAuth-Scopes']) == 1 else '',
+                         resp.headers['X-Accepted-OAuth-Scopes'],
+                         's are' if len(resp.headers['X-OAuth-Scopes']) == 1 else ' is',
+                         resp.headers['X-OAuth-Scopes']))
             raise BitBucketAuthenticationError(message)
         raise BitBucketError(message)
     if not resp.content:
@@ -27,6 +40,9 @@ class Bitbucket(object):
 
     def team(self, username):
         return Team(self, username=username)
+
+    def teams(self):
+        return Team.list(self, username=None, params={'role': 'member'})
 
     def repository(self, owner, slug):
         if isinstance(owner, BBobject):
@@ -60,12 +76,16 @@ class BBobject(object):
                 self.data.update(self.get(url))
         elif mode == 'list':
             self.instances = []
-            for instance in self.get(self.url[0]):
-                kw = kwargs.copy()
-                kw.update(instance)
-                instance = type(self)(self.bb, mode=None, **kw)
-                instance.url = [uritemplate.expand(x, **kw) for x in instance.uri]
-                self.instances.append(instance)
+            url = self.url[0]
+            while url:
+                instances = self.get(url)
+                url = instances['next'] if 'next' in instances else None
+                for instance in instances['values'] if 'values' in instances else instances:
+                    kw = kwargs.copy()
+                    kw.update(instance)
+                    instance = type(self)(self.bb, mode=None, **kw)
+                    instance.url = [uritemplate.expand(x, **kw) for x in instance.uri]
+                    self.instances.append(instance)
         else:
             self.data = kwargs
         for datum in self.data:
@@ -144,7 +164,13 @@ class User(BBobject):
         return self.get(url)
 
 class Team(User):
-    uri = 'https://bitbucket.org/api/2.0/teams/{username}'
+    uri = 'https://bitbucket.org/api/2.0/teams/{username}?role=member'
+
+    def members(self):
+        return TeamMembers.list(self.bb, username=self.username)
+
+class TeamMembers(User):
+    uri = 'https://bitbucket.org/api/2.0/teams/{username}/members'
 
 def ssh_fix(url):
     if not url.startswith('ssh://'):
@@ -153,6 +179,11 @@ def ssh_fix(url):
 
 class PullRequest(BBobject):
     uri = 'https://api.bitbucket.org/2.0/repositories/{owner}/{slug}/pullrequests/{id}'
+
+    def get_url(self):
+        return self.links['html']['href']
+
+    html_url = property(get_url)
 
 class Repository(BBobject):
     uri = ('https://bitbucket.org/api/1.0/repositories/{owner}/{slug}',
@@ -201,9 +232,11 @@ class Repository(BBobject):
         data = self.get(self.links['forks']['href'])['values']
         return [Repository(self.bb, mode=None, **repo) for repo in data]
 
-    def issues(self, **params):
-        url = 'https://bitbucket.org/api/1.0/repositories/%s/issues' % self.full_name
-        data = self.get(url, data=params)['issues']
+    def issues(self, query=None):
+        url = 'https://bitbucket.org/api/2.0/repositories/%s/issues' % self.full_name
+        if query:
+            url = '%s?q=%s' % (url, query)
+        data = self.get(url)['values']
         return [Issue(self.bb, mode=None, **issue) for issue in data]
 
     def issue(self, id):
@@ -268,10 +301,10 @@ class Key(BBobject):
         self.delete_(self.url[0] + '/%d' % self.pk)
 
 class Issue(BBobject):
-    uri = 'https://bitbucket.org/api/1.0/repositories/{owner}/{slug}/issues/{id}'
+    uri = 'https://bitbucket.org/api/2.0/repositories/{owner}/{slug}/issues/{id}'
 
     def get_url(self):
-        return 'https://bitbucket.org/%s/%s/issue/%s/' % (self.repo.owner['username'], self.repo.slug, self.local_id)
+        return self.links['html']['href']
 
     html_url = property(get_url)
 

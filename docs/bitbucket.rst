@@ -11,6 +11,14 @@ The first time you use :command:`git bb`, it will ask you for your BitBucket
 username and password. These are stored in :file:`~/.gitspindle`. Never share
 this file with anyone as it gives full access to your BitBucket account.
 
+If you have two-factor authentication enabled for your account, you need to create
+an app password at https://bitbucket.org/account/user/<user>/app-passwords and provide
+that instead of your regular password when being asked. If you want to make it the easy
+way, just grant all scopes to the app password. You can also assign fewer scopes and
+as soon as you use an operation that needs a scope that is not assigned, you will get
+notified about the present and missing scopes. You then need to create a new app password
+with the additional scopes and replace the old one in :file:`~/.gitspindle`.
+
 .. describe:: git bb whoami
 
 A simple command to try out is :command:`git bb whoami`, which tells you what
@@ -46,6 +54,10 @@ Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 Display all public keys of a user, in a format that can be added to
 :file:`~/.authorized_keys`.
 
+.. describe:: git bb help <command>
+
+Display the help for the specified command.
+
 Using multiple accounts
 -----------------------
 :command:`git bb` supports using more than one account. To use a non-default,
@@ -77,7 +89,7 @@ will be created on BitBucket and your local repository will have BitBucket as re
 By default the repository is created under your account, but you can specify a
 team to create the repository for.
 
-.. describe:: git bb set-origin [--ssh|--http] [--triangular]
+.. describe:: git bb set-origin [--ssh|--http] [--triangular [--upstream-branch=<branch>]]
 
 Fix the configuration of your repository's remotes. The remote "origin" will be
 set to your BitBucket repository. If "origin" is a fork, an "upstream" remote will
@@ -86,12 +98,17 @@ be set to the repository you forked from.
 All non-tracking branches with a matching counterpart in "origin" will be set to
 track "origin" (push and pull to it). Use :option:`--triangular` to set remotes
 in a triangular fashion where :command:`git pull` pulls from "upstream" and
-:command:`git push` pushes to "origin".
+:command:`git push` pushes to "origin". This also sets the configuration option
+:option:`remote.pushDefault`, so that new branches are pushed to "origin" even
+if they track a branch in "upstream". All non-tracking branches are set up to
+track a matching counterpart in "upstream" except if :option:`--upstream-branch`
+explicitly specifies a branch like "master" in "upstream" that all branches should
+track.
 
 For "origin", an SSH url is used. For "upstream", set-origin defaults to adding
 a git url, but this can be overridden. For private repos, SSH is used.
 
-.. describe:: git bb clone [--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+.. describe:: git bb clone [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
 
 Clone a BitBucket repository by name (e.g. seveas/whelk) or URL. The "origin"
 remote will be set and, like with set-origin, if "origin" is a fork the
@@ -113,10 +130,10 @@ names and refs. For example: `master:bin/git-bb`,
 .. describe:: git bb ls [<dir>...]
 
 Display the contents of a directory on BitBucket. Directory can start with
-repository names and refs. For example: `master:bin/git-bb`,
-`git-spindle:master:bin/git-bb` or `seveas/git-spindle:master:bin/git-bb`.
+repository names and refs. For example: `master:/lib/gitspindle`,
+`git-spindle:master:/lib/gitspindle` or `seveas/git-spindle:master:/lib/gitspindle`.
 
-.. describe:: git bb fork [--ssh|--http] [--triangular] [<repo>]
+.. describe:: git bb fork [--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
 
 Fork another person's git repository on BitBucket and clone that repository
 locally. The repository can be specified as a (git) url or simply username/repo.
@@ -199,9 +216,9 @@ see the id's of your deploy keys.
 Issues and pull requests
 ------------------------
 
-.. describe:: git bb issues [<repo>] [--parent] [<filter>...]
+.. describe:: git bb issues [<repo>] [--parent] [<query>]
 
-List all open issues. You can specify filters to filter issues. When you
+List all open issues. You can specify a query string to filter issues. When you
 specify :option:`--parent`, list all open issues for the parent repository.
 
 .. describe:: git bb issue [<repo>] [--parent] [<issue>...]
@@ -214,7 +231,9 @@ used to create a new issue.
 .. describe:: git bb pull-request [--yes] [<yours:theirs>]
 
 Files a pull request to merge branch "yours" (default: the current branch) into
-the upstream branch "theirs" (default: master). Like for a commit message, your
+the upstream branch "theirs" (default: the tracked branch of "yours" if it is in
+the upstream repository, otherwise the default branch of the upstream
+repository, usually "master"). Like for a commit message, your
 editor will be opened to write a pull request message. The comments of said
 message contain the shortlog and diffstat of the commits that you're asking to
 be merged. Note that if you use any characterset in your logs and filenames

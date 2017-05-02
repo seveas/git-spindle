@@ -15,29 +15,61 @@ class BitBucket(GitSpindle):
     hosts = ['bitbucket.org', 'www.bitbucket.org']
     api = bbapi
 
+    def __init__(self):
+        super(BitBucket, self).__init__()
+        if self.use_credential_helper:
+            # Git Credential Manager creates a token with too few scopes
+            self.use_credential_helper = self.git('config', 'credential.helper').stdout.strip() != 'manager'
+
     # Support functions
     def login(self):
-        user = self.config('user')
+        passwordConfig = self.config('password')
+        user, password = passwordConfig if isinstance(passwordConfig, tuple) else (None, passwordConfig)
+
+        if not user:
+            user = self.config('user')
         if not user:
             user = raw_input("BitBucket user: ").strip()
-            self.config('user', user)
+            if not user:
+                print('Please do not specify an empty user')
+                self.login()
+                return
+        self.config('user', user)
 
-        password = self.config('password')
         if not password:
-            password = getpass.getpass("BitBucket password: ")
+            password = getpass.getpass("BitBucket password for '%s': " % user)
+            if not password:
+                print('Please do not specify an empty password')
+                self.login()
+                return
+            wrong_password = False
             try:
-                bbapi.Bitbucket(user, password).user(user)
-            except:
-                err("Authentication failed")
+                self.bb = bbapi.Bitbucket(user, password)
+                self.me = self.bb.user(user)
+            except bbapi.BitBucketAuthenticationError:
+                wrong_password = True
+            if wrong_password:
+                self.login()
+                return
             self.config('password', password)
             location = '%s - do not share this file' % self.config_file
             if self.use_credential_helper:
                 location = 'git\'s credential helper'
             print("Your BitBucket authentication password is now stored in %s" % location)
 
-        self.bb = bbapi.Bitbucket(user, password)
-        self.me = self.bb.user(user)
-        self.my_login = self.me.username
+        try:
+            self.bb = None
+            self.me = None
+            if not self.bb:
+                self.bb = bbapi.Bitbucket(user, password)
+            if not self.me:
+                self.me = self.bb.user(user)
+            self.my_login = self.me.username
+            return
+        except bbapi.BitBucketAuthenticationError:
+            self.config('password', None)
+
+        self.login()
 
     def parse_url(self, url):
         return ([self.my_login] + url.path.split('/'))[-2:]
@@ -72,10 +104,10 @@ class BitBucket(GitSpindle):
         repo = self.repository(opts)
         for arg in opts['<key>']:
             with open(arg) as fd:
-                algo, key, label = fd.read().strip().split(None, 2)
+                algo, key, title = (fd.read().strip().split(None, 2) + [None])[:3]
             key = "%s %s" % (algo, key)
             print("Adding deploy key %s" % arg)
-            repo.add_deploy_key(key, label)
+            repo.add_deploy_key(key, title)
 
     @command
     def add_privilege(self, opts):
@@ -83,10 +115,10 @@ class BitBucket(GitSpindle):
            Add privileges for a user to this repo"""
         repo = self.repository(opts)
         priv = 'read'
-        if opts['--write']:
-            priv = 'write'
-        elif opts['--admin']:
+        if opts['--admin']:
             priv = 'admin'
+        elif opts['--write']:
+            priv = 'write'
         for user in opts['<user>']:
             repo.add_privilege(user, priv)
 
@@ -99,7 +131,7 @@ class BitBucket(GitSpindle):
         existing = [x.key for x in self.me.keys()]
         for arg in opts['<key>']:
             with open(arg) as fd:
-                algo, key, title = fd.read().strip().split(None, 2)
+                algo, key, title = (fd.read().strip().split(None, 2) + [None])[:3]
             key = "%s %s" % (algo, key)
             if key in existing:
                 continue
@@ -123,16 +155,20 @@ class BitBucket(GitSpindle):
         """<pr-number>
            Applies a pull request as a series of cherry-picks"""
         repo = self.repository(opts)
-        pr = repo.pull_request(opts['<pr-number>'])
+        pr = None
+        try:
+            pr = repo.pull_request(opts['<pr-number>'])
+        except bbapi.BitBucketError:
+            err("Error while retrieving pull request #%s: %s" % (opts['<pr-number>'], sys.exc_info()[1]))
+            return
         if not pr:
             err("Pull request %s does not exist" % opts['<pr-number>'])
-        pprint(pr.data)
-        print("Applying PR#%d from %s: %s" % (pr.id, pr.author['display_name'] or pr.author['username'], pr.title))
+        print("Applying pull request #%d from %s: %s" % (pr.id, pr.author['display_name'] or pr.author['username'], pr.title))
         # Warnings
         warned = False
-        cbr = self.gitm('rev-parse', '--symbolic-full-name', 'HEAD').stdout.strip().replace('refs/heads/','')
+        cbr = self.git('symbolic-ref', 'HEAD').stdout.strip().replace('refs/heads/','')
         if cbr != pr.destination['branch']['name']:
-            print(wrap("Pull request was filed against %s, but you're on the %s branch" % (pr.destination['branch']['name'], cbr), fgcolor.red))
+            print(wrap("Pull request was filed against branch '%s', but you are %s" % (pr.destination['branch']['name'], "on branch '%s'" % cbr if cbr else "in 'detached HEAD' state"), fgcolor.red))
             warned = True
         if pr.state == 'MERGED':
             print(wrap("Pull request was already merged by %s" % (pr.closed_by['display_name'] or pr.closed_by['username']), fgcolor.red))
@@ -145,13 +181,16 @@ class BitBucket(GitSpindle):
                 sys.exit(1)
 
         # Fetch PR if needed
-        sha = self.git('rev-parse', '--verify', 'refs/pull/%d/head' % pr.id).stdout.strip()
+        sha = self.git('rev-parse', '--verify', '--quiet', 'refs/pull/%d/head' % pr.id).stdout.strip()
         if not sha.startswith(pr.source['commit']['hash']):
             print("Fetching pull request")
             url = self.bb.repository(*pr.source['repository']['full_name'].split('/')).links['clone']['https']
             self.gitm('fetch', url, 'refs/heads/%s:refs/pull/%d/head' % (pr.source['branch']['name'], pr.id), redirect=False)
-        head_sha = self.gitm('rev-parse', 'HEAD').stdout.strip()
-        if self.git('merge-base', pr.source['commit']['hash'], head_sha).stdout.strip() == head_sha:
+        head_sha = self.gitm('rev-parse', '--verify', '--quiet', 'HEAD').stdout.strip()
+        merge_base = self.git('merge-base', pr.source['commit']['hash'], head_sha).stdout.strip()
+        if merge_base.startswith(pr.source['commit']['hash']):
+            print("Pull request was already merged into this history")
+        elif merge_base == head_sha:
             print("Fast-forward merging %s..refs/pull/%d/head" % (pr.destination['branch']['name'], pr.id))
             self.gitm('merge', '--ff-only', 'refs/pull/%d/head' % pr.id, redirect=False)
         else:
@@ -197,7 +236,7 @@ class BitBucket(GitSpindle):
 
     @command
     def clone(self, opts, repo=None):
-        """[--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+        """[--ssh|--http] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
         if not repo:
             repo = self.repository(opts)
@@ -211,10 +250,8 @@ class BitBucket(GitSpindle):
         args.append(dir)
 
         self.gitm('clone', *args, redirect=False).returncode
-        if repo.is_fork:
-            os.chdir(dir)
-            self.set_origin(opts, repo=repo)
-            self.gitm('fetch', 'upstream', redirect=False)
+        os.chdir(dir)
+        self.set_origin(opts, repo=repo)
 
     @command
     def create(self, opts):
@@ -264,7 +301,7 @@ class BitBucket(GitSpindle):
 
     @command
     def fork(self, opts):
-        """[--ssh|--http] [--triangular] [<repo>]
+        """[--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
            Fork a repo and clone it"""
         do_clone = bool(opts['<repo>'])
         repo = self.repository(opts)
@@ -300,10 +337,10 @@ class BitBucket(GitSpindle):
            Invite users to collaborate on this repository"""
         repo = self.repository(opts)
         priv = 'read'
-        if opts['--write']:
-            priv = 'write'
-        elif opts['--admin']:
+        if opts['--admin']:
             priv = 'admin'
+        elif opts['--write']:
+            priv = 'write'
         for email in opts['<email>']:
             invitation = repo.invite(email, priv)
             print("Invitation with %s privileges sent to %s" % (invitation['permission'], invitation['email']))
@@ -315,12 +352,20 @@ class BitBucket(GitSpindle):
         if opts['<repo>'] and opts['<repo>'].isdigit():
             # Let's assume it's an issue
             opts['<issue>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         repo = self.repository(opts)
-        for issue in opts['<issue>']:
-            issue = repo.issue(issue)
-            print(wrap(issue.title, attr.bright, attr.underline))
-            print(issue.content)
-            print(issue.html_url)
+        for issue_no in opts['<issue>']:
+            try:
+                issue = repo.issue(issue_no)
+                print(wrap(issue.title, attr.bright, attr.underline))
+                print(issue.content['raw'])
+                print(issue.html_url)
+            except bbapi.BitBucketError:
+                bbe = sys.exc_info()[1]
+                if bbe.args[0] == 'No Issue matches the given query.':
+                    print('No issue with id %s found in repository %s' % (issue_no, repo.full_name))
+                else:
+                    raise
         if not opts['<issue>']:
             body = """
 # Reporting an issue on %s/%s
@@ -333,15 +378,19 @@ class BitBucket(GitSpindle):
 
             try:
                 issue = repo.create_issue(title=title, body=body)
-                print("Issue %d created %s" % (issue.local_id, issue.html_url))
+                print("Issue %d created %s" % (issue.id, issue.html_url))
             except:
                 filename = self.backup_message(title, body, 'issue-message-')
                 err("Failed to create an issue, the issue text has been saved in %s" % filename)
 
     @command
     def issues(self, opts):
-        """[<repo>] [--parent] [<filter>...]
+        """[<repo>] [--parent] [<query>]
            List issues in a repository"""
+        if opts['<repo>'] and not opts['<query>'] and '=' in opts['<repo>']:
+            # Let's assume it's a query
+            opts['<query>'] = opts['<repo>']
+            opts['<repo>'] = None
         if not opts['<repo>'] and not self.in_repo:
             repos = self.me.repositories()
         else:
@@ -349,9 +398,14 @@ class BitBucket(GitSpindle):
         for repo in repos:
             if repo.fork and opts['--parent']:
                 repo = self.parent_repo(repo) or repo
-            filters = dict([x.split('=', 1) for x in opts['<filter>']])
+            query = opts['<query>']
+            if query:
+                if not 'state' in query:
+                    query = '(state != "resolved" AND state != "invalid" AND state != "duplicate" AND state != "wontfix" AND state != "closed") AND %s' % query
+            else:
+                query = 'state != "resolved" AND state != "invalid" AND state != "duplicate" AND state != "wontfix" AND state != "closed"'
             try:
-                issues = repo.issues(**filters)
+                issues = repo.issues(query)
             except bbapi.BitBucketError:
                 issues = None
             try:
@@ -362,11 +416,11 @@ class BitBucket(GitSpindle):
             if issues:
                 print(wrap("Issues for %s" % repo.full_name, attr.bright))
                 for issue in issues:
-                    print("[%d] %s https://bitbucket.org/%s/issue/%d/" % (issue.local_id, issue.title, repo.full_name, issue.local_id))
+                    print("[%d] %s %s" % (issue.id, issue.title, issue.html_url))
             if pullrequests:
                 print(wrap("Pull requests for %s" % repo.full_name, attr.bright))
                 for pr in pullrequests:
-                    print("[%d] %s https://bitbucket.org/%s/pull-requests/%d/" % (pr.id, pr.title, repo.full_name, pr.id))
+                    print("[%d] %s %s" % (pr.id, pr.title, pr.html_url))
 
 
     @command
@@ -481,7 +535,14 @@ class BitBucket(GitSpindle):
         if not src:
             src = self.gitm('rev-parse', '--abbrev-ref', 'HEAD').stdout.strip()
         if not dst:
-            dst = parent.main_branch()
+            tracking_remote = None
+            tracking_branch = self.git('rev-parse', '--abbrev-ref', '%s@{u}' % src).stdout.strip()
+            if '/' in tracking_branch:
+                tracking_remote, tracking_branch = tracking_branch.split('/', 1)
+            if (parent == repo and tracking_remote == 'origin') or (parent != repo and tracking_remote == 'upstream'):
+                dst = tracking_branch
+            else:
+                dst = parent.main_branch()
 
         if src == dst and parent == repo:
             err("Cannot file a pull request on the same branch")
@@ -592,6 +653,8 @@ class BitBucket(GitSpindle):
         except bbapi.BitBucketError:
             if 'is a team account' in str(sys.exc_info()[1]):
                 repos = self.bb.team(opts['<user>']).repositories()
+            else:
+                raise
         if not repos:
             return
         maxlen = max([len(x.name) for x in repos])
@@ -608,7 +671,7 @@ class BitBucket(GitSpindle):
 
     @command
     def set_origin(self, opts, repo=None, remote='origin'):
-        """[--ssh|--http] [--triangular]
+        """[--ssh|--http] [--triangular [--upstream-branch=<branch>]]
            Set the remote 'origin' to github.
            If this is a fork, set the remote 'upstream' to the parent"""
         if not repo:
@@ -642,7 +705,7 @@ class BitBucket(GitSpindle):
         if remote != 'origin':
             return
 
-        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'])
+        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'], upstream_branch=opts['--upstream-branch'])
 
     @command
     def snippet(self, opts):
@@ -680,15 +743,19 @@ class BitBucket(GitSpindle):
         """<user>...
            Display GitHub user info"""
         for user_ in opts['<user>']:
-            user = self.bb.user(user_)
-            if not user:
-                print("No such user: %s" % user_)
-                continue
+            try:
+                user = self.bb.user(user_)
+            except:
+                if 'is a team account' in str(sys.exc_info()[1]):
+                    user = self.bb.team(user_)
+                else:
+                    print("No such user: %s" % user_)
+                    continue
             print(wrap(user.display_name or user.username, attr.bright, attr.underline))
             print("Profile:  %s" % user.links['html']['href'])
-            if user.website:
+            if hasattr(user, 'website') and user.website:
                 print("Website:  %s" % user.website)
-            if user.location:
+            if hasattr(user, 'location') and user.location:
                 print("Location: %s" % user.location)
             try:
                 keys = user.keys()
@@ -701,3 +768,12 @@ class BitBucket(GitSpindle):
                     print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.label))
                 else:
                     print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
+            if user.username == self.my_login:
+                teams = [x.username for x in self.bb.teams()]
+                if teams:
+                    teams.sort()
+                    print("Member of %s" % ', '.join(teams))
+            if user.type == 'team':
+                print('Members:')
+                for member in user.members():
+                    print(" - %s" % member.username)

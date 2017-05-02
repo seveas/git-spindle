@@ -21,8 +21,14 @@ class GitHub(GitSpindle):
     hosts = ['github.com', 'www.github.com', 'gist.github.com']
     api = github3
 
+    def __init__(self):
+        super(GitHub, self).__init__()
+        if self.use_credential_helper:
+            # Git Credential Manager creates a token with too few scopes
+            self.use_credential_helper = self.git('config', 'credential.helper').stdout.strip() != 'manager'
+
     # Support functions
-    def login(self):
+    def login(self, password=None):
         host = self.config('host')
         if host and host not in ('https://api.github.com', 'api.github.com'):
             if not host.startswith(('http://', 'https://')):
@@ -31,19 +37,33 @@ class GitHub(GitSpindle):
         else:
             self.gh = github3.GitHub()
 
-        user = self.config('user')
-        if not user:
-            user = raw_input("GitHub user: ").strip()
-            self.config('user', user)
-
-        token = self.config('token')
+        user = None
+        token = None
+        if not password:
+            tokenConfig = self.config('token')
+            user, token = tokenConfig if isinstance(tokenConfig, tuple) else (None, tokenConfig)
         if not token:
-            password = getpass.getpass("GitHub password: ")
+            if not user:
+                user = self.config('user')
+            if not user:
+                user = raw_input("GitHub user: ").strip()
+                if not user:
+                    print('Please do not specify an empty user')
+                    self.login(password)
+                    return
+            self.config('user', user)
+            if not password:
+                password = getpass.getpass("GitHub password for '%s': " % user)
+            if not password:
+                print('Please do not specify an empty password')
+                self.login()
+                return
             self.gh.login(user, password, two_factor_callback=lambda: prompt_for_2fa(user))
             scopes = ['user', 'repo', 'gist', 'admin:public_key', 'admin:repo_hook', 'admin:org']
             if user.startswith('git-spindle-test-'):
                 scopes.append('delete_repo')
             name = "GitSpindle on %s" % socket.gethostname()
+            wrong_password = False
             try:
                 auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
             except github3.GitHubError:
@@ -51,20 +71,26 @@ class GitHub(GitSpindle):
                 if not hasattr(exc, 'response'):
                     raise
                 response = exc.response
-                if response.status_code != 422:
-                    raise
-                for error in response.json()['errors']:
-                    if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
-                        if os.getenv('DEBUG') or self.question('An OAuth token for this host already exists. Shall I delete it?', default=False):
-                            for auth in self.gh.iter_authorizations():
-                                if auth.app['name'] in (name, '%s (API)' % name):
-                                    auth.delete()
-                            auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
-                        else:
-                            err('Unable to create an OAuth token')
-                        break
+                if response.status_code == 401:
+                    wrong_password = True
                 else:
-                    raise
+                    if response.status_code != 422:
+                        raise
+                    for error in response.json()['errors']:
+                        if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
+                            if os.getenv('DEBUG') or self.question('An OAuth token for this host already exists. Shall I delete it?', default=False):
+                                for auth in self.gh.iter_authorizations():
+                                    if auth.app['name'] in (name, '%s (API)' % name):
+                                        auth.delete()
+                                auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
+                            else:
+                                err('Unable to create an OAuth token')
+                            break
+                    else:
+                        raise
+            if wrong_password:
+                self.login()
+                return
             if auth is None:
                 err("Authentication failed")
             token = auth.token
@@ -74,18 +100,25 @@ class GitHub(GitSpindle):
             if self.use_credential_helper:
                 location = 'git\'s credential helper'
             print("A GitHub authentication token is now stored in %s" % location)
-            print("To revoke access, visit https://github.com/settings/applications")
+            print("To revoke access, visit https://github.com/settings/tokens")
 
-        if not user or not token:
-            err("No user or token specified")
-        self.gh.login(username=user, token=token)
+        if not token:
+            err("No token specified")
+        self.gh.login(token=token)
         try:
             self.me = self.gh.user()
             self.my_login = self.me.login
+            self.config('user', self.my_login)
+            return
         except github3.GitHubError:
-            # Token obsolete
-            self.config('token', None)
-            self.login()
+            if sys.exc_info()[1].code != 401:
+                raise
+
+        # Token obsolete or token is a password
+        self.config('token', None)
+
+        # Try Token as password
+        self.login(token)
 
     def parse_url(self, url):
         if url.hostname == 'gist.github.com':
@@ -106,7 +139,8 @@ class GitHub(GitSpindle):
 
     def parent_repo(self, repo):
         if repo.fork:
-            return repo.parent
+            # In search results or lists parent info is not returned with a repository
+            return repo.parent or self.gh.repository(repo.owner.login, repo.name).parent
 
     def clone_url(self, repo, opts):
         if opts['--ssh'] or repo.private:
@@ -143,7 +177,7 @@ class GitHub(GitSpindle):
                     if file.startswith(template + '.'):
                         contents = files[file]
         if contents:
-            contents = try_decode(self.gh._session.get(contents._json_data['download_url'], stream=True).content)
+            contents = self.gh._session.get(contents._json_data['download_url'], stream=True).text
         return contents
 
     # Commands
@@ -164,7 +198,7 @@ class GitHub(GitSpindle):
         url = repo._build_url('keys', base_url=repo._api)
         for arg in opts['<key>']:
             with open(arg) as fd:
-                algo, key, title = fd.read().strip().split(None, 2)
+                algo, key, title = (fd.read().strip().split(None, 2) + [None])[:3]
             key = "%s %s" % (algo, key)
             print("Adding deploy key %s" % arg)
             # repo.create_key(title=title, key=key, read_only=opts['--read-only'])
@@ -173,12 +207,19 @@ class GitHub(GitSpindle):
 
     @command
     def add_hook(self, opts):
-        """<name> [<setting>...]
+        """<name> [<repo>] [<setting>...]
            Add a repository hook"""
+        if opts['<repo>'] and '=' in opts['<repo>']:
+            # Let's assume it's a setting
+            opts['<setting>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         repo = self.repository(opts)
-        for hook in repo.iter_hooks():
-            if hook.name == opts['<name>']:
-                raise ValueError("Hook %s already exists" % opts['<name>'])
+        if opts['<name>'] != 'web':
+            for hook in repo.iter_hooks():
+                if hook.name == opts['<name>']:
+                    raise ValueError("Hook '%s' already exists" % opts['<name>'])
+        if any([not '=' in x for x in opts['<setting>']]):
+            err('<setting> must be an equals sign separated key-value pair')
         settings = dict([x.split('=', 1) for x in opts['<setting>']])
         for key in settings:
             if settings[key].isdigit():
@@ -246,12 +287,28 @@ class GitHub(GitSpindle):
         existing = [x.key for x in self.gh.iter_keys()]
         for arg in opts['<key>']:
             with open(arg) as fd:
-                algo, key, title = fd.read().strip().split(None, 2)
+                algo, key, title = (fd.read().strip().split(None, 2) + [None])[:3]
             key = "%s %s" % (algo, key)
             if key in existing:
                 continue
             print("Adding %s" % arg)
             self.gh.create_key(title=title, key=key)
+
+    @hidden_command
+    def available_hooks(self, opts):
+        """[<name>]
+           List information about available hooks or hook options (for completion)"""
+        url = self.gh._build_url('hooks')
+        json = self.gh._json(self.gh._get(url), 200)
+        for hook in json:
+            name = hook['name']
+            if opts['<name>']:
+                if name == opts['<name>']:
+                    print(' '.join(hook['supported_events']))
+                    if hook['schema']:
+                        print('%s=' % '= '.join(schema_element[1] for schema_element in hook['schema']))
+            else:
+                print(name)
 
     @command
     def browse(self, opts):
@@ -275,29 +332,39 @@ class GitHub(GitSpindle):
         rows = [[],[],[],[],[],[],[]]
         commits = []
 
-        data = requests.get('https://github.com/users/%s/contributions' % user).text
+        user = self.gh.user(user)
+        data = requests.get(re.sub(r'/%s$' % user.login, '/users/%s/contributions' % user.login, user.html_url, 1)).text
         # Sorry, zalgo!
         data = re.findall(r'data-count="(.*?)" data-date="(.*?)"', data)
-        y, m, d = [int(x) for x in data[0][1].split('-')]
-        wd = (datetime.date(y,m,d).weekday()+1) % 7
+        data = [(datetime.datetime.strptime(date, '%Y-%m-%d').date(), int(count)) for (count, date) in data]
+
+        wd = (data[0][0].weekday() + 1) % 7
         for i in range(wd):
-            rows[i].append((None,None))
+            rows[i].append((None, None))
         if wd:
-            months.append(m)
-        for (count, date) in data:
-            count = int(count)
-            y, m, d = [int(x) for x in date.split('-')]
-            wd = (datetime.date(y,m,d).weekday()+1) % 7
-            rows[wd].append((d, count))
-            if not wd:
-                months.append(m)
+            months.append(0)
+        for (date, count) in data:
+            wd = (date.weekday() + 1) % 7
+            rows[wd].append((date.day, count))
+            if not (len(months) and months[-1]):
+                first_of_next_month = date.replace(
+                    year=date.year + (1 if date.month + 1 >= 12 else 0),
+                    month=(date.month + 1) % 12,
+                    day=1)
+                if not wd:
+                    if (first_of_next_month + datetime.timedelta(7 - first_of_next_month.weekday()) - date) >= datetime.timedelta(14):
+                        months.append(date.month)
+                    else:
+                        months.append(0)
+            elif not wd:
+                months.append(date.month)
             if count:
                 commits.append(count)
 
         # Print months
         sys.stdout.write("  ")
-        last = -1
-        skip = months[2] != months[0]
+        last = 0
+        skip = False
         monthtext = ('', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
         for month in months:
             if month != last:
@@ -319,8 +386,12 @@ class GitHub(GitSpindle):
             p5  = commits[int(round(len(commits) * 0.95))]
             p15 = commits[int(round(len(commits) * 0.85))]
             p35 = commits[int(round(len(commits) * 0.65))]
-        blob1 = b'\xe2\x96\xa0'.decode('utf-8')
-        blob2 = b'\xe2\x97\xbc'.decode('utf-8')
+        blob1 = b'\xe2\x96\xa0'.decode('utf-8').encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding)
+        if len(blob1) != 1:
+            blob1 = 'x'
+        blob2 = b'\xe2\x97\xbc'.decode('utf-8').encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding)
+        if len(blob2) != 1:
+            blob2 = blob1
         for rnum, row in enumerate(rows):
             if rnum % 2:
                 sys.stdout.write(days[rnum] + " ")
@@ -328,8 +399,9 @@ class GitHub(GitSpindle):
                 sys.stdout.write("  ")
             for (day, count) in row:
                 if count is None:
-                    color = attr.conceal
-                elif count > p5:
+                    sys.stdout.write('  ')
+                    continue
+                if count > p5:
                     color = fgcolor.xterm(22)
                 elif count > p15:
                     color = fgcolor.xterm(28)
@@ -340,7 +412,10 @@ class GitHub(GitSpindle):
                 else:
                     color = fgcolor.xterm(237)
                 if day == 1:
-                    msg = wrap(blob2, attr.underline, color)
+                    if blob1 == blob2:
+                        msg = wrap(blob2, attr.underline, color, bgcolor.red)
+                    else:
+                        msg = wrap(blob2, attr.underline, color)
                     if not PY3:
                         msg = msg.encode('utf-8')
                     sys.stdout.write(msg)
@@ -525,7 +600,7 @@ class GitHub(GitSpindle):
 
     @command
     def clone(self, opts, repo=None):
-        """[--ssh|--http|--git] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+        """[--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
         if not repo:
             repo = self.repository(opts)
@@ -538,19 +613,25 @@ class GitHub(GitSpindle):
         args.append(dir)
 
         self.gitm('clone', *args, redirect=False).returncode
-        if repo.fork:
-            os.chdir(dir)
-            self.set_origin(opts, repo=repo)
+        os.chdir(dir)
+        self.set_origin(opts, repo=repo)
 
     @command
     def collaborators(self, opts):
         """[<repo>]
            List collaborators of a repository"""
         repo = self.repository(opts)
-        users = list(repo.iter_collaborators())
-        users.sort(key = lambda user: user.login)
-        for user in users:
-            print(user.login)
+        try:
+            users = list(repo.iter_collaborators())
+            users.sort(key = lambda user: user.login)
+            for user in users:
+                print(user.login)
+        except github3.GitHubError:
+            exc = sys.exc_info()[1]
+            if exc.code == 403 and 'push' in exc.message:
+                err(exc.message)
+            else:
+                raise
 
     @command
     def create(self, opts):
@@ -628,14 +709,29 @@ class GitHub(GitSpindle):
 
     @command
     def edit_hook(self, opts):
-        """<name> [<setting>...]
+        """<name> [<repo>] [<setting>...]
            Edit a hook"""
-        for hook in self.repository(opts).iter_hooks():
-            if hook.name == opts['<name>']:
-                break
+        if opts['<repo>'] and '=' in opts['<repo>']:
+            # Let's assume it's a setting
+            opts['<setting>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
+        if opts['<name>'] == 'web' or not opts['<name>'][4:].isdigit():
+            raise ValueError("Hook '%s' does not exist" % opts['<name>'])
+        elif opts['<name>'].startswith('web-'):
+            id = int(opts['<name>'][4:])
+            for hook in self.repository(opts).iter_hooks():
+                if hook.name == 'web' and hook.id == id:
+                    break
+            else:
+                raise ValueError("Hook '%s' does not exist" % opts['<name>'])
         else:
-            raise ValueError("Hook %s does not exist" % opts['<name>'])
-
+            for hook in self.repository(opts).iter_hooks():
+                if hook.name == opts['<name>']:
+                    break
+            else:
+                raise ValueError("Hook '%s' does not exist" % opts['<name>'])
+        if any([not '=' in x for x in opts['<setting>']]):
+            err('<setting> must be an equals sign separated key-value pair')
         settings = dict([x.split('=', 1) for x in opts['<setting>']])
         for key in settings:
             if settings[key].isdigit():
@@ -643,7 +739,7 @@ class GitHub(GitSpindle):
         events = settings.pop('events', ','.join(hook.events)).split(',')
         config = hook.config
         config.update(settings)
-        hook.edit(opts['<name>'], config, events)
+        hook.edit(config, events)
 
     @command
     def fetch(self, opts):
@@ -662,7 +758,7 @@ class GitHub(GitSpindle):
 
     @command
     def fork(self, opts):
-        """[--ssh|--http|--git] [--triangular] [<repo>]
+        """[--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [<repo>]
            Fork a repo and clone it"""
         do_clone = bool(opts['<repo>'])
         repo = self.repository(opts)
@@ -720,9 +816,13 @@ class GitHub(GitSpindle):
 
     @command
     def hooks(self, opts):
-        """\nShow hooks that have been enabled"""
+        """[<repo>]
+           Show hooks that have been enabled"""
         for hook in self.repository(opts).iter_hooks():
-            print(wrap("%s (%s)" % (hook.name, ', '.join(hook.events)), attr.bright))
+            if hook.name == 'web':
+                print(wrap("%s-%d (%s)" % (hook.name, hook.id, ', '.join(hook.events)), attr.bright))
+            else:
+                print(wrap("%s (%s)" % (hook.name, ', '.join(hook.events)), attr.bright))
             for key, val in sorted(hook.config.items()):
                 if val in (None, ''):
                     continue
@@ -745,10 +845,19 @@ class GitHub(GitSpindle):
     def ip_addresses(self, opts):
         """[--git] [--hooks] [--importer] [--pages]
            Show the IP addresses for github.com services in CIDR format"""
-        ip_addresses = self.gh.meta()
+        count = -1
         for what in ('git', 'hooks', 'importer', 'pages'):
             if opts['--' + what]:
-                print("\n".join(ip_addresses[what]))
+                count += 1
+        ip_addresses = self.gh.meta()
+        for what in ('git', 'hooks', 'importer', 'pages'):
+            if count == -1:
+                print('[%s]\n\t%s' % (what, '\n\t'.join(ip_addresses[what])))
+            elif opts['--' + what]:
+                if count:
+                    print('[%s]\n\t%s' % (what, '\n\t'.join(ip_addresses[what])))
+                else:
+                    print('\n'.join(ip_addresses[what]))
 
     @command
     def issue(self, opts):
@@ -757,12 +866,16 @@ class GitHub(GitSpindle):
         if opts['<repo>'] and opts['<repo>'].isdigit():
             # Let's assume it's an issue
             opts['<issue>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         repo = self.repository(opts)
-        for issue in opts['<issue>']:
-            issue = repo.issue(issue)
-            print(wrap(issue.title, attr.bright, attr.underline))
-            print(issue.body)
-            print(issue.pull_request and issue.pull_request['html_url'] or issue.html_url)
+        for issue_no in opts['<issue>']:
+            issue = repo.issue(issue_no)
+            if issue:
+                print(wrap(issue.title, attr.bright, attr.underline))
+                print(issue.body)
+                print(issue.pull_request and issue.pull_request['html_url'] or issue.html_url)
+            else:
+                print('No issue with id %s found in repository %s' % (issue_no, repo.full_name))
         if not opts['<issue>']:
             body = self.find_template(repo, 'ISSUE_TEMPLATE') or """
 # Reporting an issue on %s/%s
@@ -784,21 +897,29 @@ class GitHub(GitSpindle):
     def issues(self, opts):
         """[<repo>] [--parent] [<filter>...]
            List issues in a repository"""
+        if opts['<repo>'] and '=' in opts['<repo>']:
+            # Let's assume it's a filter
+            opts['<filter>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         if not opts['<repo>'] and not self.in_repo:
             repos = list(self.gh.iter_repos(type='all'))
         else:
             repos = [self.repository(opts)]
         for repo in repos:
-            if repo.fork and opts['--parent']:
-                repo = repo.parent
+            repo = (opts['--parent'] and self.parent_repo(repo)) or repo
+            if any([not '=' in x for x in opts['<filter>']]):
+                err('<filter> must be an equals sign separated key-value pair')
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
+            valid_filters = repo.iter_issues.__code__.co_varnames[1:repo.iter_issues.__code__.co_argcount]
+            if any([not x in valid_filters for x in filters]):
+                err('Invalid filter specified. Valid filters: "%s"' % '", "'.join(sorted(valid_filters)))
             try:
                 issues = list(repo.iter_issues(**filters))
             except github3.GitHubError:
-                _, err, _ = sys.exc_info()
-                if err.code == 410:
+                _, error, _ = sys.exc_info()
+                if error.code == 410:
                     if len(repos) == 1:
-                        print(err.message)
+                        print(error.message)
                     continue
                 else:
                     raise
@@ -811,7 +932,7 @@ class GitHub(GitSpindle):
 
     @command
     def log(self, opts):
-        """[--type=<type>] [--count=<count>] [--verbose] [<what>]
+        """[--type=<type>...] [--count=<count>] [--verbose] [<what>]
            Display github log for yourself or other users. Or for an organisation or a repo"""
         logtype = 'user'
         count = int(opts['--count'] or 30)
@@ -841,9 +962,9 @@ class GitHub(GitSpindle):
             events = [x for x in what.iter_events(number=count)]
         else:
             events = []
-            etype = opts['--type'].lower() + 'event'
+            etypes = [x.lower() + 'event' for x in opts['--type']]
             for event in what.iter_events(number=-1):
-                if event.type.lower() == etype:
+                if event.type.lower() in etypes:
                     events.append(event)
                     if len(events) == count:
                         break
@@ -880,16 +1001,25 @@ class GitHub(GitSpindle):
             elif event.type == 'FollowEvent':
                 print("%s started following %s" % (ts, event.payload['target'].login))
             elif event.type == 'ForkEvent':
-                print("%s forked %s to %s/%s" % (ts, repo, event.payload['forkee'].owner.login, event.payload['forkee'].name))
+                print("%s forked %s to %s" % (ts, repo, event.payload['forkee'].full_name))
             elif event.type == 'ForkApplyEvent':
                 print("%s applied %s to %s%s" % (ts, event.payload['after'][:7], event.payload['head'], repo_))
+                if verbose:
+                    shas = '%s...%s' % (event.payload['before'][:7], event.payload['after'][:7])
+                    print("%s %s/compare/%s" % (tss, self.gh.repository(*event.repo).html_url, shas))
             elif event.type == 'GistEvent':
                 print("%s %sd gist #%s" % (ts, event.payload['action'], event.payload['gist'].html_url))
+            elif event.type == 'GistHistoryEvent':
+                # this comes from from monkey patching gists, not from the standard GitHub API
+                print("%s committed %s additions, %s deletions" % (ts, event.additions, event.deletions))
             elif event.type == 'GollumEvent':
                 pages = len(event.payload['pages'])
                 print("%s updated %d wikipage%s%s" % (ts, pages, {1:''}.get(pages, 's'), repo_))
+                if verbose:
+                    for page in event.payload['pages']:
+                        print("%s %s '%s' (%s%s)" % (tss, page['action'], page['title'], '/'.join(self.me.html_url.split('/', 4)[:3]), page['html_url']))
             elif event.type == 'IssueCommentEvent':
-                print("%s commented on issue #%s%s" % (ts, event.payload['issue'].number, repo_))
+                print("%s %s comment on %s #%s%s" % (ts, event.payload['action'], 'pull request' if event.payload['issue'].pull_request else 'issue', event.payload['issue'].number, repo_))
                 if verbose:
                     print("%s %s %s" % (tss, event.payload['issue'].title, event.payload['comment']._json_data['html_url']))
             elif event.type == 'IssuesEvent':
@@ -900,39 +1030,23 @@ class GitHub(GitSpindle):
                 print("%s %s %s to %s" % (ts, event.payload['action'], event.payload['member'].login, repo))
             elif event.type == 'PublicEvent':
                 print("%s made %s open source" % repo)
-            elif event.type == 'PullRequestReviewCommentEvent':
-                print("%s commented on a pull request for commit %s%s" % (ts, event.payload['comment'].commit_id[:7], repo_))
             elif event.type == 'PullRequestEvent':
-                print("%s %s pull_request #%s%s" % (ts, event.payload['action'], event.payload['pull_request'].number, repo_))
+                print("%s %s pull request #%s%s" % (ts, event.payload['action'], event.payload['pull_request'].number, repo_))
                 if verbose:
                     print("%s %s %s" % (tss, event.payload['pull_request'].title, event.payload['pull_request'].html_url))
-
-            elif event.type == 'PushEvent':
-                # Old push events have shas and not commits
-                if 'commits' in event.payload:
-                    commits = len(event.payload['commits'])
-                else:
-                    commits = len(event.payload['shas'])
-                print("%s pushed %d commits to %s%s" % (ts, commits, event.payload['ref'][11:], repo_))
+            elif event.type == 'PullRequestReviewCommentEvent':
+                print("%s commented on a pull request for commit %s%s" % (ts, event.payload['comment'].commit_id[:7], repo_))
                 if verbose:
-                    shas = '%s...%s' % (event.payload['before'][:8], event.payload['head'][:8])
-                    print("%s %s/%s/compare/%s" % (tss, self.me.html_url, event.repo[1], shas))
+                    print("%s %s %s" % (tss, event.payload['pull_request'].title, event.payload['comment']._json_data['html_url']))
+            elif event.type == 'PushEvent':
+                print("%s pushed %d commits to %s%s" % (ts, event.payload['size'], event.payload['ref'][11:], repo_))
+                if verbose:
+                    shas = '%s...%s' % (event.payload['before'][:7], event.payload['head'][:7])
+                    print("%s %s/compare/%s" % (tss, self.gh.repository(*event.repo).html_url, shas))
             elif event.type == 'ReleaseEvent':
-                print("%s released %s" % (ts, event.payload['name']))
-            elif event.type == 'StatusEvent':
-                print("%s commit %s changed to %s" % (ts, event.payload['sha'][:7], event.payload['state']))
-            elif event.type == 'TeamAddEvent':
-                if 'user' in event.payload:
-                    what = 'user'
-                    name = isinstance(event.payload['user'], dict) and event.payload['user']['name'] or event.payload['user'].name
-                else:
-                    what = 'repository'
-                    name = isinstance(event.payload['repository'], dict) and event.payload['repository']['name'] or event.payload['repository'].name
-                    print("%s %s %s was added to team %s" % (ts, what, name, event.payload['team'].name))
+                print("%s %s release '%s'" % (ts, event.payload['action'], event.payload['release'].name))
             elif event.type == 'WatchEvent':
                 print("%s %s watching %s" % (ts, event.payload['action'], repo))
-            elif event.type == 'GistHistoryEvent':
-                print("%s committed %s additions, %s deletions" % (ts, event.additions, event.deletions))
             else:
                 print(wrap("Cannot display %s. Please file a bug at github.com/seveas/git-spindle\nincluding the following output:" % event.type, attr.bright))
                 pprint(event.payload)
@@ -1042,11 +1156,10 @@ class GitHub(GitSpindle):
                 for repo in self.gh.iter_user_repos(login, type='owner'):
                     sys.stderr.write("Looking at repo %s\n" % repo.name)
                     if repo.fork:
-                        # Sigh. GH doesn't return parent info in iter_repos
-                        repo = self.gh.repository(repo.owner.login, repo.name)
                         if repo.owner.login not in people:
                             people[repo.owner.login] = P(repo.owner)
-                        person.rel_to[repo.parent.owner.login].append('forked %s' % repo.parent.name)
+                        parent = self.parent_repo(repo)
+                        person.rel_to[parent.owner.login].append('forked %s' % parent.name)
                     else:
                         for fork in repo.iter_forks():
                             if fork.owner.login == login:
@@ -1070,14 +1183,15 @@ class GitHub(GitSpindle):
 
     @command
     def protect(self, opts):
-        """[--enforcement-level=<level>] [--contexts=<contexts>] <branch>
+        """[--enforcement-level=<level>] [--contexts=<contexts>] <branch> [<repo>]
            Protect a branch against deletions, force-pushes and failed status checks"""
         repo = self.repository(opts)
-        repo.branch(opts['<branch>']).protect(enforcement_level=opts['--enforcement-level'], contexts=(opts['--contexts'] or '').split(','))
+        repo.branch(opts['<branch>']).protect(enforcement_level=opts['--enforcement-level'], contexts=(opts['--contexts'] or '').split(',') if opts['--contexts'] else None)
 
     @command
     def protected(self, opts):
-        """\nList active branch protections"""
+        """[<repo>]
+           List active branch protections"""
         repo = self.repository(opts)
         for branch in repo.iter_branches(protected=True):
             data = branch._json_data['protection']
@@ -1103,10 +1217,7 @@ class GitHub(GitSpindle):
         """[--issue=<issue>] [--yes] [<yours:theirs>]
            Opens a pull request to merge your branch to an upstream branch"""
         repo = self.repository(opts)
-        if repo.fork:
-            parent = repo.parent
-        else:
-            parent = repo
+        parent = self.parent_repo(repo) or repo
         # Which branch?
         src = opts['<yours:theirs>'] or ''
         dst = None
@@ -1115,7 +1226,14 @@ class GitHub(GitSpindle):
         if not src:
             src = self.gitm('rev-parse', '--abbrev-ref', 'HEAD').stdout.strip()
         if not dst:
-            dst = parent.default_branch
+            tracking_remote = None
+            tracking_branch = self.git('rev-parse', '--abbrev-ref', '%s@{u}' % src).stdout.strip()
+            if '/' in tracking_branch:
+                tracking_remote, tracking_branch = tracking_branch.split('/', 1)
+            if (parent == repo and tracking_remote == 'origin') or (parent != repo and tracking_remote == 'upstream'):
+                dst = tracking_branch
+            else:
+                dst = parent.default_branch
 
         if src == dst and parent == repo:
             err("Cannot file a pull request on the same branch")
@@ -1170,22 +1288,21 @@ class GitHub(GitSpindle):
             print("Pull request %d created %s" % (pull.number, pull.html_url))
             return
 
-        body = self.find_template(repo, 'PULL_REQUEST_TEMPLATE')
+        body = self.find_template(parent, 'PULL_REQUEST_TEMPLATE')
         # 1 commit: title/body from commit
-        if not body:
-            if len(commits) == 1:
-                title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
-                title = title.strip()
-                body = body.strip()
-                accept_empty_body = not bool(body)
+        if not body and len(commits) == 1:
+            title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
+            title = title.strip()
+            body = body.strip()
+            accept_empty_body = not bool(body)
 
-            # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
-            else:
-                title = src
-                if '/' in title:
-                    title = title[title.rfind('/') + 1:]
-                title = title.title().replace('-', ' ')
-                body = ""
+        # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
+        else:
+            title = src
+            if '/' in title:
+                title = title[title.rfind('/') + 1:]
+            title = title.title().replace('-', ' ')
+            body = body or ""
 
         body += """
 # Requesting a pull from %s/%s into %s/%s
@@ -1279,11 +1396,21 @@ class GitHub(GitSpindle):
 
     @command
     def remove_hook(self, opts):
-        """<name>
+        """<name> [<repo>]
            Remove a hook"""
-        for hook in self.repository(opts).iter_hooks():
-            if hook.name == opts['<name>']:
-                hook.delete()
+        if opts['<name>'].startswith('web-'):
+            if opts['<name>'][4:].isdigit():
+                id = int(opts['<name>'][4:])
+                for hook in self.repository(opts).iter_hooks():
+                    if hook.name == 'web' and hook.id == id:
+                        hook.delete()
+                        return
+        elif not opts['<name>'] == 'web':
+            for hook in self.repository(opts).iter_hooks():
+                if hook.name == opts['<name>']:
+                    hook.delete()
+                    return
+        raise ValueError("Hook '%s' does not exist" % opts['<name>'])
 
     @command
     def render(self, opts):
@@ -1309,19 +1436,21 @@ class GitHub(GitSpindle):
 </html>"""
         with open(opts['<file>'][0]) as fd:
             data = fd.read()
-        rendered = github3.markdown(data)
+        rendered = self.gh.markdown(data)
         if isinstance(rendered, bytes):
             rendered = rendered.decode('utf-8')
+        rendered = rendered.replace('user-content-', '')
         html = template % (os.path.basename(opts['<file>'][0]), rendered)
         if opts['--save']:
             with open(opts['--save'], 'w') as fd:
                 fd.write(html)
         else:
-            with tempfile.NamedTemporaryFile(suffix='.html') as fd:
+            with tempfile.NamedTemporaryFile(suffix='.html', delete=False) as fd:
                 fd.write(html.encode('utf-8'))
-                fd.flush()
+                fd.close()
                 webbrowser.open('file://' + fd.name)
                 time.sleep(1)
+                os.remove(fd.name)
 
     @command
     def repos(self, opts):
@@ -1355,15 +1484,13 @@ class GitHub(GitSpindle):
             if opts['<user>'][0] != repo.owner.login:
                 name = '%s/%s' % (repo.owner.login, name)
             msg = wrap(fmt % (name, repo._json_data['stargazers_count'], repo.forks, repo.description), *color)
-            if not PY3:
-                msg = msg.encode('utf-8')
             print(msg)
 
     @command
     def say(self, opts):
         """[<msg>]
            Let the octocat speak to you"""
-        msg = github3.octocat(opts['<msg>'] or None)
+        msg = self.gh.octocat(opts['<msg>'] or None)
         if isinstance(msg, bytes):
             msg = msg.decode('utf-8')
         print(msg)
@@ -1388,7 +1515,7 @@ class GitHub(GitSpindle):
 
     @command
     def set_origin(self, opts, repo=None, remote='origin'):
-        """[--ssh|--http|--git] [--triangular]
+        """[--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]]
            Set the remote 'origin' to github.
            If this is a fork, set the remote 'upstream' to the parent"""
         if not repo:
@@ -1406,20 +1533,14 @@ class GitHub(GitSpindle):
         self.gitm('config', '--replace-all', 'remote.%s.fetch' % remote, '+refs/heads/*:refs/remotes/%s/*' % remote)
 
         if repo.fork:
-            parent = repo.parent
+            parent = self.parent_repo(repo)
             url = self.clone_url(parent, opts)
             if self.git('config', 'remote.upstream.url').stdout.strip() != url:
                 print("Pointing upstream to %s" % url)
                 self.gitm('config', 'remote.upstream.url', url)
             self.gitm('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
-        else:
-            # If issues are enabled, fetch pull requests
-            try:
-                list(repo.iter_issues(number=1))
-            except github3.GitHubError:
-                pass
-            else:
-                self.gitm('config', '--add', 'remote.%s.fetch' % remote, '+refs/pull/*/head:refs/pull/*/head')
+
+        self.gitm('config', '--add', 'remote.%s.fetch' % remote, '+refs/pull/*/head:refs/pull/*/head')
 
         if self.git('ls-remote', remote).stdout.strip():
             self.gitm('fetch', remote, redirect=False)
@@ -1429,7 +1550,7 @@ class GitHub(GitSpindle):
         if remote != 'origin':
             return
 
-        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'])
+        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'], upstream_branch=opts['--upstream-branch'])
 
     @command
     def status(self, opts):
@@ -1455,7 +1576,7 @@ class GitHub(GitSpindle):
 
     @command
     def unprotect(self, opts):
-        """ <branch>
+        """<branch> [<repo>]
            Remove branch protections from a branch"""
         repo = self.repository(opts)
         repo.branch(opts['<branch>']).unprotect()
@@ -1512,7 +1633,10 @@ class GitHub(GitSpindle):
                     print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
                 else:
                     print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
-            orgs = list(user.iter_orgs())
+            if user.login == self.my_login:
+                orgs = list(self.gh.iter_orgs())
+            else:
+                orgs = list(user.iter_orgs())
             if orgs:
                 print("Member of %s" % ', '.join([x.login for x in orgs]))
             if user.type == 'Organization':

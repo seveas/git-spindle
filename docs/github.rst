@@ -74,16 +74,17 @@ Add SSH public keys (default: :file:`~/.ssh/*.pub`) to your account.
 Display all public keys of a user, in a format that can be added to
 :file:`~/.authorized_keys`.
 
-.. describe:: git hub log [--type=<type>] [--count=<count>] [--verbose] [<what>]
+.. describe:: git hub log [--type=<type>...] [--count=<count>] [--verbose] [<what>]
 
 Displays a log of your GitHub actions, such as pushes and issue comments. You
 can also specify a user or repository and the relevant log will be shown
 instead of yours.
 
 If you are only interested in events of a specific type, you can filter for it,
-e.g. :option:`--type=push`. You can also get more (or less) than the default 30
-items in the log by specifying a count. Finally, :option:`--verbose` will give
-slightly more verbose output for some log items.
+e.g. :option:`--type=Push`. You can also request multiple event types, e. g.
+:option:`--type=CommitComment --type=IssueComment`. You can also get more (or less)
+than the default 30 items in the log by specifying a count. Finally,
+:option:`--verbose` will give slightly more verbose output for some log items.
 
 .. describe:: git hub create-token [--store]
 
@@ -95,6 +96,10 @@ second factor.
 The token is shown in the output of the command. If you specify
 :option:`--store`, the token will also be stored using the git credential
 helpers.
+
+.. describe:: git hub help <command>
+
+Display the help for the specified command.
 
 .. _`profile page`: https://github.com/settings/applications
 
@@ -143,7 +148,7 @@ will be created on GitHub and your local repository will have GitHub as remote
 By default the repository is created under your account, but you can specify an
 organization to create the repository for.
 
-.. describe:: git hub set-origin [--ssh|--http|--git] [--triangular]
+.. describe:: git hub set-origin [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]]
 
 Fix the configuration of your repository's remotes. The remote "origin" will be
 set to your GitHub repository. If "origin" is a fork, an "upstream" remote will
@@ -154,12 +159,17 @@ refspec is added to fetch the pull requests for "origin" as
 All non-tracking branches with a matching counterpart in "origin" will be set to
 track "origin" (push and pull to it). Use :option:`--triangular` to set remotes
 in a triangular fashion where :command:`git pull` pulls from "upstream" and
-:command:`git push` pushes to "origin".
+:command:`git push` pushes to "origin". This also sets the configuration option
+:option:`remote.pushDefault`, so that new branches are pushed to "origin" even
+if they track a branch in "upstream". All non-tracking branches are set up to
+track a matching counterpart in "upstream" except if :option:`--upstream-branch`
+explicitly specifies a branch like "master" in "upstream" that all branches should
+track.
 
 For "origin", an SSH url is used. For "upstream", set-origin defaults to adding
 a git url, but this can be overridden. For private repos, SSH is used.
 
-.. describe:: git hub clone [--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
+.. describe:: git hub clone [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
 
 Clone a GitHub repository by name (e.g. seveas/hacks) or URL. The "origin"
 remote will be set and, like with set-origin, if "origin" is a fork an
@@ -181,14 +191,14 @@ or `seveas/git-spindle:master:bin/git-hub`.
 .. describe:: git hub ls [<dir>...]
 
 Display the contents of a directory on GitHub. Directory can start with
-repository names and refs. For example: `master:bin/git-hub`,
-`git-spindle:master:bin/git-hub` or `seveas/git-spindle:master:bin/git-hub`.
+repository names and refs. For example: `master:/lib/gitspindle`,
+`git-spindle:master:/lib/gitspindle` or `seveas/git-spindle:master:/lib/gitspindle`.
 
 .. describe:: git hub readme [<repo>]
 
 Download and display a repository's README file, whatever its actual name is.
 
-.. describe:: git hub fork [--ssh|--http|--git] [<repo>]
+.. describe:: git hub fork [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [<repo>]
 
 Fork another person's git repository on GitHub and clone that repository
 locally. The repository can be specified as a (git) url or simply username/repo.
@@ -256,19 +266,19 @@ Grant people push access to this repository.
 
 Revoke access to this repository.
 
-.. describe:: git hub protected
+.. describe:: git hub protected [<repo>]
 
 List all protected branches. Protected branches cannot be force-pushed or
 deleted, and can potentially have required status checks.
 
-.. describe:: git hub protect [--enforcement-level=<level>] [--contexts=<contexts>] <branch>
+.. describe:: git hub protect [--enforcement-level=<level>] [--contexts=<contexts>] <branch> [<repo>]
 
 Protect a branch against force-pushes and deletion. Optionally require status
 checks to succeed by specifying their context (e.g.
 continuous-integration/travis-ci) and for whom this is required (everyone or
 non_admins).
 
-.. describe:: git hub unprotect <branch>
+.. describe:: git hub unprotect <branch> [<repo>]
 
 Remove a branch's protection.
 
@@ -286,22 +296,22 @@ ssh. Read-only keys acan only fetch.
 Remove a deploy key by id. Use the :command:`git hub deploy-keys` command to
 see the id's of your deploy keys.
 
-.. describe:: git hub hooks
+.. describe:: git hub hooks [<repo>]
 
 Show all service hooks for this repository.
 
-.. describe:: git hub add-hook <name> [<setting>...]
+.. describe:: git hub add-hook <name> [<repo>] [<setting>...]
 
 Add a hook to this repository with the appropriate settings. Settings can be
 found in the hooks page on GitHub. One setting all hooks accept is
 :data:`events`, a comma-separated list of events this hook will be triggered
 for. A list of all events can be found on the `GitHub API page`_
 
-.. describe:: git hub edit-hook <name> [<setting>...]
+.. describe:: git hub edit-hook <name> [<repo>] [<setting>...]
 
 Edit one or more settings for a hook.
 
-.. describe:: git hub remove-hook <name>
+.. describe:: git hub remove-hook <name> [<repo>]
 
 Remove a service hook.
 
@@ -325,7 +335,9 @@ used to create a new issue.
 .. describe:: git hub pull-request [--issue=<issue>] [--yes] [<yours:theirs>]
 
 Files a pull request to merge branch "yours" (default: the current branch) into
-the upstream branch "theirs" (default: master). Like for a commit message, your
+the upstream branch "theirs" (default: the tracked branch of "yours" if it is in
+the upstream repository, otherwise the default branch of the upstream
+repository, usually "master"). Like for a commit message, your
 editor will be opened to write a pull request message. The comments of said
 message contain the shortlog and diffstat of the commits that you're asking to
 be merged. Note that if you use any characterset in your logs and filenames
@@ -340,7 +352,7 @@ GitHub makes it easy for you to merge pull requests, but if you want to keep
 your history linear, this one is for you. It applies a pull request using
 :command:`git cherry-pick` instead of merging.
 
-.. _`filters`: http://github3py.readthedocs.org/en/latest/repos.html#github3.repos.Repository.list_issues
+.. _`filters`: http://github3py.readthedocs.io/en/stable/repos.html#github3.repos.repo.Repository.iter_issues
 
 Gists
 -----
@@ -371,10 +383,11 @@ look like that on your GitHub profile page::
   F [38;5;237m■ [0m[38;5;28m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;64m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m
     [38;5;65m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;64m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;64m■ [0m[38;5;65m■ [0m[38;5;64m■ [0m[38;5;65m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;65m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;237m■ [0m[38;5;65m■ [0m[38;5;237m■ [0m
 
-.. describe:: git hub check-pages
+.. describe:: git hub check-pages [<repo>] [--parent]
 
 Check your repository for common misconfigurations in the usage of GitHub
-pages, including DNS checks and content checks.
+pages, including DNS checks and content checks. You can use the
+:option:`--parent` option to check the parent repository instead.
 
 .. describe:: git hub render [--save=<outfile>] <file>
 

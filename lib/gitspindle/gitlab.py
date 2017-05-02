@@ -28,43 +28,78 @@ class GitLab(GitSpindle):
     access_levels_r = dict([(value, key) for (key, value) in access_levels.items()])
 
     # Support functions
-    def login(self):
+    def login(self, password=None):
         self.gl = None
         host = self.config('host') or 'https://gitlab.com'
         if not host.startswith(('http://', 'https://')):
             host = 'https://' + host
         self.host = host
 
-        user = self.config('user')
+        user = None
+        token = None
+        if not password:
+            tokenConfig = self.config('token')
+            user, token = tokenConfig if isinstance(tokenConfig, tuple) else (None, tokenConfig)
+
+        if not user:
+            user = self.config('user')
         if not user:
             user = raw_input("GitLab user: ").strip()
-            self.config('user', user)
+            if not user:
+                print('Please do not specify an empty user')
+                self.login(password)
+                return
+        self.config('user', user)
 
-        token = self.config('token')
         if not token:
-            password = getpass.getpass("GitLab password: ")
+            if not password:
+                password = getpass.getpass("GitLab password for '%s': " % user)
+            if not password:
+                print('Please do not specify an empty password')
+                self.login()
+                return
             self.gl = glapi.Gitlab(host, email=user, password=password)
-            self.gl.auth()
-            token = self.gl.user.private_token
+            wrong_password = False
+            try:
+                self.gl.auth()
+            except glapi.GitlabAuthenticationError:
+                if sys.exc_info()[1].response_code != 401:
+                    raise
+                wrong_password = True
+            if wrong_password:
+                self.login()
+                return
+            token = self.gl.private_token
             self.config('token', token)
             location = '%s - do not share this file' % self.config_file
             if self.use_credential_helper:
                 location = 'git\'s credential helper'
             print("Your GitLab authentication token is now stored in %s" % location)
 
-        if not user or not token:
-            err("No user or token specified")
+        if not token:
+            err("No token specified")
 
         if not self.gl:
             self.gl = glapi.Gitlab(host, email=user, private_token=token)
+            wrong_password = False
             try:
                 self.gl.auth()
             except glapi.GitlabAuthenticationError:
-                # Token obsolete
+                if sys.exc_info()[1].response_code != 401:
+                    raise
+                wrong_password = True
+
+                # Token obsolete or token is a password
                 self.config('token', None)
-                self.login()
+
+            if wrong_password:
+                # Try Token as password
+                self.login(token)
+                return
+
         self.me = self.gl.user
         self.my_login = self.me.username
+        self.config('user', self.my_login)
 
     def parse_url(self, url):
         return ([self.my_login] + url.path.split('/'))[-2:]
@@ -124,13 +159,6 @@ class GitLab(GitSpindle):
         except glapi.GitlabListError:
             pass
 
-    def profile_url(self, user):
-        return '%s/u/%s' % (self.host, user.username)
-
-    def issue_url(self, issue):
-        repo = self.gl.Project(issue.project_id)
-        return '%s/issues/%d' % (repo.web_url, issue.iid)
-
     def merge_url(self, merge):
         repo = self.gl.Project(merge.project_id)
         return '%s/merge_requests/%d' % (repo.web_url, merge.iid)
@@ -157,7 +185,7 @@ class GitLab(GitSpindle):
         existing = [x.key for x in self.me.Key()]
         for arg in opts['<key>']:
             with open(arg) as fd:
-                algo, key, title = fd.read().strip().split(None, 2)
+                algo, key, title = (fd.read().strip().split(None, 2) + [None])[:3]
             key = "%s %s" % (algo, key)
             if key in existing:
                 continue
@@ -260,28 +288,49 @@ class GitLab(GitSpindle):
         rows = [[],[],[],[],[],[],[]]
         commits = []
 
-        data = requests.get(user.web_url + '/calendar').text
+        kwargs = {'headers': {'PRIVATE-TOKEN': self.gl.private_token}}
+        data = requests.get(user.web_url).text
+        i = data.find('class="user-calendar"')
+        data = data[i:data.find('>', i)].split('"')[-2]
+        data = data if data else "/users/" + user.username + "/calendar"
+        data = requests.get(self.host + data, **kwargs).text
         data = data[data.find('<script>')+8:data.find('</script>')]
         data = data[data.find('{')+1:data.find('}')].replace('"', '')
-        data = [(datetime.datetime.fromtimestamp(int(key)), int(value)) for (key,value) in [item.split(':') for item in data.split(',')]]
+        data = dict([(datetime.datetime.strptime(key, '%Y-%m-%d').date(), int(value)) for (key,value) in [item.split(':') for item in (data.split(',') if data else [])]])
 
-        wd = (data[0][0].weekday()+1) % 7
+        end_date = datetime.date.today()
+        current_date = end_date.replace(end_date.year - 1)
+
+        wd = (current_date.weekday() + 1) % 7
         for i in range(wd):
-            rows[i].append((None,None))
+            rows[i].append((None, None))
         if wd:
-            months.append(data[0][0].month)
-        for (date, count) in data:
-            wd = (date.weekday()+1) % 7
-            rows[wd].append((date.day, count))
-            if not wd:
-                months.append(date.month)
+            months.append(0)
+        while current_date <= end_date:
+            # print(str(current_date) + ('*' if current_date in data else ''))
+            wd = (current_date.weekday() + 1) % 7
+            count = data[current_date] if current_date in data else 0
+            rows[wd].append((current_date.day, count))
+            if not (len(months) and months[-1]):
+                first_of_next_month = current_date.replace(
+                    year=current_date.year + (1 if current_date.month + 1 >= 12 else 0),
+                    month=(current_date.month + 1) % 12,
+                    day=1)
+                if not wd:
+                    if (first_of_next_month + datetime.timedelta(7 - first_of_next_month.weekday()) - current_date) >= datetime.timedelta(14):
+                        months.append(current_date.month)
+                    else:
+                        months.append(0)
+            elif not wd:
+                months.append(current_date.month)
             if count:
                 commits.append(count)
+            current_date += datetime.timedelta(1)
 
         # Print months
         sys.stdout.write("  ")
-        last = -1
-        skip = months[2] != months[0]
+        last = 0
+        skip = False
         monthtext = ('', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')
         for month in months:
             if month != last:
@@ -297,11 +346,18 @@ class GitLab(GitSpindle):
         # Print commits
         days = 'SMTWTFS'
         commits.sort()
-        p5  = commits[int(round(len(commits) * 0.95))]
-        p15 = commits[int(round(len(commits) * 0.85))]
-        p35 = commits[int(round(len(commits) * 0.65))]
-        blob1 = b'\xe2\x96\xa0'.decode('utf-8')
-        blob2 = b'\xe2\x97\xbc'.decode('utf-8')
+        if len(commits) < 2:
+            p5 = p15 = p35 = 0
+        else:
+            p5  = commits[int(round(len(commits) * 0.95))]
+            p15 = commits[int(round(len(commits) * 0.85))]
+            p35 = commits[int(round(len(commits) * 0.65))]
+        blob1 = b'\xe2\x96\xa0'.decode('utf-8').encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding)
+        if len(blob1) != 1:
+            blob1 = 'x'
+        blob2 = b'\xe2\x97\xbc'.decode('utf-8').encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding)
+        if len(blob2) != 1:
+            blob2 = blob1
         for rnum, row in enumerate(rows):
             if rnum % 2:
                 sys.stdout.write(days[rnum] + " ")
@@ -309,8 +365,9 @@ class GitLab(GitSpindle):
                 sys.stdout.write("  ")
             for (day, count) in row:
                 if count is None:
-                    color = attr.conceal
-                elif count > p5:
+                    sys.stdout.write('  ')
+                    continue
+                if count > p5:
                     color = fgcolor.xterm(22)
                 elif count > p15:
                     color = fgcolor.xterm(28)
@@ -321,7 +378,10 @@ class GitLab(GitSpindle):
                 else:
                     color = fgcolor.xterm(237)
                 if day == 1:
-                    msg = wrap(blob2, attr.underline, color)
+                    if blob1 == blob2:
+                        msg = wrap(blob2, attr.underline, color, bgcolor.red)
+                    else:
+                        msg = wrap(blob2, attr.underline, color)
                     if not PY3:
                         msg = msg.encode('utf-8')
                     sys.stdout.write(msg)
@@ -332,7 +392,6 @@ class GitLab(GitSpindle):
                     sys.stdout.write(msg)
                 sys.stdout.write(' ')
             print("")
-
 
     @command
     def cat(self, opts):
@@ -356,7 +415,7 @@ class GitLab(GitSpindle):
 
     @command
     def clone(self, opts, repo=None):
-        """[--ssh|--http] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+        """[--ssh|--http] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
         if not repo:
             repo = self.repository(opts)
@@ -371,9 +430,8 @@ class GitLab(GitSpindle):
 
         self.gitm('clone', *args, redirect=False).returncode
         self.gitm('config', 'remote.origin.gitlab-id', repo.id, cwd=dir)
-        if hasattr(repo, 'forked_from_project'):
-            os.chdir(dir)
-            self.set_origin(opts, repo=repo)
+        os.chdir(dir)
+        self.set_origin(opts, repo=repo)
 
     @command
     def create(self, opts):
@@ -422,7 +480,7 @@ class GitLab(GitSpindle):
 
     @command
     def fork(self, opts):
-        """[--ssh|--http] [--triangular] [<repo>]
+        """[--ssh|--http] [--triangular [--upstream-branch=<branch>]] [<repo>]
            Fork a repo and clone it"""
         do_clone = bool(opts['<repo>'])
         repo = self.repository(opts)
@@ -447,15 +505,17 @@ class GitLab(GitSpindle):
         if opts['<repo>'] and opts['<repo>'].isdigit():
             # Let's assume it's an issue
             opts['<issue>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         repo = self.repository(opts)
-        # There's no way to fetch an issue by iid. Abuse search.
-        issues = repo.Issue()
-        for issue in opts['<issue>']:
-            issue = int(issue)
-            issue = [x for x in issues if x.iid == issue][0]
-            print(wrap(issue.title, attr.bright, attr.underline))
-            print(issue.description)
-            print(self.issue_url(issue))
+        for issue_no in opts['<issue>']:
+            issues = repo.Issue(iid=issue_no)
+            if len(issues):
+                issue = issues[0]
+                print(wrap(issue.title, attr.bright, attr.underline))
+                print(issue.description)
+                print(issue.web_url)
+            else:
+                print('No issue with id %s found in repository %s' % (issue_no, repo.path_with_namespace))
         if not opts['<issue>']:
             body = """
 # Reporting an issue on %s/%s
@@ -469,7 +529,7 @@ class GitLab(GitSpindle):
             try:
                 issue = glapi.ProjectIssue(self.gl, {'project_id': repo.id, 'title': title, 'description': body})
                 issue.save()
-                print("Issue %d created %s" % (issue.iid, self.issue_url(issue)))
+                print("Issue %d created %s" % (issue.iid, issue.web_url))
             except:
                 filename = self.backup_message(title, body, 'issue-message-')
                 err("Failed to create an issue, the issue text has been saved in %s" % filename)
@@ -478,6 +538,10 @@ class GitLab(GitSpindle):
     def issues(self, opts):
         """[<repo>] [--parent] [<filter>...]
            List issues in a repository"""
+        if opts['<repo>'] and '=' in opts['<repo>']:
+            # Let's assume it's a filter
+            opts['<filter>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
         if not opts['<repo>'] and not self.in_repo:
             repos = list(self.gl.Project())
         else:
@@ -485,7 +549,11 @@ class GitLab(GitSpindle):
         for repo in repos:
             if opts['--parent']:
                 repo = self.parent_repo(repo) or repo
+            if any([not '=' in x for x in opts['<filter>']]):
+                err('<filter> must be an equals sign separated key-value pair')
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
+            if not 'state' in filters:
+                filters['state'] = 'opened'
             issues = repo.Issue(**filters)
             mergerequests = repo.MergeRequest(state='opened')
             if not issues and not mergerequests:
@@ -493,7 +561,7 @@ class GitLab(GitSpindle):
             if issues:
                 print(wrap("Issues for %s/%s" % (repo.namespace.path, repo.path), attr.bright))
                 for issue in issues:
-                    print("[%d] %s %s" % (issue.iid, issue.title, self.issue_url(issue)))
+                    print("[%d] %s %s" % (issue.iid, issue.title, issue.web_url))
             if mergerequests:
                 print(wrap("Merge requests for %s/%s" % (repo.namespace.path, repo.path), attr.bright))
                 for mr in mergerequests:
@@ -589,7 +657,14 @@ class GitLab(GitSpindle):
         if not src:
             src = self.gitm('rev-parse', '--abbrev-ref', 'HEAD').stdout.strip()
         if not dst:
-            dst = parent.default_branch
+            tracking_remote = None
+            tracking_branch = self.git('rev-parse', '--abbrev-ref', '%s@{u}' % src).stdout.strip()
+            if '/' in tracking_branch:
+                tracking_remote, tracking_branch = tracking_branch.split('/', 1)
+            if (parent == repo and tracking_remote == 'origin') or (parent != repo and tracking_remote == 'upstream'):
+                dst = tracking_branch
+            else:
+                dst = parent.default_branch
 
         if src == dst and parent == repo:
             err("Cannot file a merge request on the same branch")
@@ -715,7 +790,7 @@ class GitLab(GitSpindle):
 
     @command
     def protect(self, opts):
-        """<branch>
+        """<branch> [<repo>]
            Protect a branch against force-pushes"""
         repo = self.repository(opts)
         for branch in repo.Branch():
@@ -725,7 +800,8 @@ class GitLab(GitSpindle):
 
     @command
     def protected(self, opts):
-        """\nList protected branches"""
+        """[<repo>]
+           List protected branches"""
         repo = self.repository(opts)
         for branch in repo.Branch():
             if branch.protected:
@@ -787,7 +863,7 @@ class GitLab(GitSpindle):
 
     @command
     def set_origin(self, opts, repo=None, remote='origin'):
-        """[--ssh|--http] [--triangular]
+        """[--ssh|--http] [--triangular [--upstream-branch=<branch>]]
            Set the remote 'origin' to gitlab.
            If this is a fork, set the remote 'upstream' to the parent"""
         if not repo:
@@ -814,6 +890,8 @@ class GitLab(GitSpindle):
                 self.gitm('config', 'remote.upstream.gitlab-id', parent.id)
             self.gitm('config', 'remote.upstream.fetch', '+refs/heads/*:refs/remotes/upstream/*')
 
+        self.gitm('config', '--add', 'remote.%s.fetch' % remote, '+refs/merge-requests/*/head:refs/merge-requests/*/head')
+
         if self.git('ls-remote', remote).stdout.strip():
             self.gitm('fetch', remote, redirect=False)
         if parent:
@@ -822,11 +900,11 @@ class GitLab(GitSpindle):
         if remote != 'origin':
             return
 
-        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'])
+        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'], upstream_branch=opts['--upstream-branch'])
 
     @command
     def unprotect(self, opts):
-        """<branch>
+        """<branch> [<repo>]
            Remove force-push protection from a branch"""
         repo = self.repository(opts)
         for branch in repo.Branch():
@@ -845,38 +923,50 @@ class GitLab(GitSpindle):
         """<user>...
            Display GitLab user info"""
         for user in opts['<user>']:
-            if not isinstance(user, (glapi.User, glapi.CurrentUser)):
+            if not isinstance(user, (glapi.User, glapi.CurrentUser, glapi.Group)):
                 user_ = self.find_user(user)
                 if not user_:
-                    print("No such user: %s" % user)
-                    continue
+                    user_ = self.find_group(user)
+                    if not user_:
+                        print("No such user or group: %s" % user)
+                        continue
                 user = user_
-            print(wrap("%s (id %d)" % (user.name or user.username, user.id), attr.bright, attr.underline))
-            print('Profile   %s' % self.profile_url(user))
-            if hasattr(user, 'email'):
-                if user.email:
-                    print('Email     %s' % user.email)
-                if user.website_url:
-                    print('Website   %s' % user.website_url)
-                if user.twitter:
-                    print('Twitter   %s' % user.twitter)
-                if user.linkedin:
-                    print('LinkedIn  %s' % user.linkedin)
-                if user.bio:
-                    if '\n' in user.bio:
-                        bio = user.bio[:user.bio.index('\n')] + '...'
-                    else:
-                        bio = user.bio
-                    print('Bio       %s' % user.bio)
-            try:
-                for pkey in user.Key():
-                    algo, key = pkey.key.split()[:2]
-                    algo = algo[4:].upper()
-                    if pkey.title:
-                        print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
-                    else:
-                        print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
+            print(wrap("%s (id %d)" % (user.name or (user.username if hasattr(user, 'username') else None), user.id), attr.bright, attr.underline))
+            print('Profile   %s' % user.web_url)
+            if hasattr(user, 'username'):
+                if hasattr(user, 'email'):
+                    if user.email:
+                        print('Email     %s' % user.email)
+                    if user.website_url:
+                        print('Website   %s' % user.website_url)
+                    if user.twitter:
+                        print('Twitter   %s' % user.twitter)
+                    if user.linkedin:
+                        print('LinkedIn  %s' % user.linkedin)
+                    if user.bio:
+                        if '\n' in user.bio:
+                            bio = user.bio[:user.bio.index('\n')] + '...'
+                        else:
+                            bio = user.bio
+                        print('Bio       %s' % user.bio)
+                try:
+                    for pkey in user.Key():
+                        algo, key = pkey.key.split()[:2]
+                        algo = algo[4:].upper()
+                        if pkey.title:
+                            print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
+                        else:
+                            print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
+                except glapi.GitlabListError:
+                    # Permission denied, ignore
+                    pass
 
-            except glapi.GitlabListError:
-                # Permission denied, ignore
-                pass
+                if user.username == self.my_login:
+                    groups = self.gl.Group()
+                    if groups:
+                        print("Member of %s" % ', '.join([x.path for x in groups]))
+
+            else:
+                print('Members:')
+                for member in user.Member():
+                    print(" - %s" % member.username)
