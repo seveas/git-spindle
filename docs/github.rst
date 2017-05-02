@@ -352,7 +352,7 @@ GitHub makes it easy for you to merge pull requests, but if you want to keep
 your history linear, this one is for you. It applies a pull request using
 :command:`git cherry-pick` instead of merging.
 
-.. _`filters`: http://github3py.readthedocs.org/en/latest/repos.html#github3.repos.Repository.list_issues
+.. _`filters`: http://github3py.readthedocs.io/en/stable/repos.html#github3.repos.repo.Repository.iter_issues
 
 Gists
 -----
