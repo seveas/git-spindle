@@ -117,7 +117,7 @@ def _raiseErrorFromResponse(response, error):
     """ Tries to parse gitlab error message from response and raises error.
 
     If response status code is 401, raises instead GitlabAuthenticationError.
-    
+
     response: requests response object
     error: Error-class to raise. Should be inherited from GitLabError
     """
@@ -126,6 +126,9 @@ def _raiseErrorFromResponse(response, error):
         message = response.json()['message']
     except (KeyError, ValueError):
         message = response.content
+
+    if isinstance(message, bytes):
+        message = message.decode('utf-8')
 
     if response.status_code == 401:
         error = GitlabAuthenticationError
