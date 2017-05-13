@@ -1503,19 +1503,19 @@ will be ignored""" % (name, tag)
             emails = {}
             if user.login == self.my_login:
                 for email in self.gh.emails():
-                    emails[email['email']] = email
+                    emails[email.email] = email
             print(wrap(user.name or user.login, attr.bright, attr.underline))
             print('Profile   %s' % user.html_url)
             if user.email:
                 unverified = ''
-                if not emails.get(user.email, {}).get('verified', True):
+                if user.email in emails and not emails[user.email].verified:
                     unverified = ' ' + wrap('(not verified)', fgcolor.red, attr.bright)
                 print('Email     %s%s' % (user.email, unverified))
                 for email in emails:
                     if email == user.email:
                         continue
                     unverified = ''
-                    if not emails[email]['verified']:
+                    if not emails[email].verified:
                         unverified = ' ' + wrap('(not verified)', fgcolor.red, attr.bright)
                     print('          %s%s' % (email, unverified))
             if user.blog:
