@@ -9,6 +9,7 @@ import json
 import os
 import requests
 import sys
+import time
 import webbrowser
 
 
@@ -362,7 +363,7 @@ class GitLab(GitSpindle):
             repo = self.repository(opts)
         url = self.clone_url(repo, opts)
 
-        args = opts['extra-opts']
+        args = list(opts['extra-opts'])
         args.append(url)
         dir = opts['<dir>'] and opts['<dir>'][0] or repo.path
         if '--bare' in args:
@@ -435,10 +436,22 @@ class GitLab(GitSpindle):
 
         my_fork = repo.fork()
 
-        if do_clone:
-            self.clone(opts, repo=my_fork)
-        else:
-            self.set_origin(opts, repo=my_fork)
+        i = 0
+        success = False
+        while not success:
+            try:
+                if do_clone:
+                    self.clone(opts, repo=my_fork)
+                else:
+                    self.set_origin(opts, repo=my_fork)
+                success = True
+            except SystemExit as se:
+                # the fork might not be available instantly,
+                # so wait some time for it to appear on the server
+                i += 1
+                time.sleep(1)
+                if not se.code or i >= 120:
+                    raise
 
     @command
     def issue(self, opts):
