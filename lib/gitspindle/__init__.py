@@ -6,6 +6,7 @@ import shlex
 import sys
 import tempfile
 import whelk
+import time
 
 __all__ = ['GitSpindle', 'Credential', 'command', 'wants_parent']
 NO_VALUE_SENTINEL = 'NO_VALUE_SENTINEL'
@@ -424,6 +425,21 @@ Options:
                             print(repo)
                             if not repo.delete():
                                 raise RuntimeError("Deleting repository failed")
+                # it needs some time until the /user/repos endpoint recognized that the repos are deleted
+                # this is a bug GitHub is working on to get a fix, maybe some caching issue on their side
+                # so this code might be removed in the future
+                # wait for the deletions to be recognized, or the test assertions might fail later on
+                i = 0
+                clean = False
+                while not clean and i < 120:
+                    clean = True
+                    for repo in self.gh.iter_repos():
+                        if repo.owner.login == namespace:
+                            clean = False
+                            i += 1
+                            time.sleep(1)
+                if i == 120:
+                    raise RuntimeError("Deleting repositories failed, try again in some minutes or increase the wait timeout in test_cleanup")
             if opts['--gists']:
                 for gist in self.gh.iter_gists():
                     gist.delete()
