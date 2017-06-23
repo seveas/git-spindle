@@ -399,7 +399,22 @@ class GitLab(GitSpindle):
                 err("Group %s could not be found" % opts['--group'])
             kwargs['namespace_id'] = group.id
         repo = glapi.Project(self.gl, kwargs)
-        repo.save()
+        i = 0
+        success = False
+        while not success:
+            try:
+                repo.save()
+                success = True
+            except glapi.GitlabCreateError as gce:
+                i += 1
+                time.sleep(1)
+                if (gce.response_code != 400) \
+                        or (not isinstance(gce.error_message, dict)) \
+                        or (not 'base' in gce.error_message) \
+                        or (not isinstance(gce.error_message['base'], list)) \
+                        or (not 'The project is still being deleted. Please try again later.' in gce.error_message['base']) \
+                        or (i >= 120):
+                    raise
         if 'origin' in self.remotes():
             print("Remote 'origin' already exists, adding the GitLab repository as 'gitlab'")
             self.set_origin(opts, repo=repo, remote='gitlab')
@@ -437,7 +452,23 @@ class GitLab(GitSpindle):
         if my_repo:
             err("Repository already exists")
 
-        my_fork = repo.fork()
+        i = 0
+        success = False
+        while not success:
+            try:
+                my_fork = repo.fork()
+                success = True
+            except glapi.GitlabForkError as gfe:
+                i += 1
+                time.sleep(1)
+                if (gfe.response_code != 409) \
+                        or (not isinstance(gfe.error_message, dict)) \
+                        or (not 'base' in gfe.error_message) \
+                        or (not isinstance(gfe.error_message['base'], list)) \
+                        or (not 'The project is still being deleted. Please try again later.' in gfe.error_message['base']) \
+                        or (i >= 120):
+                    raise
+
         self.wait_for_repo(my_fork.owner.username, my_fork.name, opts)
 
         if do_clone:
