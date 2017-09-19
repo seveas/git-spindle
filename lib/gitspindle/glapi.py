@@ -770,6 +770,10 @@ class User(GitlabObject):
                                         user_id=self.id,
                                         **kwargs)
 
+    def calendar(self):
+        url = self.gitlab._url
+        url = '%s/%s/%s/calendar' % (url[:url.find('/api')], self._url, self.username)
+        return requests.get(url).json()
 
 class CurrentUserKey(GitlabObject):
     _url = '/user/keys'

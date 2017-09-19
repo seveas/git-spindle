@@ -263,19 +263,19 @@ class GitLab(GitSpindle):
         months = []
         rows = [[],[],[],[],[],[],[]]
         commits = []
+        data = user.calendar()
 
-        data = requests.get(user.web_url + '/calendar').text
-        data = data[data.find('<script>')+8:data.find('</script>')]
-        data = data[data.find('{')+1:data.find('}')].replace('"', '')
-        data = [(datetime.datetime.fromtimestamp(int(key)), int(value)) for (key,value) in [item.split(':') for item in data.split(',')]]
-
-        wd = (data[0][0].weekday()+1) % 7
+        first = datetime.datetime.today() - datetime.timedelta(365)
+        wd = (first.weekday()+1) % 7
         for i in range(wd):
             rows[i].append((None,None))
         if wd:
-            months.append(data[0][0].month)
-        for (date, count) in data:
+            months.append(first.month)
+        for back in range(364, -1, -1):
+            date = datetime.datetime.today() - datetime.timedelta(back)
+            ts = date.strftime('%Y-%m-%d')
             wd = (date.weekday()+1) % 7
+            count = data.get(ts, 0)
             rows[wd].append((date.day, count))
             if not wd:
                 months.append(date.month)
@@ -301,9 +301,12 @@ class GitLab(GitSpindle):
         # Print commits
         days = 'SMTWTFS'
         commits.sort()
-        p5  = commits[int(round(len(commits) * 0.95))]
-        p15 = commits[int(round(len(commits) * 0.85))]
-        p35 = commits[int(round(len(commits) * 0.65))]
+        if len(commits) < 2:
+            p5 = p15 = p35 = 0
+        else:
+            p5  = commits[int(round(len(commits) * 0.95))]
+            p15 = commits[int(round(len(commits) * 0.85))]
+            p35 = commits[int(round(len(commits) * 0.65))]
         blob1 = b'\xe2\x96\xa0'.decode('utf-8')
         blob2 = b'\xe2\x97\xbc'.decode('utf-8')
         for rnum, row in enumerate(rows):
