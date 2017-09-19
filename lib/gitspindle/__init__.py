@@ -61,7 +61,7 @@ class DocoptExit(SystemExit):
 docopt.DocoptExit = DocoptExit
 
 def extras(help, version, options, doc):
-    if not help:
+    if not help or not any((o.name in ('-h', '--help')) and o.value for o in options):
         return
     for opt in options[1:]:
         if isinstance(opt, docopt.Argument):
