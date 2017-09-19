@@ -48,6 +48,24 @@ for spindle in lab hub bb; do
         grep -q whelk issues
     "
 
+    test_expect_success $spindle "Display non-existing issue ($spindle)" "
+        git_${spindle}_1 issue whelk 999 > issue &&
+        grep -q '^No issue with id 999 found in repository $(username git_${spindle}_1)/whelk$' issue
+    "
+
+    export FAKE_EDITOR_DATA="Test issue with umlaut ö $id\n\nThis is a test issue with umlaut ö done by git-spindle's test suite\n"
+    test_expect_success $spindle "Display issue with special character in title and body ($spindle)" "
+        (cd whelk &&
+        LC_ALL=en_US.UTF-8 git_${spindle}_1 issue &&
+        echo -n 'Testing with UTF-8 to make sure the issue was created correctly ... ' &&
+        PYTHONIOENCODING=utf-8 git_${spindle}_1 issues > issues &&
+        grep -q 'Test issue with umlaut ö $id' issues &&
+        echo -n 'OK\nTesting with ascii to make sure the output escaping is done correctly ... ' &&
+        PYTHONIOENCODING=ascii git_${spindle}_1 issues > issues &&
+        grep -q 'Test issue with umlaut \\\\xf6 $id' issues &&
+        echo 'OK')
+    "
+
     test_expect_failure $spindle "Display single issue" "false"
 done
 

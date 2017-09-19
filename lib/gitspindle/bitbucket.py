@@ -316,11 +316,18 @@ class BitBucket(GitSpindle):
             # Let's assume it's an issue
             opts['<issue>'].insert(0, opts['<repo>'])
         repo = self.repository(opts)
-        for issue in opts['<issue>']:
-            issue = repo.issue(issue)
-            print(wrap(issue.title, attr.bright, attr.underline))
-            print(issue.content)
-            print(issue.html_url)
+        for issue_no in opts['<issue>']:
+            try:
+                issue = repo.issue(issue_no)
+                print(wrap(issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), attr.bright, attr.underline))
+                print(issue.content['raw'].encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding))
+                print(issue.html_url)
+            except bbapi.BitBucketError:
+                bbe = sys.exc_info()[1]
+                if bbe.args[0] == 'No Issue matches the given query.':
+                    print('No issue with id %s found in repository %s' % (issue_no, repo.full_name))
+                else:
+                    raise
         if not opts['<issue>']:
             body = """
 # Reporting an issue on %s/%s
@@ -333,7 +340,7 @@ class BitBucket(GitSpindle):
 
             try:
                 issue = repo.create_issue(title=title, body=body)
-                print("Issue %d created %s" % (issue.local_id, issue.html_url))
+                print("Issue %d created %s" % (issue.id, issue.html_url))
             except:
                 filename = self.backup_message(title, body, 'issue-message-')
                 err("Failed to create an issue, the issue text has been saved in %s" % filename)
@@ -362,11 +369,11 @@ class BitBucket(GitSpindle):
             if issues:
                 print(wrap("Issues for %s" % repo.full_name, attr.bright))
                 for issue in issues:
-                    print("[%d] %s https://bitbucket.org/%s/issue/%d/" % (issue.local_id, issue.title, repo.full_name, issue.local_id))
+                    print("[%d] %s %s" % (issue.id, issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), issue.html_url))
             if pullrequests:
                 print(wrap("Pull requests for %s" % repo.full_name, attr.bright))
                 for pr in pullrequests:
-                    print("[%d] %s https://bitbucket.org/%s/pull-requests/%d/" % (pr.id, pr.title, repo.full_name, pr.id))
+                    print("[%d] %s %s" % (pr.id, pr.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), pr.html_url))
 
 
     @command

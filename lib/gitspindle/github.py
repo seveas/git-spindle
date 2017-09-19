@@ -762,11 +762,14 @@ class GitHub(GitSpindle):
             # Let's assume it's an issue
             opts['<issue>'].insert(0, opts['<repo>'])
         repo = self.repository(opts)
-        for issue in opts['<issue>']:
-            issue = repo.issue(issue)
-            print(wrap(issue.title, attr.bright, attr.underline))
-            print(issue.body)
-            print(issue.pull_request and issue.pull_request['html_url'] or issue.html_url)
+        for issue_no in opts['<issue>']:
+            issue = repo.issue(issue_no)
+            if issue:
+                print(wrap(issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), attr.bright, attr.underline))
+                print(issue.body.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding))
+                print(issue.pull_request and issue.pull_request['html_url'] or issue.html_url)
+            else:
+                print('No issue with id %s found in repository %s' % (issue_no, repo.full_name))
         if not opts['<issue>']:
             body = self.find_template(repo, 'ISSUE_TEMPLATE') or """
 # Reporting an issue on %s/%s
@@ -811,7 +814,7 @@ class GitHub(GitSpindle):
             print(wrap("Issues for %s/%s" % (repo.owner.login, repo.name), attr.bright))
             for issue in issues:
                 url = issue.pull_request and issue.pull_request['html_url'] or issue.html_url
-                print("[%d] %s %s" % (issue.number, issue.title, url))
+                print("[%d] %s %s" % (issue.number, issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), url))
 
     @command
     def log(self, opts):
