@@ -13,4 +13,7 @@ echo "$FAKE_EDITOR_DATA" > ${filename}.tmp
 if [ "x$FAKE_EDITOR_INCLUDE_ORIGINAL" = "x1" ]; then
     cat $filename >> $filename.tmp
 fi
+if [ "x$FAKE_EDITOR_RESULT" != "x" ]; then
+    cp $filename.tmp "$FAKE_EDITOR_RESULT"
+fi
 mv $filename.tmp $filename
