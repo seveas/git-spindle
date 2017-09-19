@@ -1174,24 +1174,27 @@ class GitHub(GitSpindle):
             print("Pull request %d created %s" % (pull.number, pull.html_url))
             return
 
-        body = self.find_template(repo, 'PULL_REQUEST_TEMPLATE')
+        template = self.find_template(repo, 'PULL_REQUEST_TEMPLATE') or ''
         # 1 commit: title/body from commit
-        if not body:
-            if len(commits) == 1:
-                title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
-                title = title.strip()
-                body = body.strip()
-                accept_empty_body = not bool(body)
+        if len(commits) == 1:
+            title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
+            title = title.strip()
+            body = body.strip()
+            accept_empty_body = not bool(body)
 
-            # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
-            else:
-                title = src
-                if '/' in title:
-                    title = title[title.rfind('/') + 1:]
-                title = title.title().replace('-', ' ')
-                body = ""
+        # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
+        else:
+            title = src
+            if '/' in title:
+                title = title[title.rfind('/') + 1:]
+            title = title.title().replace('-', ' ')
+            body = ""
 
-        body += """
+        if template:
+            body = template.rstrip() + '\n\n' + body
+
+        body = body.rstrip() + """
+
 # Requesting a pull from %s/%s into %s/%s
 #
 # Please enter a message to accompany your pull request. Lines starting
