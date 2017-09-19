@@ -192,7 +192,7 @@ class GitHub(GitSpindle):
 
     @command
     def apply_pr(self, opts):
-        """<pr-number>
+        """[--ssh|--http|--git] <pr-number>
            Applies a pull request as a series of cherry-picks"""
         repo = self.repository(opts)
         pr = repo.pull_request(opts['<pr-number>'])
@@ -220,7 +220,7 @@ class GitHub(GitSpindle):
         sha = self.git('rev-parse', '--verify', 'refs/pull/%d/head' % pr.number).stdout.strip()
         if sha != pr.head.sha:
             print("Fetching pull request")
-            url = self.gh.repository(pr.repository[0].replace('repos/', ''), pr.repository[1]).clone_url
+            url = self.clone_url(self.gh.repository(pr.repository[0].replace('repos/', ''), pr.repository[1]), opts)
             self.gitm('fetch', url, 'refs/pull/%d/head:refs/pull/%d/head' % (pr.number, pr.number), redirect=False)
         head_sha = self.gitm('rev-parse', 'HEAD').stdout.strip()
         if self.git('merge-base', pr.head.sha, head_sha).stdout.strip() == head_sha:

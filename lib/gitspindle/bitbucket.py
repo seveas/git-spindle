@@ -120,7 +120,7 @@ class BitBucket(GitSpindle):
     @command
     @wants_parent
     def apply_pr(self, opts):
-        """<pr-number>
+        """[--ssh|--http] <pr-number>
            Applies a pull request as a series of cherry-picks"""
         repo = self.repository(opts)
         pr = repo.pull_request(opts['<pr-number>'])
@@ -148,7 +148,7 @@ class BitBucket(GitSpindle):
         sha = self.git('rev-parse', '--verify', 'refs/pull/%d/head' % pr.id).stdout.strip()
         if not sha.startswith(pr.source['commit']['hash']):
             print("Fetching pull request")
-            url = self.bb.repository(*pr.source['repository']['full_name'].split('/')).links['clone']['https']
+            url = self.clone_url(self.bb.repository(*pr.source['repository']['full_name'].split('/')), opts)
             self.gitm('fetch', url, 'refs/heads/%s:refs/pull/%d/head' % (pr.source['branch']['name'], pr.id), redirect=False)
         head_sha = self.gitm('rev-parse', 'HEAD').stdout.strip()
         if self.git('merge-base', pr.source['commit']['hash'], head_sha).stdout.strip() == head_sha:

@@ -199,7 +199,7 @@ class GitLab(GitSpindle):
 
     @command
     def apply_merge(self, opts):
-        """<merge-request-number>
+        """[--ssh|--http] <merge-request-number>
            Applies a merge request as a series of cherry-picks"""
         repo = self.repository(opts)
         mn = int(opts['<merge-request-number>'])
@@ -228,7 +228,7 @@ class GitLab(GitSpindle):
         sha = self.git('rev-parse', '--verify', 'refs/merge/%d/head' % mr.iid).stdout.strip()
         if not sha:
             print("Fetching merge request")
-            url = glapi.Project(self.gl, mr.source_project_id).http_url_to_repo
+            url = self.clone_url(glapi.Project(self.gl, mr.source_project_id), opts)
             self.gitm('fetch', url, 'refs/heads/%s:refs/merge/%d/head' % (mr.source_branch, mr.iid), redirect=False)
         head_sha = self.gitm('rev-parse', 'HEAD').stdout.strip()
         if self.git('merge-base', 'refs/merge/%d/head' % mr.iid, head_sha).stdout.strip() == head_sha:
