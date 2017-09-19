@@ -83,6 +83,8 @@ Create a new gist from files or stdin:
   git hub gist [--description=<description>] <file>...
 Show all gists for a user:
   git hub gists [<user>]
+Display the help for a command:
+  git hub help <command>
 Show hooks that have been enabled:
   git hub hooks
 Show gitignore patterns for one or more languages:
@@ -166,6 +168,8 @@ Fetch refs from a user's fork:
   git lab fetch [--ssh|--http] <user> [<refspec>]
 Fork a repo and clone it:
   git lab fork [--ssh|--http] [--triangular] [<repo>]
+Display the help for a command:
+  git lab help <command>
 Show issue details or report an issue:
   git lab issue [<repo>] [--parent] [<issue>...]
 List issues in a repository:
@@ -229,6 +233,8 @@ Fork a repo and clone it:
   git bb fork [--ssh|--http] [--triangular] [<repo>]
 List all forks of this repository:
   git bb forks [<repo>]
+Display the help for a command:
+  git bb help <command>
 Invite users to collaborate on this repository:
   git bb invite [--read|--write|--admin] <email>...
 Show issue details or report an issue:

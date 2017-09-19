@@ -59,6 +59,10 @@ other users.
 Displays a log of actions done to a repository, such as pushes and issue
 comments.
 
+.. describe:: git lab help <command>
+
+Display the help for the specified command.
+
 Using multiple accounts
 -----------------------
 :command:`git lab` supports using more than one account, and using local
