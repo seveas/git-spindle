@@ -48,6 +48,28 @@ def no_login(fnc):
     fnc.no_login = True
     return fnc
 
+class DocoptExit(SystemExit):
+    help = ''
+    commands = {}
+    def __init__(self, message='', command=None):
+        if command and command in self.commands:
+            SystemExit.__init__(self, self.commands[command])
+        elif message:
+            SystemExit.__init__(self, message)
+        else:
+            SystemExit.__init__(self, self.help)
+docopt.DocoptExit = DocoptExit
+
+def extras(help, version, options, doc):
+    if not help:
+        return
+    for opt in options[1:]:
+        if isinstance(opt, docopt.Argument):
+            raise(DocoptExit(command=opt.value))
+    raise DocoptExit()
+
+docopt.extras = extras
+
 class GitSpindle(object):
 
     def __init__(self):
@@ -69,10 +91,11 @@ class GitSpindle(object):
         self.my_login = {}
         self.use_credential_helper = self.git('config', 'credential.helper').stdout.strip() not in ('', 'cache')
 
-        self.usage = """%s - %s integration for git
+        self.usage = DocoptExit.help = """%s - %s integration for git
 A full manual can be found on http://seveas.github.com/git-spindle/
 
 Usage:\n""" % (self.prog, self.what)
+        DocoptExit.help += "  %s [options] <command> [command-options]\n\nCommands:\n" % (self.prog)
         for name in sorted(dir(self)):
             fnc = getattr(self, name)
             if not getattr(fnc, 'is_command', False):
@@ -86,8 +109,11 @@ Usage:\n""" % (self.prog, self.what)
                 doc[0] = doc[0].replace('[--host=<host>] ', '')
             if doc[0]:
                 doc[0] = ' ' + doc[0]
-            self.usage += '%s:\n  %s %s %s%s\n' % (doc[1], self.prog, '[options]', name, doc[0])
-        self.usage += """
+            help = '%s:\n  %s %s %s%s\n' % (doc[1], self.prog, '[options]', name, doc[0])
+            self.usage += help
+            DocoptExit.commands[name] = help
+            DocoptExit.help += '  %-25s%s\n' % (name, doc[1])
+        tail = """
 Options:
   -h --help              Show this help message and exit
   --desc=<description>   Description for the new gist/repo
@@ -99,6 +125,8 @@ Options:
   --git                  Use git:// urls for cloning 3rd party repos
   --goblet               When mirroring, set up goblet configuration
   --account=<account>    Use another account than the default\n"""
+        self.usage += tail
+        DocoptExit.help += tail
 
     def gitm(self, *args, **kwargs):
         """A git command thas must be succesfull"""
