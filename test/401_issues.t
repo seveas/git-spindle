@@ -48,6 +48,26 @@ for spindle in lab hub bb; do
         grep -q whelk issues
     "
 
+    case $spindle in
+        bb)
+            # Parent repo retrieval is currently broken for BB
+            test_expect_failure $spindle "List issues for parent repos of a user, without being in a repo" "
+                git_${spindle}_2 issues --parent > issues &&
+                grep -q whelk issues &&
+                grep -q 'Test issue (outside) $id' issues &&
+                grep -q 'Test issue (inside) $id' issues
+            "
+            ;;
+        *)
+            test_expect_success $spindle "List issues for parent repos of a user, without being in a repo" "
+                git_${spindle}_2 issues --parent > issues &&
+                grep -q whelk issues &&
+                grep -q 'Test issue (outside) $id' issues &&
+                grep -q 'Test issue (inside) $id' issues
+            "
+            ;;
+    esac
+
     test_expect_failure $spindle "Display single issue" "false"
 done
 
