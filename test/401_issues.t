@@ -43,9 +43,15 @@ for spindle in lab hub bb; do
         grep -q 'Test issue (inside) $id' issues)
     "
 
-    test_expect_success $spindle "List issues for a user, without being in a repo" "
+    test_expect_success $spindle "List issues for a user, without being in a repo ($spindle)" "
         git_${spindle}_1 issues > issues &&
         grep -q whelk issues
+    "
+
+    test_expect_success $spindle "Display specific issue without naming repo explicitly ($spindle)" "
+        (cd whelk &&
+        git_${spindle}_1 issue 1 > issue &&
+        grep -q '/1\\(/\\|\$\\)' issue)
     "
 
     test_expect_failure $spindle "Display single issue" "false"
