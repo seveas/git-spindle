@@ -1174,29 +1174,30 @@ class GitHub(GitSpindle):
             print("Pull request %d created %s" % (pull.number, pull.html_url))
             return
 
-        body = self.find_template(repo, 'PULL_REQUEST_TEMPLATE')
-        # 1 commit: title/body from commit
-        if not body:
-            if len(commits) == 1:
-                title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
-                title = title.strip()
-                body = body.strip()
-                accept_empty_body = not bool(body)
+        pr_template = self.find_template(repo, 'PULL_REQUEST_TEMPLATE')
 
-            # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
-            else:
-                title = src
-                if '/' in title:
-                    title = title[title.rfind('/') + 1:]
-                title = title.title().replace('-', ' ')
-                body = ""
+        # 1 commit: title/body from commit
+        if len(commits) == 1:
+            title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
+            title = title.strip()
+            body = body.strip()
+            accept_empty_body = not bool(body)
+
+        # More commits: title from branchname (titlecased, s/-/ /g), body comments from shortlog
+        else:
+            title = src
+            if '/' in title:
+                title = title[title.rfind('/') + 1:]
+            title = title.title().replace('-', ' ')
+            body = ""
 
         body += """
 # Requesting a pull from %s/%s into %s/%s
 #
+%s
 # Please enter a message to accompany your pull request. Lines starting
 # with '#' will be ignored, and an empty message aborts the request.
-#""" % (repo.owner.login, src, parent.owner.login, dst)
+#""" % (repo.owner.login, src, parent.owner.login, dst, try_decode(pr_template))
         body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
         body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
         title, body = self.edit_msg("%s\n\n%s" % (title,body), 'PULL_REQUEST_EDIT_MSG')
