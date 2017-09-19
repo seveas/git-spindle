@@ -32,6 +32,10 @@ class GitLab(GitSpindle):
         self.gl = None
         host = self.config('host') or 'https://gitlab.com'
         if not host.startswith(('http://', 'https://')):
+            try:
+                requests.get('https://' + host)
+            except:
+                err("%s is not reachable via https. Use http://%s to use the insecure http protocol" % (host, host))
             host = 'https://' + host
         self.host = host
 

@@ -26,6 +26,10 @@ class GitHub(GitSpindle):
         host = self.config('host')
         if host and host not in ('https://api.github.com', 'api.github.com'):
             if not host.startswith(('http://', 'https://')):
+                try:
+                    requests.get('https://' + host)
+                except:
+                    err("%s is not reachable via https. Use http://%s to use the insecure http protocol" % (host, host))
                 host = 'https://' + host
             self.gh = github3.GitHubEnterprise(url=host)
         else:
