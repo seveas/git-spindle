@@ -301,12 +301,13 @@ class GitLab(GitSpindle):
         # Print commits
         days = 'SMTWTFS'
         commits.sort()
+        print commits
         if len(commits) < 2:
             p5 = p15 = p35 = 0
         else:
-            p5  = commits[int(round(len(commits) * 0.95))]
-            p15 = commits[int(round(len(commits) * 0.85))]
-            p35 = commits[int(round(len(commits) * 0.65))]
+            p5  = commits[min(int(round(len(commits) * 0.95)), len(commits)-1)]
+            p15 = commits[min(int(round(len(commits) * 0.85)), len(commits)-1)]
+            p35 = commits[min(int(round(len(commits) * 0.65)), len(commits)-1)]
         blob1 = b'\xe2\x96\xa0'.decode('utf-8')
         blob2 = b'\xe2\x97\xbc'.decode('utf-8')
         for rnum, row in enumerate(rows):
