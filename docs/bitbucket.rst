@@ -201,8 +201,21 @@ Issues and pull requests
 
 .. describe:: git bb issues [<repo>] [--parent] [<filter>...]
 
-List all open issues. You can specify filters to filter issues. When you
-specify :option:`--parent`, list all open issues for the parent repository.
+List all open issues for the current repository, or the one specified in the
+`<repo>` argument. If you run this outside a repository, or with `--` as
+`<repo>`, it will list issues in all your repositories.  When you
+specify :option:`--parent`, this will operate on the parent repositoryD.
+
+You can specify filters in the form `filter=value` to filter issues. Supported
+filters are:
+
+ * status, accepted values: new, open, resolved, on hold, invalid, duplicate, wontfix
+ * priority, accepted values; trivial, minor, major, critical, blocker
+ * title
+ * is_spam, accepted values: true, false
+
+Filter values can be prefixed with ! to negate the match, ~, or ^ or $ to
+indicate a 'contains', 'starts with' or 'ends with' operation.
 
 .. describe:: git bb issue [<repo>] [--parent] [<issue>...]
 

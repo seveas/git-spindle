@@ -312,8 +312,21 @@ Issues and pull requests
 
 .. describe:: git hub issues [<repo>] [--parent] [<filter>...]
 
-List all open issues. You can specify `filters`_ to filter issues. When you
-specify :option:`--parent`, list all open issues for the parent repository.
+List all open issues for the current repository, or the one specified in the
+`<repo>` argument. If you run this outside a repository, or with `--` as
+`<repo>`, it will list issues in all your repositories.  When you
+specify :option:`--parent`, this will operate on the parent repositoryD.
+
+You can specify filters in the form `filter=value` to filter issues. Supported
+filters are:
+
+ * state, accepted values: all, open, closed
+ * assignee, accepted values: none, *, or a loginname
+ * mentioned, accepted values: a loginname
+ * labels, accepted values: comma-separated list of labels, e.g. bug,ui,@high
+ * since, accepted values: an ISO8601 formatted date string, e.g., 2017-05-20T23:10:27Z
+ * sort, accepted values: created, updated, comments
+ * direction, accepted values: asc, desc
 
 .. describe:: git hub issue [<repo>] [--parent] [<issue>...]
 

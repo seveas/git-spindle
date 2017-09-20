@@ -343,7 +343,10 @@ class BitBucket(GitSpindle):
     def issues(self, opts):
         """[<repo>] [--parent] [<filter>...]
            List issues in a repository"""
-        if not opts['<repo>'] and not self.in_repo:
+        if opts['<repo>'] and '=' in opts['<repo>']:
+            opts['<filter>'].insert(0, opts['<repo>'])
+            opts['<repo>'] = None
+        if (not opts['<repo>'] and not self.in_repo) or opts['<repo>'] == '--':
             repos = self.me.repositories()
         else:
             repos = [self.repository(opts)]

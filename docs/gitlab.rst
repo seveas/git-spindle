@@ -218,8 +218,19 @@ Issues and pull requests
 
 .. describe:: git lab issues [<repo>] [--parent] [<filter>...]
 
-List all open issues. You can specify `filters`_ to filter issues. When you
-specify :option:`--parent`, list all open issues for the parent repository.
+List all open issues for the current repository, or the one specified in the
+`<repo>` argument. If you run this outside a repository, or with `--` as
+`<repo>`, it will list issues in all your repositories.  When you
+specify :option:`--parent`, this will operate on the parent repositoryD.
+
+You can specify filters in the form `filter=value` to filter issues. Supported
+filters are:
+
+ * state, accepted values: opened, closed
+ * labels, accepted values: comma-separated list of labels, e.g. bug,ui,@high
+ * scope, accepted values: all, created-by-me, assigned-to-me
+ * order_by, accepted values: created_at, updated_at
+ * sort, accepted values: asc, desc
 
 .. describe:: git lab issue [<repo>] [--parent] [<issue>...]
 
