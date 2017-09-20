@@ -195,7 +195,9 @@ Options:
         # - Else we look at remotes
         #   - Do we recognize the host? No -> discard
         #   - Do we have an account? Is it on there? No -> discard
-        #   - Is it mine? Yes -> return it('s parent), No -> remember it
+        #   - Is it owned by the current account? Yes -> return it('s parent), No -> remember it
+        # If we haven't found one owned by the current account:
+        #   - Do we have one named origin? Yes -> return it('s parent)
         #   - Return the first remembered one('s parent)
         #  FIXME: errors should mention account if available
         remote = host = repo = None
@@ -208,17 +210,21 @@ Options:
             self.gitm('rev-parse')
         else:
             confremotes = self.git('config', '--get-regexp', 'remote\..*\.url').stdout.strip().splitlines()
-            first = None
+            first = origin = None
             for remote in confremotes:
                 remote, url = remote.split()
                 remote = remote.split('.')[1]
                 host, user, repo = self._parse_url(url)
                 if repo and not first:
                     first = remote, host, user, repo
+                if remote == 'origin':
+                    origin = remote, host, user, repo
                 if user == self.my_login:
                     break
             else:
-                if first:
+                if origin:
+                    remote, host, user, repo = origin
+                elif first:
                     remote, host, user, repo = first
 
         if hostname_only:
