@@ -301,7 +301,7 @@ class GitLab(GitSpindle):
         # Print commits
         days = 'SMTWTFS'
         commits.sort()
-        print commits
+        print(commits)
         if len(commits) < 2:
             p5 = p15 = p35 = 0
         else:
