@@ -1130,7 +1130,7 @@ class GitHub(GitSpindle):
         srcb = repo.branch(src)
         if not srcb:
             if self.question("Branch %s does not exist in your GitHub repo, shall I push?" % src):
-                self.gitm('push', repo.remote, src, redirect=False)
+                self.gitm('push', '-u', repo.remote, src, redirect=False)
             else:
                 err("Aborting")
         elif srcb and srcb.commit.sha != commit:

@@ -496,7 +496,7 @@ class BitBucket(GitSpindle):
         srcb = repo.branches().get(src, None)
         if not srcb:
             if self.question("Branch %s does not exist in your BitBucket repo, shall I push?" % src):
-                self.gitm('push', repo.remote, src, redirect=False)
+                self.gitm('push', '-u', repo.remote, src, redirect=False)
                 srcb = repo.branches().get(src, None)
             else:
                 err("Aborting")

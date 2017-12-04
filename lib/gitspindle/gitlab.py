@@ -614,7 +614,7 @@ class GitLab(GitSpindle):
         except glapi.GitlabGetError:
             srcb = None
             if self.question("Branch %s does not exist in your GitLab repo, shall I push?" % src):
-                self.gitm('push', repo.remote, src, redirect=False)
+                self.gitm('push', '-u', repo.remote, src, redirect=False)
             else:
                 err("Aborting")
         if srcb and srcb.commit.id != commit:
