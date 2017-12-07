@@ -323,12 +323,10 @@ class BitBucket(GitSpindle):
             print(issue.content)
             print(issue.html_url)
         if not opts['<issue>']:
-            body = """
-# Reporting an issue on %s/%s
-# Please describe the issue as clearly as possible. Lines starting with '#' will
-# be ignored, the first line will be used as title for the issue.
-#""" % (repo.owner['username'], repo.name)
-            title, body = self.edit_msg(body, 'ISSUE_EDITMSG')
+            extra = """Reporting an issue on %s/%s
+Please describe the issue as clearly as possible. Lines starting with '#' will
+be ignored, the first line will be used as title for the issue.""" % (repo.owner['username'], repo.name)
+            title, body = self.edit_msg(None, '', extra, 'ISSUE_EDITMSG')
             if not body:
                 err("Empty issue message")
 
@@ -552,15 +550,13 @@ class BitBucket(GitSpindle):
             title = title.title().replace('-', ' ')
             body = ""
 
-        body += """
-# Requesting a pull from %s/%s into %s/%s
-#
-# Please enter a message to accompany your pull request. Lines starting
-# with '#' will be ignored, and an empty message aborts the request.
-#""" % (repo.owner['username'], src, parent.owner['username'], dst)
-        body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
-        body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
-        title, body = self.edit_msg("%s\n\n%s" % (title,body), 'PULL_REQUEST_EDIT_MSG')
+        extra = """Requesting a pull from %s/%s into %s/%s
+
+Please enter a message to accompany your pull request. Lines starting
+with '#' will be ignored, and an empty message aborts the request.""" % (repo.owner['username'], src, parent.owner['username'], dst)
+        extra += "\n\n" + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip()
+        extra += "\n\n" + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip()
+        title, body = self.edit_msg(title, body, extra, 'PULL_REQUEST_EDIT_MSG')
         if not body and not accept_empty_body:
             err("No pull request message specified")
 

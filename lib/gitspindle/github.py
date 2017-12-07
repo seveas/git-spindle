@@ -148,7 +148,7 @@ class GitHub(GitSpindle):
                     if file.startswith(template + '.'):
                         contents = files[file]
         if contents:
-            contents = self.gh._session.get(contents._json_data['download_url'], stream=True).text
+            contents = contents.name, self.gh._session.get(contents._json_data['download_url'], stream=True).text
         return contents
 
     # Commands
@@ -770,12 +770,19 @@ class GitHub(GitSpindle):
             print(issue.body)
             print(issue.pull_request and issue.pull_request['html_url'] or issue.html_url)
         if not opts['<issue>']:
-            body = self.find_template(repo, 'ISSUE_TEMPLATE') or """
-# Reporting an issue on %s/%s
-# Please describe the issue as clearly as possible. Lines starting with '#' will
-# be ignored, the first line will be used as title for the issue.
-#""" % (repo.owner.login, repo.name)
-            title, body = self.edit_msg(body, 'ISSUE_EDITMSG')
+            ext = ''
+            template = self.find_template(repo, 'ISSUE_TEMPLATE')
+            if template:
+                if '.' in template[0]:
+                    ext = template[0][template[0].rfind('.'):]
+                body = template[1]
+                extra = None
+            else:
+                body = ""
+                extra = """Reporting an issue on %s/%s
+Please describe the issue as clearly as possible. Lines starting with '#' will
+be ignored, the first line will be used as title for the issue.""" % (repo.owner.login, repo.name)
+            title, body = self.edit_msg(None, body, extra, 'ISSUE_EDITMSG' + ext)
             if not body:
                 err("Empty issue message")
 
@@ -1174,7 +1181,6 @@ class GitHub(GitSpindle):
             print("Pull request %d created %s" % (pull.number, pull.html_url))
             return
 
-        template = self.find_template(repo, 'PULL_REQUEST_TEMPLATE') or ''
         # 1 commit: title/body from commit
         if len(commits) == 1:
             title, body = self.gitm('log', '--pretty=%s\n%b', '%s^..%s' % (commits[0], commits[0])).stdout.split('\n', 1)
@@ -1190,19 +1196,20 @@ class GitHub(GitSpindle):
             title = title.title().replace('-', ' ')
             body = ""
 
+        ext = ''
+        template = self.find_template(repo, 'PULL_REQUEST_TEMPLATE')
         if template:
-            body = template.rstrip() + '\n\n' + body
+            if '.' in template[0]:
+                ext = template[0][template[0].rfind('.'):]
+            body = template[1].rstrip() + '\n\n' + body
 
-        body = body.rstrip() + """
+        extra = """Requesting a pull from %s/%s into %s/%s
 
-# Requesting a pull from %s/%s into %s/%s
-#
-# Please enter a message to accompany your pull request. Lines starting
-# with '#' will be ignored, and an empty message aborts the request.
-#""" % (repo.owner.login, src, parent.owner.login, dst)
-        body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
-        body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
-        title, body = self.edit_msg("%s\n\n%s" % (title,body), 'PULL_REQUEST_EDIT_MSG')
+Please enter a message to accompany your pull request. Lines starting
+with '#' will be ignored, and an empty message aborts the request.""" % (repo.owner.login, src, parent.owner.login, dst)
+        extra += "\n\n " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip()
+        extra += "\n\n " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip()
+        title, body = self.edit_msg(title, body, extra, 'PULL_REQUEST_EDIT_MSG' + ext)
         if not body and not accept_empty_body:
             err("No pull request message specified")
 
@@ -1244,13 +1251,10 @@ class GitHub(GitSpindle):
         body = ''
         if self.git('cat-file', '-t', ref).stdout.strip() == 'tag':
             body = self.git('--no-pager', 'log', '-1', '--format=%B', ref).stdout
-        body += """
-# Creating release %s based on tag %s
-#
-# Please enter a text to accompany your release. Lines starting with '#'
-# will be ignored
-#""" % (name, tag)
-        body = self.edit_msg(body, 'RELEASE_TEXT', split_title=False)
+        extra = """Creating release %s based on tag %s
+Please enter a text to accompany your release. Lines starting with '#'
+will be ignored""" % (name, tag)
+        body = self.edit_msg(None, body, extra, 'RELEASE_TEXT', split_title=False)
         release = repo.create_release(tag, target_commitish=sha, name=name, body=body, draft=opts['--draft'], prerelease=opts['--prerelease'])
         print("Release '%s' created %s" % (release.name, release.html_url))
 

@@ -300,7 +300,16 @@ Options:
             return default
         return answer.lower() == 'y'
 
-    def edit_msg(self, msg, filename, split_title=True):
+    def edit_msg(self, title, body, extra, filename, split_title=True):
+        markdown = filename.endswith(('.md', '.MD'))
+        comment = '[//]: #' if markdown else '#'
+        if extra:
+            extra = '\n\n' + comment + ' ' + extra.rstrip().replace('#', comment).replace('\n', '\n' + comment + ' ')
+        else:
+            extra = ''
+        msg = body.rstrip() + extra
+        if title:
+            msg = title + '\n\n' + msg
         if self.git('rev-parse'):
             temp_file = os.path.join(self.gitm('rev-parse', '--git-dir').stdout.strip(), filename)
         else:
@@ -313,7 +322,7 @@ Options:
         with open(temp_file) as fd:
             msg = try_decode(fd.read())
         os.unlink(temp_file)
-        msg = re.compile('^#.*(:?\n|$)', re.MULTILINE).sub('', msg).strip()
+        msg = re.compile('^' + re.escape(comment) + '.*(:?\n|$)', re.MULTILINE).sub('', msg).strip()
         if not split_title:
             return msg
         title, body = (msg + '\n').split('\n', 1)

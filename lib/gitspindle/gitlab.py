@@ -466,12 +466,10 @@ class GitLab(GitSpindle):
             print(issue.description)
             print(self.issue_url(issue))
         if not opts['<issue>']:
-            body = """
-# Reporting an issue on %s/%s
-# Please describe the issue as clearly as possible. Lines starting with '#' will
-# be ignored, the first line will be used as title for the issue.
-#""" % (repo.namespace.path, repo.path)
-            title, body = self.edit_msg(body, 'ISSUE_EDITMSG')
+            extra = """Reporting an issue on %s/%s
+Please describe the issue as clearly as possible. Lines starting with '#' will
+be ignored, the first line will be used as title for the issue.""" % (repo.namespace.path, repo.path)
+            title, body = self.edit_msg(None, '', extra, 'ISSUE_EDITMSG')
             if not body:
                 err("Empty issue message")
 
@@ -668,15 +666,13 @@ class GitLab(GitSpindle):
             title = title.title().replace('-', ' ')
             body = ""
 
-        body += """
-# Requesting a merge from %s/%s into %s/%s
-#
-# Please enter a message to accompany your merge request. Lines starting
-# with '#' will be ignored, and an empty message aborts the request.
-#""" % (repo.namespace.path, src, parent.namespace.path, dst)
-        body += "\n# " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip().replace('\n', '\n# ')
-        body += "\n#\n# " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip().replace('\n', '\n#')
-        title, body = self.edit_msg("%s\n\n%s" % (title,body), 'MERGE_REQUEST_EDIT_MSG')
+        extra = """Requesting a merge from %s/%s into %s/%s
+
+Please enter a message to accompany your merge request. Lines starting
+with '#' will be ignored, and an empty message aborts the request.""" % (repo.namespace.path, src, parent.namespace.path, dst)
+        body += "\n\n" + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip()
+        body += "\n\n" + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip()
+        title, body = self.edit_msg(title, body, extra, 'MERGE_REQUEST_EDIT_MSG')
         if not body and not accept_empty_body:
             err("No merge request message specified")
 
