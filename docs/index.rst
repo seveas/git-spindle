@@ -40,3 +40,4 @@ Contents
    github
    gitlab
    bitbucket
+   plugins

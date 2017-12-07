@@ -17,5 +17,5 @@ setup(name='git-spindle',
         "Topic :: Software Development",
         "Topic :: Software Development :: Version Control"
     ],
-    install_requires=["github3.py>=0.9.0", "whelk>=2.6", "docopt>=0.5.0"],
+    install_requires=["github3.py>=0.9.0", "whelk>=2.6", "docopt>=0.5.0", "six"],
 )

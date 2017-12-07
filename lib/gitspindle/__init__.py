@@ -3,12 +3,19 @@ import docopt
 import os
 import re
 import shlex
+import six
 import sys
 import tempfile
 import whelk
+try:
+    import importlib.util
+except ImportError:
+    # No plugins for you...
+    importlib = None
 
 __all__ = ['GitSpindle', 'Credential', 'command', 'wants_parent']
 NO_VALUE_SENTINEL = 'NO_VALUE_SENTINEL'
+PLUGIN_PATH = os.path.join(os.path.expanduser('~'), '.local', 'lib', 'git-spindle')
 
 __builtins__['PY3'] = sys.version_info[0] > 2
 if PY3:
@@ -70,6 +77,39 @@ def extras(help, version, options, doc):
 
 docopt.extras = extras
 
+GitSpindlePlugin = None
+class GitSpindlePluginLoader(type):
+    def __new__(cls, name, parents, attrs):
+        if not importlib:
+            return super(GitSpindlePluginLoader, cls).__new__(cls, name, parents, attrs)
+        if GitSpindlePlugin in parents:
+            for attr in attrs:
+                if getattr(attrs[attr], 'is_command', False) :
+                    if attr in GitSpindlePluginLoader.currently_loading:
+                        print("%s is trying to override %s, ignoring" % (GitSpindlePluginLoader.current_plugin, attr))
+                    else:
+                        GitSpindlePluginLoader.currently_loading[attr] = attrs[attr]
+        else:
+            GitSpindlePluginLoader.currently_loading = attrs
+            path = os.path.join(PLUGIN_PATH, name.lower())
+            if os.path.exists(path):
+                for file in os.listdir(path):
+                    if file.endswith('.py'):
+                        spec = importlib.util.spec_from_file_location('temp_module', os.path.join(path, file))
+                        module = importlib.util.module_from_spec(spec)
+                        GitSpindlePluginLoader.current_plugin = file
+                        try:
+                            spec.loader.exec_module(module)
+                        except Exception as e:
+                            print("Failed to load plugin %s: %s" % (file, str(e)))
+
+            return super(GitSpindlePluginLoader, cls).__new__(cls, name, parents, attrs)
+
+@six.add_metaclass(GitSpindlePluginLoader)
+class GitSpindlePlugin(object):
+     pass
+
+@six.add_metaclass(GitSpindlePluginLoader)
 class GitSpindle(object):
 
     def __init__(self):
