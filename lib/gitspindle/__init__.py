@@ -654,3 +654,21 @@ class Credential(object):
             if key not in self.params:
                 raise ValueError("Unexpected data: %s=%s" % (key, val))
             setattr(self, key, val)
+
+# The main entrypoints
+def hub():
+    from gitspindle.github import GitHub
+    GitHub().main()
+
+def lab():
+    from gitspindle.gitlab import GitLab
+    GitLab().main()
+
+def bucket():
+    from gitspindle.bitbucket import BitBucket
+    BitBucket().main()
+
+def bb():
+    from gitspindle.bitbucket import BitBucket
+    BitBucket.prog = 'git bb'
+    BitBucket().main()

@@ -6,6 +6,5 @@ if os.path.exists(os.path.join(top, '.git')) and os.path.exists(os.path.join(top
     # We're in our own git checkout
     sys.path.insert(0,os.path.join(top, 'lib'))
 
-from gitspindle.gitlab import GitLab
-
-GitLab().main()
+from gitspindle import lab
+lab()

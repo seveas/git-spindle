@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(name='git-spindle',
     version="3.3",
@@ -6,9 +6,16 @@ setup(name='git-spindle',
     author='Dennis Kaarsemaker',
     author_email='dennis@kaarsemaker.net',
     url='http://github.com/seveas/git-spindle',
-    scripts=['bin/git-hub', 'bin/git-lab', 'bin/git-bb', 'bin/git-bucket'],
     packages=['gitspindle'],
     package_dir={'': 'lib'},
+    entry_points={
+        'console_scripts':[
+            'git-hub=gitspindle:hub',
+            'git-lab=gitspindle:lab',
+            'git-bucket=gitspindle:bucket',
+            'git-bb=gitspindle:bb',
+        ]
+    },
     classifiers=[
         "Intended Audience :: Developers",
         "Topic :: Software Development",
