@@ -1,3 +1,10 @@
+git-spindle (3.4-1) bionic; urgency=medium
+
+  * New upstream release
+  * Install as python3 application
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Fri, 08 Dec 2017 23:01:38 +0100
+
 git-spindle (3.3-1) xenial; urgency=medium
 
   * New upstream release

@@ -4,9 +4,13 @@
 	dh $@
 
 override_dh_auto_build:
+	python3 setup.py build
 	make -C docs man
 
 override_dh_auto_install:
-	dh_auto_install
+	python3 setup.py install --root=debian/tmp --no-compile -O0 --install-layout=deb
 	install -m755 -d debian/tmp/etc/bash_completion.d/
 	install -m644 -t debian/tmp/etc/bash_completion.d/ completion/git-spindle.completion.bash
+
+override_dh_compress:
+	dh_compress -X.rst
