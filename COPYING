@@ -1,18 +1,25 @@
 git-spindle is written and maintained by Dennis Kaarsemaker (seveas)
 
 With contributions from:
+- Abdo Roig-Maranges
+- Adrian Bridgett
+- Alan Doucette
+- Björn Kautler
 - Brandon Zimmerman
+- Damian Gryski
 - Daniel Johnson
 - INADA Naoki
 - Ian Cordasco
+- Jakub Wilk
 - James Byrne
+- Mattias Bengtsson
 - Ondrej Grover
 - Robson Roberto Souza Peixoto
 - Roger Hu
 - Tilman Boerner
 - Tobias Olry
 
-Copyright (C) 2012-2015 Dennis Kaarsemaker <dennis@kaarsemaker.net>
+Copyright (C) 2012-2017 Dennis Kaarsemaker <dennis@kaarsemaker.net>
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
