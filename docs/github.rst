@@ -143,7 +143,7 @@ will be created on GitHub and your local repository will have GitHub as remote
 By default the repository is created under your account, but you can specify an
 organization to create the repository for.
 
-.. describe:: git hub set-origin [--ssh|--http|--git] [--triangular]
+.. describe:: git hub set-origin [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]]
 
 Fix the configuration of your repository's remotes. The remote "origin" will be
 set to your GitHub repository. If "origin" is a fork, an "upstream" remote will
@@ -154,12 +154,17 @@ refspec is added to fetch the pull requests for "origin" as
 All non-tracking branches with a matching counterpart in "origin" will be set to
 track "origin" (push and pull to it). Use :option:`--triangular` to set remotes
 in a triangular fashion where :command:`git pull` pulls from "upstream" and
-:command:`git push` pushes to "origin".
+:command:`git push` pushes to "origin". This also sets the configuration option
+:option:`remote.pushDefault`, so that new branches are pushed to "origin" even
+if they track a branch in "upstream". All non-tracking branches are set up to
+track a matching counterpart in "upstream" except if :option:`--upstream-branch`
+explicitly specifies a branch like "master" in "upstream" that all branches should
+track.
 
 For "origin", an SSH url is used. For "upstream", set-origin defaults to adding
 a git url, but this can be overridden. For private repos, SSH is used.
 
-.. describe:: git hub clone [--ssh|--http|--git] [--parent] [git-clone-options] <repo> [<dir>]
+.. describe:: git hub clone [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
 
 Clone a GitHub repository by name (e.g. seveas/hacks) or URL. The "origin"
 remote will be set and, like with set-origin, if "origin" is a fork an
@@ -188,7 +193,7 @@ repository names and refs. For example: `master:bin/git-hub`,
 
 Download and display a repository's README file, whatever its actual name is.
 
-.. describe:: git hub fork [--ssh|--http|--git] [<repo>]
+.. describe:: git hub fork [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [<repo>]
 
 Fork another person's git repository on GitHub and clone that repository
 locally. The repository can be specified as a (git) url or simply username/repo.

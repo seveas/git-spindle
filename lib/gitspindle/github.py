@@ -530,7 +530,7 @@ class GitHub(GitSpindle):
 
     @command
     def clone(self, opts, repo=None):
-        """[--ssh|--http|--git] [--triangular] [--parent] [git-clone-options] <repo> [<dir>]
+        """[--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [--parent] [git-clone-options] <repo> [<dir>]
            Clone a repository by name"""
         if not repo:
             repo = self.repository(opts)
@@ -667,7 +667,7 @@ class GitHub(GitSpindle):
 
     @command
     def fork(self, opts):
-        """[--ssh|--http|--git] [--triangular] [<repo>]
+        """[--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]] [<repo>]
            Fork a repo and clone it"""
         do_clone = bool(opts['<repo>'])
         repo = self.repository(opts)
@@ -1401,7 +1401,7 @@ will be ignored""" % (name, tag)
 
     @command
     def set_origin(self, opts, repo=None, remote='origin'):
-        """[--ssh|--http|--git] [--triangular]
+        """[--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]]
            Set the remote 'origin' to github.
            If this is a fork, set the remote 'upstream' to the parent"""
         if not repo:
@@ -1442,7 +1442,7 @@ will be ignored""" % (name, tag)
         if remote != 'origin':
             return
 
-        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'])
+        self.set_tracking_branches(remote, upstream="upstream", triangular=opts['--triangular'], upstream_branch=opts['--upstream-branch'])
 
     @command
     def status(self, opts):

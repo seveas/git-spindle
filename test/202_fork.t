@@ -4,8 +4,10 @@ test_description="Forking repositories"
 
 . ./setup.sh
 
-test_expect_success "Clone extra repository" "
-    git clone https://github.com/seveas/python-hpilo
+test_expect_success "Clone extra repos" "
+    git clone https://$(spindle_host git_hub_)/seveas/hacks &&
+    git clone https://$(spindle_host git_hub_)/seveas/python-hpilo &&
+    git clone https://$(spindle_host git_hub_)/seveas/python-zonediff
 "
 
 for spindle in hub lab bb; do
@@ -15,10 +17,16 @@ for spindle in hub lab bb; do
 done
 
 for spindle in hub lab bb; do
-    test_expect_success $spindle "Create repo ($spindle)" "
+    test_expect_success $spindle "Create and prepare repos ($spindle)" "
         ( cd python-hpilo &&
         git_${spindle}_1 create &&
-        git_1 push \$(spindle_remote git_${spindle}_1) refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* )
+        git_1 push \$(spindle_remote git_${spindle}_1) refs/heads/*:refs/heads/* refs/tags/*:refs/tags/*) &&
+        ( cd hacks &&
+        git_${spindle}_1 set-origin &&
+        git_1 push origin refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* HEAD:branch-a HEAD:branch-b) &&
+        ( cd python-zonediff &&
+        git remote set-url origin git@$(spindle_host git_${spindle}_):$(spindle_namespace git${spindle}-test-1)/python-zonediff &&
+        git_1 push origin refs/heads/*:refs/heads/* refs/tags/*:refs/tags/* HEAD:branch-a HEAD:branch-b)
     "
 done
 
@@ -39,8 +47,58 @@ for spindle in hub lab bb; do
         git_${spindle}_2 repos | grep whelk &&
         (cd whelk &&
         test_commit &&
-        git_2 push) &&
+        git_2 push &&
+        echo -n 'Testing remote.pushDefault ... ' &&
+        (git config remote.pushDefault && (exit 2) || test \$? -eq 1) &&
+        echo -n 'OK\nTesting branch.master.remote ... ' &&
+        git config branch.master.remote >config &&
+        grep -q 'origin' config &&
+        echo -n 'OK\nTesting branch.master.pushRemote ... ' &&
+        (git config branch.master.pushRemote && (exit 2) || test \$? -eq 1) &&
+        echo 'OK') &&
         rm -rf whelk
+    "
+done
+
+for spindle in hub lab bb; do
+    test_expect_success $spindle "Forking with triangular setup ($spindle)" "
+        (cd hacks &&
+        git_${spindle}_1 set-origin &&
+        git_${spindle}_2 fork --triangular &&
+        echo -n 'Testing remote.pushDefault ... ' &&
+        git config remote.pushDefault >config &&
+        grep -q 'origin' config &&
+        echo -n 'OK\nTesting branch.master.remote ... ' &&
+        git config branch.master.remote >config &&
+        grep -q 'upstream' config &&
+        echo -n 'OK\nTesting branch.master.pushRemote ... ' &&
+        git config branch.master.pushRemote >config &&
+        grep -q 'origin' config &&
+        echo -n 'OK\nTesting branch.master.merge ... ' &&
+        git config branch.master.merge >config &&
+        grep -q 'refs/heads/master' config &&
+        echo 'OK')
+    "
+done
+
+for spindle in hub lab bb; do
+    test_expect_success $spindle "Forking with triangular setup and fixed upstream branch ($spindle)" "
+        (cd python-zonediff &&
+        git remote set-url origin git@$(spindle_host git_${spindle}_):$(spindle_namespace git${spindle}-test-1)/python-zonediff &&
+        git_${spindle}_2 fork --triangular --upstream-branch=branch-a &&
+        echo -n 'Testing remote.pushDefault ... ' &&
+        git config remote.pushDefault >config &&
+        grep -q 'origin' config &&
+        echo -n 'OK\nTesting branch.master.remote ... ' &&
+        git config branch.master.remote >config &&
+        grep -q 'upstream' config &&
+        echo -n 'OK\nTesting branch.master.pushRemote ... ' &&
+        git config branch.master.pushRemote >config &&
+        grep -q 'origin' config &&
+        echo -n 'OK\nTesting branch.master.merge ... ' &&
+        git config branch.master.merge >config &&
+        grep -q 'refs/heads/branch-a' config &&
+        echo 'OK')
     "
 done
 
