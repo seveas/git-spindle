@@ -1,3 +1,9 @@
+git-spindle (3.4-3) bionic; urgency=medium
+
+  * It builds, but doesn't test.
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Sat, 09 Dec 2017 00:04:42 +0100
+
 git-spindle (3.4-2) bionic; urgency=medium
 
   * Ok, that doesn't build on launchpad. Try with pybuild.

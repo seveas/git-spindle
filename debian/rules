@@ -14,3 +14,6 @@ override_dh_auto_install:
 
 override_dh_compress:
 	dh_compress -X.rst
+
+override_dh_auto_test:
+	# Tests don't really work on buildd's. They're too fiddly and take ages.
