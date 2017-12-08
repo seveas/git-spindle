@@ -410,6 +410,9 @@ Options:
         os.environ['GITSPINDLE_ACCOUNT'] = self.account or self.spindle
         host = self.config('host')
         if host:
+            if '://' not in host and ':' in host:
+                # SSH host, transform to ssh:// syntax
+                host = 'ssh://' + host.replace(':', '/')
             self.hosts = [urlparse.urlparse(host).hostname]
 
         for command, func in self.commands.items():
