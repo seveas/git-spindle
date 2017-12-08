@@ -6,6 +6,7 @@ import shlex
 import six
 import sys
 import tempfile
+import time
 import whelk
 try:
     import importlib.util
@@ -289,6 +290,30 @@ Options:
                 err("No parent repo found for %s/%s" % (user, repo))
 
         return repo_
+
+    def wait_for_repo(self, user, repo_, opts):
+        warned = False
+        tries = 120/5
+        repo = None
+        while tries and not repo:
+            repo = self.get_repo('', user, repo_)
+            if repo:
+                res = self.git('ls-remote', self.clone_url(repo, opts))
+                if res:
+                    if warned:
+                        print("")
+                    return
+                repo = None
+            if not warned:
+                sys.stdout.write("Waiting for repository creation...")
+                warned = True
+            else:
+                sys.stdout.write('.')
+            sys.stdout.flush()
+            tries -= 1
+            time.sleep(5)
+        print("")
+        err("%s failed to create the %s/%s repository" % (self.what, user, repo))
 
     def question(self, question, default=True):
         yn = ['y/N', 'Y/n'][default or self.assume_yes]

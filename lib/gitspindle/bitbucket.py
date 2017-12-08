@@ -278,6 +278,7 @@ class BitBucket(GitSpindle):
             pass
 
         my_fork = repo.fork()
+        self.wait_for_repo(my_fork.owner['username'], my_fork.name, opts)
 
         if do_clone:
             self.clone(opts, repo=my_fork)

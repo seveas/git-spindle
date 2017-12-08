@@ -683,6 +683,7 @@ class GitHub(GitSpindle):
                 err("Repository already exists")
 
         my_clone = repo.create_fork()
+        self.wait_for_repo(my_clone.owner.login, my_clone.name, opts)
         if do_clone:
             self.clone(opts, repo=my_clone)
         else:
