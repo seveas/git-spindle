@@ -1,3 +1,9 @@
+git-spindle (3.4-2) bionic; urgency=medium
+
+  * Ok, that doesn't build on launchpad. Try with pybuild.
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Fri, 08 Dec 2017 23:57:34 +0100
+
 git-spindle (3.4-1) bionic; urgency=medium
 
   * New upstream release
