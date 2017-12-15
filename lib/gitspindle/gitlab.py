@@ -630,7 +630,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
         if not dst:
             dst = parent.default_branch
             if tracking_branch.startswith('refs/remotes/'):
-                tracking_remote, tracking_branch = tracking.branch.split('/', 3)[-2:]
+                tracking_remote, tracking_branch = tracking_branch.split('/', 3)[-2:]
                 if tracking_branch != src or repo.remote != tracking_remote:
                     # Interesting. We're not just tracking a branch in our clone!
                     dst = tracking_branch

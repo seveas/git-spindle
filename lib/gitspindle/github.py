@@ -1133,7 +1133,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
             dst = parent.default_branch
             tracking_branch = self.git('rev-parse', '--symbolic-full-name', '%s@{u}' % src).stdout.strip()
             if tracking_branch.startswith('refs/remotes/'):
-                tracking_remote, tracking_branch = tracking.branch.split('/', 3)[-2:]
+                tracking_remote, tracking_branch = tracking_branch.split('/', 3)[-2:]
                 if tracking_branch != src or repo.remote != tracking_remote:
                     # Interesting. We're not just tracking a branch in our clone!
                     dst = tracking_branch
