@@ -1,3 +1,9 @@
+git-spindle (3.4.1-1) bionic; urgency=medium
+
+  * New upstream bugfix release
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Fri, 15 Dec 2017 11:13:24 +0100
+
 git-spindle (3.4-4) bionic; urgency=medium
 
   * We need to install the egg info now...
