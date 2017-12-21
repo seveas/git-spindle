@@ -987,7 +987,9 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
            Mirror a repository, or all repositories for a user"""
         if opts['<repo>'] and opts['<repo>'].endswith('/*'):
             user = opts['<repo>'].rsplit('/', 2)[-2]
-            for repo in self.gh.iter_user_repos(user):
+            for repo in self.gh.iter_repos(type='all') if user == self.my_login else self.gh.iter_user_repos(user, type='all'):
+                if repo.owner.login != self.my_login:
+                    continue
                 opts['<repo>'] = '%s/%s' % (user, repo)
                 self.mirror(opts)
             for repo in self.gh.iter_gists(user):
