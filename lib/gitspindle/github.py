@@ -1537,7 +1537,10 @@ will be ignored""" % (name, tag)
                     print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
                 else:
                     print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
-            orgs = list(user.iter_orgs())
+            if user.login == self.my_login:
+                orgs = self.gh.iter_orgs()
+            else:
+                orgs = list(user.iter_orgs())
             if orgs:
                 print("Member of %s" % ', '.join([x.login for x in orgs]))
             if user.type == 'Organization':
