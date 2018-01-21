@@ -9,8 +9,8 @@ import json
 import os
 import requests
 import sys
+import time
 import webbrowser
-
 
 class GitLab(GitSpindle):
     prog = 'git lab'
