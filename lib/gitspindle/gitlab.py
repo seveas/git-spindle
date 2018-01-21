@@ -10,7 +10,7 @@ import os
 import requests
 import sys
 import webbrowser
-
+import time
 
 class GitLab(GitSpindle):
     prog = 'git lab'
