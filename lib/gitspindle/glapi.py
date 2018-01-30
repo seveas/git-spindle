@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import print_function, division, absolute_import
+from requests.utils import quote
 
 import json
 import requests
@@ -857,7 +858,7 @@ class ProjectBranch(GitlabObject):
     def protect(self, protect=True):
         url = self._url % {'project_id': self.project_id}
         action = 'protect' if protect else 'unprotect'
-        url = "%s/%s/%s" % (url, self.name, action)
+        url = "%s/%s/%s" % (url, quote(self.name, safe =''), action)
         r = self.gitlab.rawPut(url)
 
         if r.status_code == 200:
