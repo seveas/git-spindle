@@ -137,7 +137,7 @@ class GitHub(GitSpindle):
         contents = None
         for dir in ('/', '/.github/'):
             files = repo.contents(dir)
-            if not files:
+            if not files or not hasattr(files, 'items'):
                 continue
             files = dict([(x[0].lower(), x[1]) for x in files.items()])
 
