@@ -54,8 +54,8 @@ def request(self, *args, **kwargs):
     limit = int(r.headers.get('x-ratelimit-limit', 0))
     remaining = int(r.headers.get('x-ratelimit-remaining', 0))
     reset = int(r.headers.get('x-ratelimit-reset', 0))
-    if limit and (remaining < 100) and not warned:
-        msg = "You are approaching the API rate limit. Only %d requests remain until %s" % (remaining, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(reset)))
+    if limit and (remaining < 0.20 * limit) and not warned:
+        msg = "You are approaching the API rate limit. Only %d/%d requests remain until %s" % (remaining, limit, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(reset)))
         print(wrap(msg, fgcolor.red, attr.bright))
         warned = True
     return r
