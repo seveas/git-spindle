@@ -1114,7 +1114,11 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
         else:
             keys = self.gh.user(user).keys()
         for key in keys:
-            print("%s %s" % (key.key, key.title or ''))
+            if hasattr(key, 'title') and key.title:
+                print("%s %s" % (key.key, key.title or ''))
+            else:
+                print("%s" % key.key)
+
 
     @command
     def pull_request(self, opts):
@@ -1534,7 +1538,7 @@ will be ignored""" % (name, tag)
             for pkey in keys:
                 algo, key = pkey.key.split()[:2]
                 algo = algo[4:].upper()
-                if pkey.title:
+                if hasattr(pkey, 'title') and pkey.title:
                     print("%s key%s...%s (%s)" % (algo, ' ' * (6 - len(algo)), key[-10:], pkey.title))
                 else:
                     print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
