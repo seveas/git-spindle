@@ -1523,8 +1523,8 @@ will be ignored""" % (name, tag)
                 print('Location  %s' % user.location)
             if user.company:
                 print('Company   %s' % user.company)
-            print('Repos     %d public, %d private' % (user.public_repos_count, user.total_private_repos))
-            print('Gists     %d public, %d private' % (user.public_gists, user.total_private_gists))
+            print('Repos     %d' % user.public_repos_count)
+            print('Gists     %d' % user.public_gists_count)
             if user.login == self.my_login:
                 keys = self.gh.keys()
             else:
