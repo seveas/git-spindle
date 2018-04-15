@@ -137,7 +137,10 @@ class GitHub(GitSpindle):
         template = template.lower()
         contents = None
         for dir in ('/', '/.github/'):
-            files = repo.directory_contents(dir)
+            try:
+                files = repo.directory_contents(dir)
+            except github3.exceptions.NotFoundError:
+                files = None
             if not files or not hasattr(files, 'items'):
                 continue
             files = dict([(k.lower(), v) for k, v in files])
@@ -1141,7 +1144,10 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
         # Try to get the local commit
         commit = self.gitm('show-ref', 'refs/heads/%s' % src).stdout.split()[0]
         # Do they exist on github?
-        srcb = repo.branch(src)
+        try:
+            srcb = repo.branch(src)
+        except github3.exceptions.NotFoundError:
+            srcb = None
         if not srcb:
             if self.question("Branch %s does not exist in your GitHub repo, shall I push?" % src):
                 self.gitm('push', '-u', repo.remote, src, redirect=False)
