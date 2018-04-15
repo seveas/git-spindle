@@ -1507,9 +1507,11 @@ will be ignored""" % (name, tag)
             print('Profile   %s' % user.html_url)
             if user.email:
                 unverified = ''
-                if not emails.get(user.email, {}).verified:
-                    unverified = ' ' + wrap('(not verified)', fgcolor.red, attr.bright)
-                print('Email     %s%s' % (user.email, unverified))
+                user_email = emails.get(user.email)
+                if user_email is not None:
+                    if not user_email.verified:
+                        unverified = ' ' + wrap('(not verified)', fgcolor.red, attr.bright)
+                    print('Email     %s%s' % (user.email, unverified))
                 for email in emails:
                     if email == user.email:
                         continue
