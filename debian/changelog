@@ -1,3 +1,9 @@
+git-spindle (3.4.4-1) bionic; urgency=medium
+
+  * New upstream release
+
+ -- Dennis Kaarsemaker <dennis@kaarsemaker.net>  Sun, 15 Apr 2018 19:27:06 +0200
+
 git-spindle (3.4.3-1) bionic; urgency=medium
 
   * New upstream version
