@@ -768,7 +768,7 @@ class GitHub(GitSpindle):
                 pr = issue.pull_request()
                 print(wrap(issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), attr.bright, attr.underline))
                 print(issue.body.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding))
-                print(pr and pr.html_url or issue.html_url)
+                print(pr.html_url if pr is not None else issue.html_url)
             else:
                 print('No issue with id %s found in repository %s' % (issue_no, repo.full_name))
         if not opts['<issue>']:
@@ -824,7 +824,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
             print(wrap("Issues for %s/%s" % (repo.owner.login, repo.name), attr.bright))
             for issue in issues:
                 pr = issue.pull_request()
-                url = pr and pr.html_url or issue.html_url
+                url = pr.html_url if pr is not None else issue.html_url
                 print("[%d] %s %s" % (issue.number, issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), url))
 
     @command
