@@ -8,15 +8,15 @@ glapi.Project.spindle = 'gitlab'
 glapi.UserProject.spindle = 'gitlab'
 
 # Monkeypatch github3.gists.Gist to behave more like a repo
-github3.gists.Gist.ssh_url = property(lambda self: 'git@gist.github.com:/%s.git' % self.id)
-github3.gists.Gist.clone_url = property(lambda self: self.git_pull_url)
-github3.gists.Gist.git_url = property(lambda self: 'git://gist.github.com/%s.git' % self.id)
-github3.gists.Gist.name = property(lambda self: self.id)
-github3.gists.Gist.private = property(lambda self: not self.public)
-github3.gists.Gist.create_fork = github3.gists.Gist.fork
+github3.gists.gist._Gist.ssh_url = property(lambda self: 'git@gist.github.com:/%s.git' % self.id)
+github3.gists.gist._Gist.clone_url = property(lambda self: self.git_pull_url)
+github3.gists.gist._Gist.git_url = property(lambda self: 'git://gist.github.com/%s.git' % self.id)
+github3.gists.gist._Gist.name = property(lambda self: self.id)
+github3.gists.gist._Gist.private = property(lambda self: not self.public)
+github3.gists.gist._Gist.create_fork = github3.gists.Gist.fork
 # XXX - There is nothing in the API output that indicates forkedness
-github3.gists.Gist.fork = False
-github3.gists.Gist.issues = lambda self, *args, **kwargs: []
+github3.gists.gist._Gist.fork = False
+github3.gists.gist._Gist.issues = lambda self, *args, **kwargs: []
 def _gist_events(self, number=300):
     for event in self.history[:number]:
         yield GistEvent(event, self)
