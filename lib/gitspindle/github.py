@@ -627,7 +627,8 @@ class GitHub(GitSpindle):
            Lists all keys for a repo"""
         repo = self.repository(opts)
         for key in repo.keys():
-            print("%s %s (id: %s)" % (key.key, key.title or '', key.id))
+            ro = 'ro' if key.read_only else 'rw'
+            print("%s %s (id: %s, %s)" % (key.key, key.title or '', key.id, ro))
 
     @command
     def edit_hook(self, opts):
