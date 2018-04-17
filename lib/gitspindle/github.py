@@ -84,7 +84,6 @@ class GitHub(GitSpindle):
             err("No user or token specified")
         self.gh.login(username=user, token=token)
         try:
-
             self.me = self.gh.me()
             self.my_login = self.me.login
         except github3.GitHubError:
