@@ -378,7 +378,9 @@ class GitHub(GitSpindle):
                 err("No such file: %s" % arg)
             if content.type != 'file':
                 err("Not a regular file: %s" % arg)
-            os.write(sys.stdout.fileno(), content.decoded)
+            resp = self.gh._session.get(content.download_url, stream=True)
+            for chunk in resp.iter_content(4096):
+                os.write(sys.stdout.fileno(), chunk)
 
     @command
     def check_pages(self, opts):
