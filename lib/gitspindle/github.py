@@ -126,7 +126,7 @@ class GitHub(GitSpindle):
 
     def api_root(self):
         if hasattr(self, 'gh'):
-            return self.gh._session.base_url
+            return self.gh.session.base_url
         host = self.config('host')
         if not host:
             return 'https://api.github.com'
@@ -151,7 +151,7 @@ class GitHub(GitSpindle):
                     if file.startswith(template + '.'):
                         contents = files[file]
         if contents:
-            contents = contents.name, self.gh._session.get(contents.download_url, stream=True).text
+            contents = contents.name, self.gh.session.get(contents.download_url, stream=True).text
         return contents
 
     # Commands
@@ -378,7 +378,7 @@ class GitHub(GitSpindle):
                 err("No such file: %s" % arg)
             if content.type != 'file':
                 err("Not a regular file: %s" % arg)
-            resp = self.gh._session.get(content.download_url, stream=True)
+            resp = self.gh.session.get(content.download_url, stream=True)
             for chunk in resp.iter_content(4096):
                 os.write(sys.stdout.fileno(), chunk)
 
