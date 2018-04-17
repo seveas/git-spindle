@@ -266,7 +266,7 @@ Revoke access to this repository.
 List all protected branches. Protected branches cannot be force-pushed or
 deleted, and can potentially have required status checks.
 
-.. describe:: git hub protect [--enforcement-level=<level>] [--contexts=<contexts>] <branch>
+.. describe:: git hub protect [--enforcement=<level>] [--status_checks=<contexts>] <branch>
 
 Protect a branch against force-pushes and deletion. Optionally require status
 checks to succeed by specifying their context (e.g.
