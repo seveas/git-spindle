@@ -1114,10 +1114,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
         else:
             keys = self.gh.user(user).keys()
         for key in keys:
-            if getattr(key, 'title', None):
-                print("%s %s" % (key.key, key.title or ''))
-            else:
-                print("%s" % key.key)
+            print("%s %s" % (key.key, getattr(key, 'title', '')))
 
 
     @command
