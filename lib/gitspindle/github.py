@@ -1503,7 +1503,7 @@ will be ignored""" % (name, tag)
             emails = {}
             if user.login == self.my_login:
                 for email in self.gh.emails():
-                    emails[str(email)] = email
+                    emails[email.email] = email
             print(wrap(user.name or user.login, attr.bright, attr.underline))
             print('Profile   %s' % user.html_url)
             if user.email:
