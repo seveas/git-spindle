@@ -879,7 +879,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
             else:
                 ts = wrap(ts.strftime("%Y/%m/%d %H:%M"), attr.faint)
                 tss = '                '
-            repo = '/'.join(event.repo)
+            repo = event.repo['name']
             repo_ = ' (%s)' % repo
             if logtype != 'user':
                 repo_ = ''
