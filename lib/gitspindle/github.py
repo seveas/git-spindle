@@ -175,9 +175,7 @@ class GitHub(GitSpindle):
                 algo, key, title = fd.read().strip().split(None, 2)
             key = "%s %s" % (algo, key)
             print("Adding deploy key %s" % arg)
-            # repo.create_key(title=title, key=key, read_only=opts['--read-only'])
-            data = {'title': title, 'key': key, 'read_only': opts['--read-only']}
-            repo._post(url, data=data)
+            repo.create_key(title=title, key=key, read_only=opts['--read-only'])
 
     @command
     def add_hook(self, opts):
@@ -1302,7 +1300,12 @@ will be ignored""" % (name, tag)
            Remove deploy key by id"""
         repo = self.repository(opts)
         for key in opts['<key>']:
-            repo.key(key).delete()
+            if not key.isdigit():
+                err("You must specify a numeric id")
+            try:
+                repo.key(key).delete()
+            except github3.exceptions.NotFoundError:
+                err("No key with id %s found" % key)
 
     @command
     def remove_hook(self, opts):
