@@ -184,7 +184,7 @@ class GitHub(GitSpindle):
         repo = self.repository(opts)
         for hook in repo.hooks():
             if hook.name == opts['<name>']:
-                raise ValueError("Hook %s already exists" % opts['<name>'])
+                err("Hook %s already exists" % opts['<name>'])
         settings = dict([x.split('=', 1) for x in opts['<setting>']])
         for key in settings:
             if settings[key].isdigit():
