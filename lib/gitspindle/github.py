@@ -740,9 +740,19 @@ class GitHub(GitSpindle):
             langs = sorted(self.gh.gitignore_templates(), key = lambda x: x.lower())
             print("Languages for which a gitignore template is available:\n  * " + "\n  * ".join(langs))
         else:
+            langs = {}
             for l in lang:
+                try:
+                    t = self.gh.gitignore_template(langs.get(l.lower(), l))
+                except github3.exceptions.NotFoundError:
+                    if not langs:
+                        langs = {x.lower(): x for x in self.gh.gitignore_templates()}
+                    if l.lower() in langs:
+                        t = self.gh.gitignore_template(langs[l.lower()])
+                    else:
+                        err("No gitignore template found for %s" % l)
                 print("# Ignore patterns for " + l)
-                print(self.gh.gitignore_template(l).strip())
+                print(t.strip())
 
     @command
     def ip_addresses(self, opts):
