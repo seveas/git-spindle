@@ -200,7 +200,7 @@ class GitHub(GitSpindle):
         pr = repo.pull_request(opts['<pr-number>'])
         if not pr:
             err("Pull request %s does not exist" % opts['<pr-number>'])
-        print("Applying PR#%d from %s: %s" % (pr.number, self.gh.user(pr.user).name, pr.title))
+        print("Applying PR#%d from %s: %s" % (pr.number, pr.user.refresh().name or pr.user.login, pr.title))
         # Warnings
         warned = False
         cbr = self.gitm('rev-parse', '--symbolic-full-name', 'HEAD').stdout.strip().replace('refs/heads/','')
@@ -226,10 +226,10 @@ class GitHub(GitSpindle):
             self.gitm('fetch', url, 'refs/pull/%d/head:refs/pull/%d/head' % (pr.number, pr.number), redirect=False)
         head_sha = self.gitm('rev-parse', 'HEAD').stdout.strip()
         if self.git('merge-base', pr.head.sha, head_sha).stdout.strip() == head_sha:
-            print("Fast-forward merging %d commit(s): %s..refs/pull/%d/head" % (pr.commits, pr.base.ref, pr.number))
+            print("Fast-forward merging %d commit(s): %s..refs/pull/%d/head" % (pr.commits_count, pr.base.ref, pr.number))
             self.gitm('merge', '--ff-only', 'refs/pull/%d/head' % pr.number, redirect=False)
         else:
-            print("Cherry-picking %d commit(s): %s..refs/pull/%d/head" % (pr.commits, pr.base.ref, pr.number))
+            print("Cherry-picking %d commit(s): %s..refs/pull/%d/head" % (pr.commits_count, pr.base.ref, pr.number))
             self.gitm('cherry-pick', '%s..refs/pull/%d/head' % (pr.base.ref, pr.number), redirect=False)
 
     @command
