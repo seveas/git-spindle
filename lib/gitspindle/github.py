@@ -111,7 +111,7 @@ class GitHub(GitSpindle):
     def parent_repo(self, repo):
         if repo.fork:
             # In search results or lists parent info is not returned with a repository
-            return repo.parent or self.gh.repository(repo.owner.login, repo.name).parent
+            return getattr(repo, 'parent', None) or self.gh.repository(repo.owner.login, repo.name).parent
 
     def clone_url(self, repo, opts):
         if opts['--ssh'] or repo.private:
