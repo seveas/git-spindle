@@ -243,11 +243,14 @@ class GitLab(GitSpindle):
         """[<user>]
            Show a timeline of a user's activity"""
         user = (opts['<user>'] or [self.my_login])[0]
-        user = self.find_user(user)
+        user = self.gl.users.list(username=user)[0]
         months = []
         rows = [[],[],[],[],[],[],[]]
         commits = []
-        data = user.calendar()
+        url = self.gl._url
+        url = '%s/%s/%s/calendar' % (url[:url.find('/api')], 'users', user.username)
+        data = requests.get(url).json()
+
 
         first = datetime.datetime.today() - datetime.timedelta(365)
         wd = (first.weekday()+1) % 7
@@ -285,7 +288,6 @@ class GitLab(GitSpindle):
         # Print commits
         days = 'SMTWTFS'
         commits.sort()
-        print(commits)
         if len(commits) < 2:
             p5 = p15 = p35 = 0
         else:
