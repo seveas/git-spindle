@@ -142,7 +142,7 @@ class GitLab(GitSpindle):
            Adds keys to your public keys"""
         if not opts['<key>']:
             opts['<key>'] = glob.glob(os.path.join(os.path.expanduser('~'), '.ssh', 'id_*.pub'))
-        existing = [x.key for x in self.me.Key()]
+        existing = [x.key for x in self.me.keys.list()]
         for arg in opts['<key>']:
             with open(arg) as fd:
                 algo, key, title = fd.read().strip().split(None, 2)
