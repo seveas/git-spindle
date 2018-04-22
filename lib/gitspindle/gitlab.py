@@ -768,13 +768,13 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
         """[<user>]
            Lists all keys for a user"""
         if opts['<user>']:
-            user = self.find_user(opts['<user>'][0])
+            user = self.gl.users.list(username=opts['<user>'][0])[0]
         else:
             user = self.me
         if not user:
             err("No such user")
         try:
-            for key in user.Key():
+            for key in user.keys.list():
                 print("%s %s" % (key.key, key.title or ''))
         except gitlab.GitlabListError:
             # Permission denied, ignore
