@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 from gitspindle import *
 from gitspindle.ansi import *
-import gitspindle.glapi as glapi
+import gitlab
 import base64
 import datetime
 import getpass
@@ -17,7 +18,7 @@ class GitLab(GitSpindle):
     what = 'GitLab'
     spindle = 'gitlab'
     hosts = ['gitlab.com', 'www.gitlab.com']
-    api = glapi
+    api = gitlab
     access_levels = {
         'guest':     10,
         'reporter':  20,
@@ -46,10 +47,9 @@ class GitLab(GitSpindle):
 
         token = self.config('token')
         if not token:
-            password = getpass.getpass("GitLab password: ")
-            self.gl = glapi.Gitlab(host, email=user, password=password)
+            token = getpass.getpass("GitLab personal access token: ")
+            self.gl = gitlab.Gitlab(host, email=user, private_token=token)
             self.gl.auth()
-            token = self.gl.user.private_token
             self.config('token', token)
             location = '%s - do not share this file' % self.config_file
             if self.use_credential_helper:
@@ -60,10 +60,10 @@ class GitLab(GitSpindle):
             err("No user or token specified")
 
         if not self.gl:
-            self.gl = glapi.Gitlab(host, email=user, private_token=token)
+            self.gl = gitlab.Gitlab(host, email=user, private_token=token)
             try:
                 self.gl.auth()
-            except glapi.GitlabAuthenticationError:
+            except gitlab.GitlabAuthenticationError:
                 # Token obsolete
                 self.config('token', None)
                 self.login()
@@ -107,16 +107,7 @@ class GitLab(GitSpindle):
             if project.path != name:
                 return None
             return project
-        except glapi.GitlabGetError:
-            pass
-
-    # There's no way to fetch a user by username. Abuse search.
-    def find_user(self, username):
-        try:
-            for user in self.gl.User(search=username):
-                if user.username == username:
-                    return user
-        except glapi.GitlabListError:
+        except gitlab.GitlabGetError:
             pass
 
     # There's no way to fetch a group by name. Abuse search.
@@ -125,11 +116,8 @@ class GitLab(GitSpindle):
             for group in self.gl.Group(search=name):
                 if group.path == name:
                     return group
-        except glapi.GitlabListError:
+        except gitlab.GitlabListError:
             pass
-
-    def profile_url(self, user):
-        return '%s/u/%s' % (self.host, user.username)
 
     def merge_url(self, merge):
         repo = self.gl.Project(merge.project_id)
@@ -162,7 +150,7 @@ class GitLab(GitSpindle):
             if key in existing:
                 continue
             print("Adding %s" % arg)
-            glapi.CurrentUserKey(self.gl, {'title': title, 'key': key}).save()
+            gitlab.CurrentUserKey(self.gl, {'title': title, 'key': key}).save()
 
     @command
     def add_member(self, opts):
@@ -176,7 +164,7 @@ class GitLab(GitSpindle):
                 continue
             user = user_
             access_level = self.access_levels[opts['--access-level'] or 'developer']
-            glapi.ProjectMember(self.gl, {'project_id': repo.id, 'user_id': user.id, 'access_level': access_level}).save()
+            gitlab.ProjectMember(self.gl, {'project_id': repo.id, 'user_id': user.id, 'access_level': access_level}).save()
 
     @command
     def add_remote(self, opts):
@@ -224,7 +212,7 @@ class GitLab(GitSpindle):
         sha = self.git('rev-parse', '--verify', 'refs/merge/%d/head' % mr.iid).stdout.strip()
         if not sha:
             print("Fetching merge request")
-            url = self.clone_url(glapi.Project(self.gl, mr.source_project_id), opts)
+            url = self.clone_url(gitlab.Project(self.gl, mr.source_project_id), opts)
             self.gitm('fetch', url, 'refs/heads/%s:refs/merge/%d/head' % (mr.source_branch, mr.iid), redirect=False)
         head_sha = self.gitm('rev-parse', 'HEAD').stdout.strip()
         if self.git('merge-base', 'refs/merge/%d/head' % mr.iid, head_sha).stdout.strip() == head_sha:
@@ -355,7 +343,7 @@ class GitLab(GitSpindle):
             try:
                 file = repo.File(ref=ref or repo.default_branch, file_path=file)
                 os.write(sys.stdout.fileno(), base64.b64decode(file.content))
-            except glapi.GitlabGetError:
+            except gitlab.GitlabGetError:
                 sys.stderr.write("No such file: %s\n" % file)
 
     @command
@@ -398,14 +386,14 @@ class GitLab(GitSpindle):
             if not group:
                 err("Group %s could not be found" % opts['--group'])
             kwargs['namespace_id'] = group.id
-        repo = glapi.Project(self.gl, kwargs)
+        repo = gitlab.Project(self.gl, kwargs)
         i = 0
         success = False
         while not success:
             try:
                 repo.save()
                 success = True
-            except glapi.GitlabCreateError as gce:
+            except gitlab.GitlabCreateError as gce:
                 i += 1
                 time.sleep(1)
                 if (gce.response_code != 400) \
@@ -458,7 +446,7 @@ class GitLab(GitSpindle):
             try:
                 my_fork = repo.fork()
                 success = True
-            except glapi.GitlabForkError as gfe:
+            except gitlab.GitlabForkError as gfe:
                 i += 1
                 time.sleep(1)
                 if (gfe.response_code != 409) \
@@ -503,7 +491,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
                 err("Empty issue message")
 
             try:
-                issue = glapi.ProjectIssue(self.gl, {'project_id': repo.id, 'title': title, 'description': body})
+                issue = gitlab.ProjectIssue(self.gl, {'project_id': repo.id, 'title': title, 'description': body})
                 issue.save()
                 print("Issue %d created %s" % (issue.iid, issue.web_url))
             except:
@@ -559,10 +547,10 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
             if event.action_name == 'joined':
                 print('%s %s joined' % (ts, event.author_username))
             elif event.target_type == 'Issue':
-                issue = glapi.ProjectIssue(self.gl, event.target_id, project_id=event.project_id)
+                issue = gitlab.ProjectIssue(self.gl, event.target_id, project_id=event.project_id)
                 print('%s %s %s issue %s (%s)' % (ts, event.author_username, event.action_name, issue.iid, issue.title))
             elif event.target_type == 'MergeRequest':
-                issue = glapi.ProjectMergeRequest(self.gl, event.target_id, project_id=event.project_id)
+                issue = gitlab.ProjectMergeRequest(self.gl, event.target_id, project_id=event.project_id)
                 print('%s %s %s merge request %s (%s)' % (ts, event.author_username, event.action_name, issue.iid, issue.title))
             elif event.target_type == 'Note':
                 print('%s %s created a comment' % (ts, event.author_username))
@@ -593,7 +581,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
 
             try:
                 content = repo.tree(ref_name=ref or repo.default_branch, path=file)
-            except glapi.GitlabGetError:
+            except gitlab.GitlabGetError:
                 err("No such file: %s" % arg)
             if not content:
                 err("Not a directory: %s" % arg)
@@ -643,7 +631,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
         # Do they exist on GitLab?
         try:
             srcb = repo.Branch(src)
-        except glapi.GitlabGetError:
+        except gitlab.GitlabGetError:
             srcb = None
             if self.question("Branch %s does not exist in your GitLab repo, shall I push?" % src):
                 self.gitm('push', '-u', repo.remote, src, redirect=False)
@@ -711,7 +699,7 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
             err("No merge request message specified")
 
         try:
-            merge = glapi.ProjectMergeRequest(self.gl, {'project_id': repo.id, 'target_project_id': parent.id, 'source_branch': src, 'target_branch': dst, 'title': title, 'description': body})
+            merge = gitlab.ProjectMergeRequest(self.gl, {'project_id': repo.id, 'target_project_id': parent.id, 'source_branch': src, 'target_branch': dst, 'title': title, 'description': body})
             merge.save()
             print("merge request %d created %s" % (merge.iid, self.merge_url(merge)))
         except:
@@ -786,7 +774,7 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
         try:
             for key in user.Key():
                 print("%s %s" % (key.key, key.title or ''))
-        except glapi.GitlabListError:
+        except gitlab.GitlabListError:
             # Permission denied, ignore
             pass
 
@@ -887,14 +875,14 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
         """<user>...
            Display GitLab user info"""
         for user in opts['<user>']:
-            if not isinstance(user, (glapi.User, glapi.CurrentUser)):
-                user_ = self.find_user(user)
+            if not isinstance(user, (gitlab.v4.objects.User, gitlab.v4.objects.CurrentUser)):
+                user_ = self.gl.users.list(username=user)
                 if not user_:
                     print("No such user: %s" % user)
                     continue
-                user = user_
+                user = user_[0]
             print(wrap("%s (id %d)" % (user.name or user.username, user.id), attr.bright, attr.underline))
-            print('Profile   %s' % self.profile_url(user))
+            print('Profile   %s' % user.web_url)
             if hasattr(user, 'email'):
                 if user.email:
                     print('Email     %s' % user.email)
@@ -911,7 +899,7 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
                         bio = user.bio
                     print('Bio       %s' % user.bio)
             try:
-                for pkey in user.Key():
+                for pkey in user.keys.list():
                     algo, key = pkey.key.split()[:2]
                     algo = algo[4:].upper()
                     if pkey.title:
@@ -919,6 +907,6 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
                     else:
                         print("%s key%s...%s" % (algo, ' ' * (6 - len(algo)), key[-10:]))
 
-            except glapi.GitlabListError:
+            except gitlab.GitlabListError:
                 # Permission denied, ignore
                 pass
