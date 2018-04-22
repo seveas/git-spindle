@@ -130,7 +130,9 @@ class GitSpindle(object):
         self.commands = {}
         self.accounts = {}
         self.my_login = {}
-        self.use_credential_helper = self.git('config', 'credential.helper').stdout.strip() not in ('', 'cache')
+        helper = self.git('config', 'credential.helper').stdout.strip().split()
+        helper = helper[0] if helper else None
+        self.use_credential_helper = helper not in (None, 'cache', 'netrc')
 
         self.usage = DocoptExit.help = """%s - %s integration for git
 A full manual can be found on http://seveas.github.com/git-spindle/
