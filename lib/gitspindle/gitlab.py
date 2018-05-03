@@ -85,11 +85,11 @@ class GitLab(GitSpindle):
         return repo_
 
     def clone_url(self, repo, opts):
-        if opts['--ssh'] or not repo.public:
+        if opts['--ssh'] or not repo.visibility == 'public':
             return repo.ssh_url_to_repo
         if opts['--http']:
             return repo.http_url_to_repo
-        if repo.namespace.path == self.my_login:
+        if repo.namespace['full_path'] == self.my_login:
             return repo.ssh_url_to_repo
         return repo.http_url_to_repo
 
