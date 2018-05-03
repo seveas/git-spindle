@@ -46,7 +46,7 @@ def command(fnc):
     if not hasattr(fnc, 'wants_parent'):
         fnc.wants_parent = False
     return fnc
-hidden_command = lambda fnc: os.getenv('DEBUG') and command(fnc)
+hidden_command = lambda fnc: os.getenv('GIT_SPINDLE_DEBUG') and command(fnc)
 
 def wants_parent(fnc):
     fnc.wants_parent = True
@@ -656,6 +656,12 @@ class Credential(object):
             if key not in self.params:
                 raise ValueError("Unexpected data: %s=%s" % (key, val))
             setattr(self, key, val)
+
+if os.getenv('GIT_SPINDLE_DEBUG'):
+    def excepthook(tp, val, tb):
+        sys.__excepthook__(tp, val, tb)
+        import debugme
+    sys.excepthook = excepthook
 
 # The main entrypoints
 def hub():
