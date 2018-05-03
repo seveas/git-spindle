@@ -77,12 +77,9 @@ class GitLab(GitSpindle):
         if remote:
             id = self.git('config', 'remote.%s.gitlab-id' % remote).stdout.strip()
             if id and id.isdigit():
-                return self.gl.Project(id)
+                return self.gl.projects.get(id)
 
-        repo_ = self.find_repo(user=user, name=repo)
-        if not repo_:
-            # Name and path don't always match, and we clone using the name
-            repo_ = self.find_repo(user, name=os.path.basename(os.getcwd()))
+        repo_ = self.gl.projects.get('%s/%s' % (user, repo))
         if repo_ and remote:
             self.gitm('config', 'remote.%s.gitlab-id' % remote, repo_.id)
         return repo_
@@ -99,16 +96,6 @@ class GitLab(GitSpindle):
     def parent_repo(self, repo):
        if getattr(repo, 'forked_from_project', False):
            return self.gl.Project(repo.forked_from_project['id'])
-
-    def find_repo(self, user, name):
-        try:
-            project = self.gl.Project('%s%%2F%s' % (user, name))
-            # Yes, we need to check the name. Requesting foo.broken returns the foo project.
-            if project.path != name:
-                return None
-            return project
-        except gitlab.GitlabGetError:
-            pass
 
     # There's no way to fetch a group by name. Abuse search.
     def find_group(self, name):
@@ -793,24 +780,24 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
     def repos(self, opts):
         """[--no-forks]
            List all your repos"""
-        repos = self.gl.Project()
+        repos = self.gl.users.list(username=self.me.username)[0].projects.list()
         if not repos:
             return
         maxlen = max([len(x.name) for x in repos])
         fmt = u"%%-%ds %%s" % maxlen
         for repo in repos:
             color = [attr.normal]
-            if repo.visibility_level == 0:
+            if repo.visibility == 'private':
                 color.append(fgcolor.red)
-            elif repo.visibility_level == 10:
+            elif repo.visibility == 'internal':
                 color.append(fgcolor.magenta)
             if hasattr(repo, 'forked_from_project'):
                 if opts['--no-forks']:
                     continue
                 color.append(attr.faint)
             name = repo.path
-            if self.my_login != repo.namespace.path:
-                name = '%s/%s' % (repo.namespace.path, name)
+            if self.my_login != repo.namespace['path']:
+                name = '%s/%s' % (repo.namespace['path'], name)
             desc = ' '.join((repo.description or '').splitlines())
             msg = wrap(fmt % (name, desc), *color)
             if not PY3:
