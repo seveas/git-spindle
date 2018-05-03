@@ -106,10 +106,6 @@ class GitLab(GitSpindle):
         except gitlab.GitlabListError:
             pass
 
-    def merge_url(self, merge):
-        repo = self.gl.Project(merge.project_id)
-        return '%s/merge_requests/%d' % (repo.web_url, merge.iid)
-
     def api_root(self):
         if hasattr(self, 'gl') and self.gl:
             return self.gl._url
@@ -495,25 +491,25 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
             opts['<filter>'].insert(0, opts['<repo>'])
             opts['<repo>'] = None
         if (not opts['<repo>'] and not self.in_repo) or opts['<repo>'] == '--':
-            repos = list(self.gl.Project())
+            repos = list(self.gl.projects.list())
         else:
             repos = [self.repository(opts)]
         for repo in repos:
             if opts['--parent']:
                 repo = self.parent_repo(repo) or repo
             filters = dict([x.split('=', 1) for x in opts['<filter>']])
-            issues = repo.Issue(**filters)
-            mergerequests = repo.MergeRequest(state='opened')
+            issues = repo.issues.list(**filters)
+            mergerequests = repo.mergerequests.list(state='opened')
             if not issues and not mergerequests:
                 continue
             if issues:
-                print(wrap("Issues for %s/%s" % (repo.namespace.path, repo.path), attr.bright))
+                print(wrap("Issues for %s/%s" % (repo.namespace['full_path'], repo.path), attr.bright))
                 for issue in issues:
                     print("[%d] %s %s" % (issue.iid, issue.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), issue.web_url))
             if mergerequests:
-                print(wrap("Merge requests for %s/%s" % (repo.namespace.path, repo.path), attr.bright))
+                print(wrap("Merge requests for %s/%s" % (repo.namespace['full_path'], repo.path), attr.bright))
                 for mr in mergerequests:
-                    print("[%d] %s %s" % (mr.iid, mr.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), self.merge_url(mr)))
+                    print("[%d] %s %s" % (mr.iid, mr.title.encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding), mr.web_url))
 
     @command
     def log(self, opts):
