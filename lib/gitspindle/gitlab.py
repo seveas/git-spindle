@@ -71,7 +71,7 @@ class GitLab(GitSpindle):
         self.my_login = self.me.username
 
     def parse_url(self, url):
-        return ([self.my_login] + url.path.split('/'))[-2:]
+        return ([self.my_login] + url.path.rsplit('/',1))[-2:]
 
     def get_repo(self, remote, user, repo):
         if remote:
