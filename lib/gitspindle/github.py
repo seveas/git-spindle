@@ -4,6 +4,7 @@ import datetime
 import getpass
 import github3
 import github3.gists
+import github3.session
 import glob
 import os
 import re
@@ -13,6 +14,27 @@ import sys
 import tempfile
 import time
 import webbrowser
+
+class RateLimitedSession(github3.session.GitHubSession):
+    """A session subclass that warns when we're approaching API rate limits"""
+    def __init__(self, *args, **kwargs):
+        super(RateLimitedSession, self).__init__(*args, **kwargs)
+        self.warned = False
+
+    def request(self, *args, **kwargs):
+        response = super(RateLimitedSession, self).request(*args, **kwargs)
+
+        limit = int(response.headers.get('x-ratelimit-limit', 0))
+        remaining = int(response.headers.get('x-ratelimit-remaining', 0))
+        reset = int(response.headers.get('x-ratelimit-reset', 0))
+        print("%d %d %d" % (limit, remaining, reset))
+
+        if limit and (remaining < 0.20 * limit) and not self.warned:
+            msg = "You are approaching the API rate limit. Only %d/%d requests remain until %s"
+            msg = msg % (remaining, limit, time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(reset)))
+            print(wrap(msg, fgcolor.red, attr.bright))
+            self.warned = True
+        return response
 
 class GitHub(GitSpindle):
     prog = 'git hub'
@@ -31,9 +53,9 @@ class GitHub(GitSpindle):
                 except:
                     err("%s is not reachable via https. Use http://%s to use the insecure http protocol" % (host, host))
                 host = 'https://' + host
-            self.gh = github3.GitHubEnterprise(url=host)
+            self.gh = github3.GitHubEnterprise(url=host, session=RateLimitedSession())
         else:
-            self.gh = github3.GitHub()
+            self.gh = github3.GitHub(session=RateLimitedSession())
 
         user = self.config('user')
         if not user:
@@ -588,9 +610,9 @@ class GitHub(GitSpindle):
         if host and host not in ('https://api.github.com', 'api.github.com'):
             if not host.startswith(('http://', 'https://')):
                 host = 'https://' + host
-            gh = github3.GitHubEnterprise(url=host)
+            gh = github3.GitHubEnterprise(url=host, session=RateLimitedSession())
         else:
-            gh = github3.GitHub()
+            gh = github3.GitHub(session=RateLimitedSession())
         gh.login(self.my_login, password, two_factor_callback=lambda: prompt_for_2fa(self.my_login))
         try:
             auth = gh.authorize(self.my_login, password, scopes, name, "http://git-scm.com")
