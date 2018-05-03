@@ -1,11 +1,5 @@
 # Set the spindle attribute
 import github3.gists
-import github3.repos
-github3.gists.Gist.spindle = 'github'
-github3.repos.Repository.spindle = 'github'
-import gitspindle.glapi as glapi
-glapi.Project.spindle = 'gitlab'
-glapi.UserProject.spindle = 'gitlab'
 
 # Monkeypatch github3.gists.Gist to behave more like a repo
 github3.gists.gist._Gist.ssh_url = property(lambda self: 'git@gist.github.com:/%s.git' % self.id)

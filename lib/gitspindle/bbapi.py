@@ -40,7 +40,6 @@ class BitBucketAuthenticationError(BitBucketError):
     pass
 
 class BBobject(object):
-    spindle = 'bitbucket'
     def __new__(cls, *args, **kwargs):
         self = super(BBobject, cls).__new__(cls)
         if not isinstance(self.uri, tuple):
