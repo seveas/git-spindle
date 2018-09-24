@@ -140,8 +140,8 @@ class GitLab(GitSpindle):
             return self.gl._url
         host = self.config('host')
         if not host:
-            return 'https://gitlab.com/api/v3'
-        host = host.rstrip('/') + '/api/v3'
+            return 'https://gitlab.com/api/v4'
+        host = host.rstrip('/') + '/api/v4'
         if not host.startswith(('http://', 'https://')):
             host = 'https://' + host
         return host
