@@ -719,7 +719,8 @@ class GitHub(GitSpindle):
            Show all gists for a user"""
         user = (opts['<user>'] or [self.gh.me().login])[0]
         for gist in self.gh.gists_by(user):
-            print("%s - %s" % (gist.html_url, gist.description))
+            secret = '(secret)' if not gist.public else ''
+            print("%s - %s %s" % (gist.html_url, gist.description, secret))
 
     @command
     def hooks(self, opts):
