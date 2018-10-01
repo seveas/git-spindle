@@ -698,7 +698,7 @@ class GitHub(GitSpindle):
 
     @command
     def gist(self, opts):
-        """[--description=<description>] <file>...
+        """[--secret] [--description=<description>] <file>...
            Create a new gist from files or stdin"""
         files = {}
         description = opts['--description'] or ''
@@ -710,7 +710,7 @@ class GitHub(GitSpindle):
                     err("No such file: %s" % f)
                 with open(f) as fd:
                     files[os.path.basename(f)] = {'content': fd.read()}
-        gist = self.gh.create_gist(description=description, files=files)
+        gist = self.gh.create_gist(description=description, files=files, public=not opts['--secret'])
         print("Gist created at %s" % gist.html_url)
 
     @command
