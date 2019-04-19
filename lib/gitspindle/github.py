@@ -629,6 +629,21 @@ class GitHub(GitSpindle):
             print("%s %s (id: %s, %s)" % (key.key, key.title or '', key.id, ro))
 
     @command
+    def diff(self, opts):
+        """<rev1> <rev2>
+           Open the GitHub Compare View"""
+        repo, ref, file = (None, None, None)
+        user = None
+        if repo:
+            user, repo = ([None] + repo.split('/'))[-2:]
+            repo = self.gh.repository(user or self.my_login, repo)
+        else:
+            repo = self.repository(opts)
+            # file = self.rel2root(file)
+        # print(opts)
+        webbrowser.open_new("%s/compare/%s..%s" % (repo.html_url, opts['<rev1>'], opts['<rev2>']))
+
+    @command
     def edit_hook(self, opts):
         """<name> [<setting>...]
            Edit a hook"""
