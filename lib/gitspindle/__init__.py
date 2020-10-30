@@ -587,7 +587,7 @@ Options:
                 for snippet in self.me.snippets():
                     snippet.delete()
 
-        elif self.api.__name__ == 'gitspindle.glapi':
+        elif self.api.__name__ == 'gitlab':
             if opts['--keys']:
                 for key in self.me.Key():
                     key.delete()
