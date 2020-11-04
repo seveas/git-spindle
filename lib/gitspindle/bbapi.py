@@ -15,6 +15,8 @@ def check(resp):
         raise BitBucketError(message)
     if not resp.content:
         return None
+    if not resp.headers['Content-Type'].startswith('application/json'):
+        return resp.content
     return resp.json()
 
 class Bitbucket(object):
@@ -22,16 +24,14 @@ class Bitbucket(object):
         self.username = username
         self.passwd = passwd
 
-    def user(self, username):
+    def user(self, username=None):
         return User(self, username=username)
 
     def team(self, username):
         return Team(self, username=username)
 
-    def repository(self, owner, slug):
-        if isinstance(owner, BBobject):
-            owner = owner.username
-        return Repository(self, owner=owner, slug=slug)
+    def workspace(self, workspace):
+        return Workspace(self, workspace=workspace)
 
 class BitBucketError(Exception):
     pass
@@ -42,28 +42,25 @@ class BitBucketAuthenticationError(BitBucketError):
 class BBobject(object):
     def __new__(cls, *args, **kwargs):
         self = super(BBobject, cls).__new__(cls)
-        if not isinstance(self.uri, tuple):
-            self.uri = (self.uri,)
         return self
 
     def __init__(self, bb, mode='fetch', **kwargs):
         self.bb = bb
-        if mode:
-            self.url = [uritemplate.expand(x, **kwargs) for x in self.uri]
         self.data = {}
         if mode == 'fetch':
             for arg in kwargs:
                 setattr(self, arg, kwargs[arg])
-            self.data = {}
-            for url in self.url:
-                self.data.update(self.get(url))
+            self.url = kwargs.get('url', uritemplate.expand(self.uri, **kwargs)).replace('!api', 'api')
+            self.data = self.get(self.url)
         elif mode == 'list':
+            self.url = kwargs.get('url', uritemplate.expand(self.list_uri, **kwargs)).replace('!api', 'api')
             self.instances = []
-            for instance in self.get(self.url[0]):
+            # FIXME properly handle pagination
+            for instance in self.get(self.url)["values"]:
                 kw = kwargs.copy()
                 kw.update(instance)
                 instance = type(self)(self.bb, mode=None, **kw)
-                instance.url = [uritemplate.expand(x, **kw) for x in instance.uri]
+                instance.url = instance.links['self']['href']
                 self.instances.append(instance)
         else:
             self.data = kwargs
@@ -78,6 +75,7 @@ class BBobject(object):
         return klass(bb, mode="list", **kwargs).instances
 
     def get(self, *args, **kwargs):
+        print(args, kwargs)
         kwargs.update({'auth': (self.bb.username, self.bb.passwd)})
         return check(requests.get(*args, **kwargs))
 
@@ -94,13 +92,17 @@ class BBobject(object):
         return check(requests.delete(*args, **kwargs))
 
 class User(BBobject):
-    uri = 'https://bitbucket.org/api/2.0/users/{username}'
+    uri = 'https://bitbucket.org/api/2.0/users/{id}'
+
+    def __init__(self, bb, username):
+        team = bb.team(username)
+        super(User, self).__init__(bb, id=team.account_id)
 
     def __eq__(self, other):
         if isinstance(other, str):
-            return other == self.username
+            return other == self.account_id
         if isinstance(other, dict):
-            return other.get('username', None) == self.username
+            return other.get('account_id', None) == self.account_id
         return super(User, self).__eq__(other)
 
     def repository(self, slug):
@@ -114,35 +116,31 @@ class User(BBobject):
         return Repository(self.bb, mode=None, **repo)
 
     def create_key(self, key, label):
-        url = uritemplate.expand(Key.uri, user=self.username)
-        data = self.post(url, data={'user': self.username, 'key': key, 'label': label})
+        url = uritemplate.expand(Key.uri, user=self.account_id)
+        data = self.post(url, data={'user': self.account_id, 'key': key, 'label': label})
         return Key(self.bb, mode=None, **data)
 
     def keys(self):
-        return Key.list(self.bb, user=self.username)
+        return Key.list(self.bb, user=self.account_id)
 
     def repositories(self):
-        url = uritemplate.expand('https://bitbucket.org/api/2.0/repositories/{owner}', owner=self.username)
+        url = 'https://bitbucket.org/api/2.0/repositories?role=member'
         data = self.get(url)['values']
-        return [Repository(self.bb, mode=None, **repo) for repo in data]
+        return [Repository(self.bb, mode=None, **entry) for entry in data]
 
     def snippets(self):
-        url = uritemplate.expand('https://bitbucket.org/api/2.0/snippets/{owner}', owner=self.username)
+        url = uritemplate.expand('https://bitbucket.org/api/2.0/snippets/{owner}', owner=self.account_id)
         data = self.get(url)['values']
         return [Snippet(self.bb, mode=None, **snippet) for snippet in data]
 
     def create_snippet(self, description, files):
-        url = uritemplate.expand('https://bitbucket.org/api/2.0/snippets/{owner}', owner=self.username)
+        url = uritemplate.expand('https://bitbucket.org/api/2.0/snippets/{owner}', owner=self.account_id)
         data = {'scm': 'git', 'is_private': 'false', 'title': description}
         files = [('file', (filename, content)) for (filename, content) in files.items()]
         snippet = self.post(url, data=data, files=files)
         return Snippet(self.bb, mode=None, **snippet)
 
-    def emails(self):
-        url = uritemplate.expand('https://bitbucket.org/api/1.0/users/{username}/emails', username=self.username)
-        return self.get(url)
-
-class Team(User):
+class Team(BBobject):
     uri = 'https://bitbucket.org/api/2.0/teams/{username}'
 
 def ssh_fix(url):
@@ -159,16 +157,18 @@ class PullRequest(BBobject):
     html_url = property(get_url)
 
 class Repository(BBobject):
-    uri = ('https://bitbucket.org/api/1.0/repositories/{owner}/{slug}',
-           'https://bitbucket.org/api/2.0/repositories/{owner}/{slug}')
+    uri = 'https://bitbucket.org/api/2.0/repositories/{workspace}/{slug}'
+    list_uri = 'https://bitbucket.org/api/2.0/repositories/{workspace}/'
 
     def __init__(self, *args, **kwargs):
+        self.parent = None
         super(Repository, self).__init__(*args, **kwargs)
         if not hasattr(self, 'links'):
             return
         links, self.links['clone'] = self.links['clone'], {}
         for link in links:
             self.links['clone'][link['name']] = ssh_fix(link['href'])
+
 
     def fork(self):
         self.post(self.url[0] + '/fork', data={'name': self.name})
@@ -220,28 +220,23 @@ class Repository(BBobject):
         return Issue(self.bb, owner=self.owner['username'], slug=self.slug, id=issue['local_id'], repo=self)
 
     def src(self, revision, path):
-        return Source(self.bb, owner=self.owner['username'], slug=self.slug, revision=revision, path=path.split('/'))
+        uri = 'https://bitbucket.org/api/2.0/repositories/{workspace}/{slug}/src/{node}/{path}'
+        url = uritemplate.expand(uri, workspace=self.owner['nickname'], slug=self.slug, node=revision, path=path)
+        data = self.get(url)
+        if isinstance(data, bytes):
+            return data
+        return data['values']
 
     def delete(self):
         if not hasattr(self, 'url'):
-            data = {'owner': self.owner['username'], 'slug': self.name}
+            data = {'owner': self.owner['account_id'], 'slug': self.name}
             self.url = [uritemplate.expand(x, **data) for x in self.uri]
         return self.delete_(self.url[1])
 
-    def add_privilege(self, user, priv):
-        data = {'owner': self.owner['username'], 'slug': self.name, 'user': user}
-        url = uritemplate.expand('https://bitbucket.org/api/1.0/privileges/{owner}/{slug}/{user}', data)
-        return self.put(url, data=priv)
-
-    def remove_privilege(self, user):
-        data = {'owner': self.owner['username'], 'slug': self.name, 'user': user}
-        url = uritemplate.expand('https://bitbucket.org/api/1.0/privileges/{owner}/{slug}/{user}', data)
-        return self.delete_(url)
-
-    def privileges(self):
-        data = {'owner': self.owner['username'], 'slug': self.name}
-        url = uritemplate.expand('https://bitbucket.org/api/1.0/privileges/{owner}/{slug}', data)
-        return self.get(url)
+    def permissions(self):
+        data = {'workspace': self.owner['nickname'], 'slug': self.name}
+        url = uritemplate.expand('https://bitbucket.org/api/2.0/workspaces/{workspace}/permissions/repositories/{slug}', data)
+        return self.get(url)['values']
 
     def add_deploy_key(self, key, label):
         url = self.url[0] + '/deploy-keys'
@@ -261,10 +256,11 @@ class Repository(BBobject):
         return self.post(url, {'permission': priv})
 
 class Branch(BBobject):
-    uri = None
+    pass
 
 class Key(BBobject):
-    uri = 'https://bitbucket.org/api/1.0/users/{user}/ssh-keys'
+    uri = 'https://bitbucket.org/api/2.0/users/{user}/ssh-keys/{key_id}'
+    list_uri = 'https://bitbucket.org/api/2.0/users/{user}/ssh-keys'
 
     def delete(self):
         if not hasattr(self, 'url'):
@@ -278,9 +274,6 @@ class Issue(BBobject):
         return self.links['html']['href']
 
     html_url = property(get_url)
-
-class Source(BBobject):
-    uri = 'https://bitbucket.org/api/1.0/repositories/{owner}/{slug}/src/{revision}{/path*}'
 
 class Snippet(BBobject):
     uri = 'https://bitbucket.org/api/2.0/snippets/{owner}/{id}'
@@ -298,3 +291,14 @@ class Snippet(BBobject):
             data = {'owner': self.owner['username'], 'id': self.id}
             self.url = [uritemplate.expand(x, **data) for x in self.uri]
         return self.delete_(self.url[0])
+
+class Workspace(BBobject):
+    uri = 'https://bitbucket.org/api/2.0/workspaces/{workspace}'
+    repositories_uri = 'https://bitbucket.org/api/2.0/repositories?role=member'
+
+    def repositories(self):
+        return Repository.list(self.bb, workspace=self.slug)
+
+    def repository(self, slug):
+        return Repository(self.bb, workspace=self.slug, slug=slug)
+

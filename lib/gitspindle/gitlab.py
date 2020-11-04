@@ -225,7 +225,7 @@ class GitLab(GitSpindle):
         url = repo.web_url
         if opts['<section>']:
             url += '/' + section_map.get(opts['<section>'], opts['<section>'])
-        webbrowser.open_new(url)
+        webbrowser.open_new_tab(url)
 
     @command
     def calendar(self, opts):

@@ -37,27 +37,27 @@ class BitBucket(GitSpindle):
 
         self.bb = bbapi.Bitbucket(user, password)
         self.me = self.bb.user(user)
-        self.my_login = self.me.username
+        self.my_login = self.me.nickname
 
     def parse_url(self, url):
         return ([self.my_login] + url.path.split('/'))[-2:]
 
-    def get_repo(self, remote, user, repo):
+    def get_repo(self, remote, workspace, repo):
         try:
-            return self.bb.repository(user, repo)
+            return self.bb.workspace(workspace).repository(repo)
         except bbapi.BitBucketError:
             pass
 
     def parent_repo(self, repo):
-        if getattr(repo, 'is_fork', None):
-            return self.bb.repository(repo.fork_of['owner'], repo.fork_of['slug'])
+        if repo.parent:
+            return bbapi.Repository(self.bb, url=repo.parent['links']['self']['href'])
 
     def clone_url(self, repo, opts):
         if opts['--ssh'] or repo.is_private:
             return repo.links['clone']['ssh']
         if opts['--http']:
             return repo.links['clone']['https']
-        if repo.owner['username'] == self.my_login:
+        if repo.owner['nickname'] == self.my_login:
             return repo.links['clone']['ssh']
         return repo.links['clone']['https']
 
@@ -76,19 +76,6 @@ class BitBucket(GitSpindle):
             key = "%s %s" % (algo, key)
             print("Adding deploy key %s" % arg)
             repo.add_deploy_key(key, label)
-
-    @command
-    def add_privilege(self, opts):
-        """[--admin|--read|--write] <user>...
-           Add privileges for a user to this repo"""
-        repo = self.repository(opts)
-        priv = 'read'
-        if opts['--write']:
-            priv = 'write'
-        elif opts['--admin']:
-            priv = 'admin'
-        for user in opts['<user>']:
-            repo.add_privilege(user, priv)
 
     @command
     def add_public_keys(self, opts):
@@ -161,7 +148,7 @@ class BitBucket(GitSpindle):
     @command
     def browse(self, opts):
         """[--parent] [<repo>] [<section>]
-           Open the GitHub page for a repository in a browser"""
+           Open the Bitbucket page for a repository in a browser"""
         sections = ['src', 'commits', 'branches', 'pull-requests', 'downloads', 'admin', 'issues', 'wiki']
         if opts['<repo>'] in sections and not opts['<section>']:
             opts['<repo>'], opts['<section>'] = None, opts['<repo>']
@@ -169,7 +156,7 @@ class BitBucket(GitSpindle):
         url = repo.links['html']['href']
         if opts['<section>']:
             url += '/' + opts['<section>']
-        webbrowser.open_new(url)
+        webbrowser.open_new_tab(url)
 
     @command
     def cat(self, opts):
@@ -188,12 +175,9 @@ class BitBucket(GitSpindle):
                 content = repo.src(path=file, revision=ref or 'master') # BitBucket has no API to retrieve the default branch
             except bbapi.BitBucketError:
                 err("No such file: %s" % arg)
-            if not hasattr(content, '_data'):
+            if not isinstance(content, bytes):
                 err("Not a regular file: %s" % arg)
-            if getattr(content, 'encoding', None) == 'base64':
-                os.write(sys.stdout.fileno(), binascii.a2b_base64(content._data))
-            else:
-                os.write(sys.stdout.fileno(), content._data.encode('utf-8'))
+            os.write(sys.stdout.fileno(), content)
 
     @command
     def clone(self, opts, repo=None):
@@ -211,7 +195,7 @@ class BitBucket(GitSpindle):
         args.append(dir)
 
         self.gitm('clone', *args, redirect=False).returncode
-        if repo.is_fork:
+        if repo.parent:
             os.chdir(dir)
             self.set_origin(opts, repo=repo)
             self.gitm('fetch', 'upstream', redirect=False)
@@ -396,17 +380,13 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
                 content = repo.src(path=file or '/', revision=ref or 'master') # BitBucket has no API to retrieve the default branch
             except bbapi.BitBucketError:
                 err("No such file: %s" % arg)
-            if hasattr(content, '_data'):
+            if isinstance(content, bytes):
                 err("Not a directory: %s" % arg)
-            content = content.files + [{'path': x, 'size': 0, 'revision': '', 'type': 'dir'} for x in content.directories]
+
+            ms = max([len(str(file.get('size', 0))) for file in content])
             content.sort(key=lambda x: x['path'])
-            mt = max([len(file.get(type, 'file')) for file in content])
-            ms = max([len(str(file['size'])) for file in content])
-            fmt = "%%(type)-%ds %%(size)-%ds %%(revision)7.7s %%(path)s" % (mt, ms)
-            for file in content:
-                if 'type' not in file:
-                    file['type'] = 'file'
-                print(fmt % file)
+            for entry in content:
+                print("%*s %s" % (ms, entry.get('size', ''), entry['path']))
 
     @command
     def mirror(self, opts):
@@ -439,7 +419,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
             else:
                 fd.write((repo.description or "").encode('utf-8'))
         if opts['--goblet']:
-            if repo.is_fork:
+            if repo.parent:
                 owner = self.parent_repo(repo).owner
                 owner = owner['display_name'] or owner['username']
             else:
@@ -452,19 +432,19 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
                 os.chmod(goblet_dir, 0o777)
 
     @command
-    def privileges(self, opts):
+    def permissions(self, opts):
         """[<repo>]
-           List repo privileges"""
+           List repo permissions"""
         repo = self.repository(opts)
         order = {'admin': 0, 'write': 1, 'read': 2}
-        privs = repo.privileges()
-        if not privs:
+        permissions = repo.permissions()
+        if not permissions:
             return
-        privs.sort(key=lambda priv: (order[priv['privilege']], priv['user']['username']))
-        maxlen = max([len(priv['user']['username']) for priv in privs])
+        permissions.sort(key=lambda permission: (order[permission['permission']], permission['user']['nickname']))
+        maxlen = max([len(permission['user']['nickname']) for permission in permissions])
         fmt = "%%s %%-%ds (%%s)" % maxlen
-        for priv in privs:
-            print(fmt % (wrap("%-5s" % priv['privilege'], attr.faint), priv['user']['username'], priv['user']['display_name']))
+        for permission in permissions:
+            print(fmt % (wrap("%-5s" % permission['permission'], attr.faint), permission['user']['nickname'], permission['user']['display_name']))
 
     @command
     def public_keys(self, opts):
@@ -479,7 +459,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
         """[--yes] [<yours:theirs>]
            Opens a pull request to merge your branch to an upstream branch"""
         repo = self.repository(opts)
-        if repo.is_fork:
+        if repo.parent:
             parent = self.parent_repo(repo)
         else:
             parent = repo
@@ -512,15 +492,15 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
             else:
                 err("Aborting")
         elif srcb and srcb.raw_node != commit:
-            # Have we diverged? Then there are commits that are reachable from the github branch but not local
+            # Have we diverged? Then there are commits that are reachable from the bitbucket branch but not local
             diverged = self.gitm('rev-list', srcb.raw_node, '^' + commit)
             if diverged.stderr or diverged.stdout:
-                if self.question("Branch %s has diverged from github, shall I push and overwrite?" % src, default=False):
+                if self.question("Branch %s has diverged from bitbucket, shall I push and overwrite?" % src, default=False):
                     self.gitm('push', '--force', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")
             else:
-                if self.question("Branch %s not up to date on github, but can be fast forwarded, shall I push?" % src):
+                if self.question("Branch %s not up to date on bitbucket, but can be fast forwarded, shall I push?" % src):
                     self.gitm('push', repo.remote, src, redirect=False)
                 else:
                     err("Aborting")
@@ -589,22 +569,13 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.ow
             repo.remove_deploy_key(key)
 
     @command
-    def remove_privilege(self, opts):
-        """<user>...
-           Remove a user's privileges"""
-        repo = self.repository(opts)
-        for user in opts['<user>']:
-            repo.remove_privilege(user)
-
-    @command
     def repos(self, opts):
-        """[--no-forks] [<user>]
-           List all repos of a user, by default yours"""
-        try:
-            repos = self.bb.user(opts['<user>'] or self.my_login).repositories()
-        except bbapi.BitBucketError:
-            if 'is a team account' in str(sys.exc_info()[1]):
-                repos = self.bb.team(opts['<user>']).repositories()
+        """[--no-forks] [<workspace>]
+           List all repos of a workspace, or your repos"""
+        if opts['<workspace>']:
+            repos = self.bb.workspace(opts['<workspace>']).repositories()
+        else:
+            repos = self.me.repositories()
         if not repos:
             return
         maxlen = max([len(x.name) for x in repos])
@@ -617,17 +588,17 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.ow
                 if opts['--no-forks']:
                     continue
                 color.append(attr.faint)
-            print(wrap(fmt % (repo.name, '(%s)' % repo.scm, repo.description), *color))
+            print(wrap(fmt % (repo.full_name, '(%s)' % repo.scm, repo.description), *color))
 
     @command
     def set_origin(self, opts, repo=None, remote='origin'):
         """[--ssh|--http] [--triangular [--upstream-branch=<branch>]]
-           Set the remote 'origin' to github.
+           Set the remote 'origin' to bitbucket.
            If this is a fork, set the remote 'upstream' to the parent"""
         if not repo:
             repo = self.repository(opts)
             # Is this mine? No? Do I have a clone?
-            if repo.owner['username'] != self.my_login:
+            if repo.owner['nickname'] != self.my_login:
                 try:
                     repo = self.me.repository(repo.slug)
                 except bbapi.BitBucketError:
@@ -639,8 +610,8 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.ow
             self.gitm('config', 'remote.%s.url' % remote, url)
         self.gitm('config', '--replace-all', 'remote.%s.fetch' % remote, '+refs/heads/*:refs/remotes/%s/*' % remote)
 
-        if repo.is_fork:
-            parent = self.bb.repository(repo.fork_of['owner'], repo.fork_of['slug'])
+        if repo.parent:
+            parent = self.parent_repo(repo)
             url = self.clone_url(parent, opts)
             if self.git('config', 'remote.upstream.url').stdout.strip() != url:
                 print("Pointing upstream to %s" % url)
@@ -649,7 +620,7 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.ow
 
         if self.git('ls-remote', remote).stdout.strip():
             self.gitm('fetch', remote, redirect=False)
-        if repo.is_fork:
+        if repo.parent:
             self.gitm('fetch', 'upstream', redirect=False)
 
         if remote != 'origin':
@@ -691,16 +662,15 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.ow
     @command
     def whois(self, opts):
         """<user>...
-           Display GitHub user info"""
+           Display Bitbucket user info"""
         for user_ in opts['<user>']:
             user = self.bb.user(user_)
             if not user:
                 print("No such user: %s" % user_)
                 continue
-            print(wrap(user.display_name or user.username, attr.bright, attr.underline))
+            print(wrap(user.display_name or user.nickname, attr.bright, attr.underline))
+            print("UUID:     %s" % user.account_id)
             print("Profile:  %s" % user.links['html']['href'])
-            if user.website:
-                print("Website:  %s" % user.website)
             if user.location:
                 print("Location: %s" % user.location)
             try:

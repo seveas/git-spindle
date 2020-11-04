@@ -292,7 +292,7 @@ class GitHub(GitSpindle):
         url = repo.html_url
         if opts['<section>']:
             url += '/' + opts['<section>']
-        webbrowser.open_new(url)
+        webbrowser.open_new_tab(url)
 
     @command
     def calendar(self, opts):
