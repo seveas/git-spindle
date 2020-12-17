@@ -5,6 +5,7 @@ import getpass
 import github3
 import github3.gists
 import github3.session
+import github3.users
 import glob
 import os
 import re
@@ -27,7 +28,6 @@ class RateLimitedSession(github3.session.GitHubSession):
         limit = int(response.headers.get('x-ratelimit-limit', 0))
         remaining = int(response.headers.get('x-ratelimit-remaining', 0))
         reset = int(response.headers.get('x-ratelimit-reset', 0))
-        print("%d %d %d" % (limit, remaining, reset))
 
         if limit and (remaining < 0.20 * limit) and not self.warned:
             msg = "You are approaching the API rate limit. Only %d/%d requests remain until %s"
@@ -42,6 +42,7 @@ class GitHub(GitSpindle):
     spindle = 'github'
     hosts = ['github.com', 'www.github.com', 'gist.github.com']
     api = github3
+    client_id = 'Iv1.6b6ddacfe13b6331'
 
     # Support functions
     def login(self):
@@ -64,38 +65,38 @@ class GitHub(GitSpindle):
 
         token = self.config('token')
         if not token:
-            password = getpass.getpass("GitHub password: ")
-            self.gh.login(user, password, two_factor_callback=lambda: prompt_for_2fa(user))
-            scopes = ['user', 'repo', 'gist', 'admin:public_key', 'admin:repo_hook', 'admin:org']
-            if user.startswith('git-spindle-test-'):
-                scopes.append('delete_repo')
-            name = "GitSpindle on %s" % socket.gethostname()
-            try:
-                auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
-            except github3.GitHubError:
-                type, exc = sys.exc_info()[:2]
-                if not hasattr(exc, 'response'):
-                    raise
-                response = exc.response
-                if response.status_code != 422:
-                    raise
-                for error in response.json()['errors']:
-                    if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
-                        if os.getenv('DEBUG') or self.question('An OAuth token for this host already exists. Shall I delete it?', default=False):
-                            for auth in self.gh.authorizations():
-                                if auth.app['name'] in (name, '%s (API)' % name):
-                                    auth.delete()
-                            auth = self.gh.authorize(user, password, scopes, name, "http://seveas.github.com/git-spindle")
-                        else:
-                            err('Unable to create an OAuth token')
-                        break
-                else:
-                    raise
-            if auth is None:
-                err("Authentication failed")
-            token = auth.token
+            url = self.gh._build_url('login/device/code').replace('api.github.com','github.com')
+            resp = requests.post(url,data={'client_id': self.client_id, 'scope': 'user,repo,gist,admin:public_key,admin:repo_hook,admin:org'}, headers={'Accept': 'application/json'})
+            if resp.status_code != 200:
+                # We don't support the device flow yet
+                print("Generate a personal access token at %s and enter it below" % self.gh._build_url('settings/tokens').replace('api.github.com','github.com'))
+                print("The required scopes are: user, repo, gist, admin:public_key, admin:repo_hook, admin:org")
+                token = getpass.getpass("GitHub access token: ").strip()
+            else:
+                data = resp.json()
+                print("Please visit %s and enter the following one-time code: %s" % (data['verification_uri'], data['user_code']))
+                while True:
+                    url = self.gh._build_url('login/oauth/access_token').replace('api.github.com','github.com')
+                    time.sleep(data['interval'])
+                    resp = requests.post(url, data={'client_id': self.client_id, 'device_code': data['device_code'], 'grant_type': 'urn:ietf:params:oauth:grant-type:device_code'}, headers={'Accept': 'application/json'})
+                    if resp.status_code != 200:
+                        err("Authentication failed, http code %s" % resp.status_code)
+                    data2 = resp.json()
+                    error = data2.get("error", None)
+                    if error:
+                        if error == 'authorization_pending':
+                            continue
+                        if error == 'slow_down':
+                            data['interval'] = data2['interval']
+                            continue
+                        if error == 'access_denied':
+                            err("Authentication canceled in the web browser")
+                        if error == 'expired_token':
+                            err("Authentication timed out")
+                        err("Internal authentication error")
+                    token = data2['access_token']
+                    break
             self.config('token', token)
-            self.config('auth-id', auth.id)
             location = '%s - do not share this file' % self.config_file
             if self.use_credential_helper:
                 location = 'git\'s credential helper'
@@ -106,9 +107,11 @@ class GitHub(GitSpindle):
             err("No user or token specified")
         self.gh.login(username=user, token=token)
         try:
+            github3.users.AuthenticatedUser._update_attributes = github3.users.User._update_attributes
             self.me = self.gh.me()
             self.my_login = self.me.login
         except github3.GitHubError:
+            raise
             # Token obsolete
             self.config('token', None)
             self.login()
@@ -598,48 +601,6 @@ class GitHub(GitSpindle):
             self.set_origin(opts, repo=repo, remote='github')
         else:
             self.set_origin(opts, repo=repo)
-
-    @command
-    def create_token(self, opts):
-        """[--store]
-           Create a personal access token that can be used for git operations"""
-        password = getpass.getpass("GitHub password: ")
-        scopes = ['repo']
-        name = "Git on %s" % socket.gethostname()
-        host = self.config('host')
-        if host and host not in ('https://api.github.com', 'api.github.com'):
-            if not host.startswith(('http://', 'https://')):
-                host = 'https://' + host
-            gh = github3.GitHubEnterprise(url=host, session=RateLimitedSession())
-        else:
-            gh = github3.GitHub(session=RateLimitedSession())
-        gh.login(self.my_login, password, two_factor_callback=lambda: prompt_for_2fa(self.my_login))
-        try:
-            auth = gh.authorize(self.my_login, password, scopes, name, "http://git-scm.com")
-        except github3.GitHubError:
-            type, exc = sys.exc_info()[:2]
-            dont_raise = False
-            if hasattr(exc, 'response') and exc.response.status_code == 422:
-                for error in exc.response.json()['errors']:
-                    if error['resource'] == 'OauthAccess' and error['code'] == 'already_exists':
-                        if os.getenv('DEBUG'):
-                            for auth in gh.authorizations():
-                                if auth.app['name'] in (name, '%s (API)' % name):
-                                    auth.delete()
-                            auth = gh.authorize(self.my_login, password, scopes, name, "http://git-scm.com")
-                            dont_raise=True
-                        else:
-                            err('An OAuth token for git on this host already exists. Please delete it on your setting page')
-            if not dont_raise:
-                raise
-        if auth is None:
-            err("Authentication failed")
-        token = auth.token
-        print("Your personal access token is: %s" % token)
-        if opts['--store']:
-            host = self.config('host') or 'github.com'
-            Credential(protocol='https', host=host, username=self.my_login, password=token).approve()
-            print("Your personal access token has been stored in the git credential helper")
 
     @command
     def deploy_keys(self, opts):
@@ -1584,10 +1545,3 @@ will be ignored""" % (name, tag)
                 print('Members:')
                 for member in self.gh.organization(user.login).members():
                     print(" - %s" % member.login)
-
-def prompt_for_2fa(user, cache={}):
-    """Callback for github3.py's 2FA support."""
-    if cache.get(user, (0,))[0] < time.time() - 30:
-        code = raw_input("Two-Factor Authentication Code: ").strip()
-        cache[user] = (time.time(), code)
-    return cache[user][1]
