@@ -24,6 +24,7 @@ class BitBucket(GitSpindle):
 
         password = self.config('password')
         if not password:
+            print("Generate an application password at https://bitbucket.org/account/settings/app-passwords/ and enter it below")
             password = getpass.getpass("BitBucket password: ")
             try:
                 bbapi.Bitbucket(user, password).user(user)
@@ -99,8 +100,8 @@ class BitBucket(GitSpindle):
         """[--ssh|--http] <user> [<name>]
            Add user's fork as a named remote. The name defaults to the user's loginname"""
         for fork in self.repository(opts).forks():
-            if fork.owner['username'] in opts['<user>']:
-                name = opts['<name>'] or fork.owner['username']
+            if fork.owner['nickname'] in opts['<user>']:
+                name = opts['<name>'] or fork.owner['nickname']
                 url = self.clone_url(fork, opts)
                 self.gitm('remote', 'add', '-f', name, url, redirect=False)
 
@@ -113,8 +114,7 @@ class BitBucket(GitSpindle):
         pr = repo.pull_request(opts['<pr-number>'])
         if not pr:
             err("Pull request %s does not exist" % opts['<pr-number>'])
-        pprint(pr.data)
-        print("Applying PR#%d from %s: %s" % (pr.id, pr.author['display_name'] or pr.author['username'], pr.title))
+        print("Applying PR#%d from %s: %s" % (pr.id, pr.author['display_name'] or pr.author['nickname'], pr.title))
         # Warnings
         warned = False
         cbr = self.gitm('rev-parse', '--symbolic-full-name', 'HEAD').stdout.strip().replace('refs/heads/','')
@@ -122,7 +122,7 @@ class BitBucket(GitSpindle):
             print(wrap("Pull request was filed against %s, but you're on the %s branch" % (pr.destination['branch']['name'], cbr), fgcolor.red))
             warned = True
         if pr.state == 'MERGED':
-            print(wrap("Pull request was already merged by %s" % (pr.closed_by['display_name'] or pr.closed_by['username']), fgcolor.red))
+            print(wrap("Pull request was already merged by %s" % (pr.closed_by['display_name'] or pr.closed_by['nickname']), fgcolor.red))
             warned = True
         if pr.state == 'DECLINED':
             print(wrap("Pull request has already been declined: %s" % pr.reason, fgcolor.red))
@@ -135,7 +135,8 @@ class BitBucket(GitSpindle):
         sha = self.git('rev-parse', '--verify', 'refs/pull/%d/head' % pr.id).stdout.strip()
         if not sha.startswith(pr.source['commit']['hash']):
             print("Fetching pull request")
-            url = self.clone_url(self.bb.repository(*pr.source['repository']['full_name'].split('/')), opts)
+            ws, repo = pr.source['repository']['full_name'].split('/')
+            url = self.clone_url(self.bb.workspace(ws).repository(repo), opts)
             self.gitm('fetch', url, 'refs/heads/%s:refs/pull/%d/head' % (pr.source['branch']['name'], pr.id), redirect=False)
         head_sha = self.gitm('rev-parse', 'HEAD').stdout.strip()
         if self.git('merge-base', pr.source['commit']['hash'], head_sha).stdout.strip() == head_sha:
@@ -229,21 +230,21 @@ class BitBucket(GitSpindle):
            Lists all keys for a repo"""
         repo = self.repository(opts)
         for key in repo.deploy_keys():
-            print("%s %s (id: %s)" % (key['key'], key.get('label', ''), key['pk']))
+            print("%s %s (id: %s)" % (key['key'], key.get('label', ''), key['id']))
 
     @command
     def fetch(self, opts):
         """[--ssh|--http] <user> [<refspec>]
            Fetch refs from a user's fork"""
         for fork in self.repository(opts).forks():
-            if fork.owner['username'] in opts['<user>']:
+            if fork.owner['nickname'] in opts['<user>']:
                 url = self.clone_url(fork, opts)
                 refspec = opts['<refspec>'] or 'refs/heads/*'
                 if ':' not in refspec:
                     if not refspec.startswith('refs/'):
-                        refspec += ':' + 'refs/remotes/%s/' % fork.owner['username'] + refspec
+                        refspec += ':' + 'refs/remotes/%s/' % fork.owner['nickname'] + refspec
                     else:
-                        refspec += ':' + refspec.replace('refs/heads/', 'refs/remotes/%s/' % fork.owner['username'])
+                        refspec += ':' + refspec.replace('refs/heads/', 'refs/remotes/%s/' % fork.owner['nickname'])
                 self.gitm('fetch', url, refspec, redirect=False)
 
     @command
@@ -252,7 +253,7 @@ class BitBucket(GitSpindle):
            Fork a repo and clone it"""
         do_clone = bool(opts['<repo>'])
         repo = self.repository(opts)
-        if repo.owner['username'] == self.my_login:
+        if repo.owner['nickname'] == self.my_login:
             err("You cannot fork your own repos")
 
         try:
@@ -262,7 +263,7 @@ class BitBucket(GitSpindle):
             pass
 
         my_fork = repo.fork()
-        self.wait_for_repo(my_fork.owner['username'], my_fork.name, opts)
+        self.wait_for_repo(my_fork.owner['nickname'], my_fork.name, opts)
 
         if do_clone:
             self.clone(opts, repo=my_fork)
@@ -275,23 +276,9 @@ class BitBucket(GitSpindle):
         """[<repo>]
            List all forks of this repository"""
         repo = self.repository(opts)
-        print("[%s] %s" % (wrap(repo.owner['username'], attr.bright), repo.links['html']['href']))
+        print("[%s] %s" % (wrap(repo.owner['nickname'], attr.bright), repo.links['html']['href']))
         for fork in repo.forks():
-            print("[%s] %s" % (fork.owner['username'], fork.links['html']['href']))
-
-    @command
-    def invite(self, opts):
-        """[--read|--write|--admin] <email>...
-           Invite users to collaborate on this repository"""
-        repo = self.repository(opts)
-        priv = 'read'
-        if opts['--write']:
-            priv = 'write'
-        elif opts['--admin']:
-            priv = 'admin'
-        for email in opts['<email>']:
-            invitation = repo.invite(email, priv)
-            print("Invitation with %s privileges sent to %s" % (invitation['permission'], invitation['email']))
+            print("[%s] %s" % (fork.owner['nickname'], fork.links['html']['href']))
 
     @command
     def issue(self, opts):
@@ -315,13 +302,12 @@ class BitBucket(GitSpindle):
                 else:
                     raise
         if not opts['<issue>']:
-            extra = """Reporting an issue on %s/%s
+            extra = """Reporting an issue on %s
 Please describe the issue as clearly as possible. Lines starting with '#' will
-be ignored, the first line will be used as title for the issue.""" % (repo.owner['username'], repo.name)
+be ignored, the first line will be used as title for the issue.""" % repo.full_name
             title, body = self.edit_msg(None, '', extra, 'ISSUE_EDITMSG')
             if not body:
                 err("Empty issue message")
-
             try:
                 issue = repo.create_issue(title=title, body=body)
                 print("Issue %d created %s" % (issue.id, issue.html_url))
@@ -471,7 +457,8 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
         if not src:
             src = self.gitm('rev-parse', '--abbrev-ref', 'HEAD').stdout.strip()
         if not dst:
-            dst = parent.main_branch()
+            dst = parent.mainbranch['name']
+            tracking_branch = self.git('rev-parse', '--symbolic-full-name', '%s@{u}' % src).stdout.strip()
             if tracking_branch.startswith('refs/remotes/'):
                 tracking_remote, tracking_branch = tracking_branch.split('/', 3)[-2:]
                 if tracking_branch != src or repo.remote != tracking_remote:
@@ -491,7 +478,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
                 srcb = repo.branches().get(src, None)
             else:
                 err("Aborting")
-        elif srcb and srcb.raw_node != commit:
+        elif srcb and srcb.target['hash'] != commit:
             # Have we diverged? Then there are commits that are reachable from the bitbucket branch but not local
             diverged = self.gitm('rev-list', srcb.raw_node, '^' + commit)
             if diverged.stderr or diverged.stdout:
@@ -546,7 +533,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
         extra = """Requesting a pull from %s/%s into %s/%s
 
 Please enter a message to accompany your pull request. Lines starting
-with '#' will be ignored, and an empty message aborts the request.""" % (repo.owner['username'], src, parent.owner['username'], dst)
+with '#' will be ignored, and an empty message aborts the request.""" % (repo.owner['nickname'], src, parent.owner['nickname'], dst)
         extra += "\n\n" + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip()
         extra += "\n\n" + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip()
         title, body = self.edit_msg(title, body, extra, 'PULL_REQUEST_EDIT_MSG')

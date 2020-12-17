@@ -75,7 +75,6 @@ class BBobject(object):
         return klass(bb, mode="list", **kwargs).instances
 
     def get(self, *args, **kwargs):
-        print(args, kwargs)
         kwargs.update({'auth': (self.bb.username, self.bb.passwd)})
         return check(requests.get(*args, **kwargs))
 
@@ -106,12 +105,12 @@ class User(BBobject):
         return super(User, self).__eq__(other)
 
     def repository(self, slug):
-        return Repository(self.bb, owner=self.username, slug=slug)
+        return Repository(self.bb, owner=self.nickname, slug=slug)
 
     def create_repository(self, slug, description, is_private, has_issues, has_wiki):
-        data = {'owner': self.username, 'slug': slug, 'description': description, 'is_private': is_private,
+        data = {'owner': self.nickname, 'slug': slug, 'description': description, 'is_private': is_private,
                 'scm': 'git', 'has_issues': has_issues, 'has_wiki': has_wiki}
-        repo = self.post(uritemplate.expand(Repository.uri[1], slug=slug, owner=self.username), data=json.dumps(data), headers={'content-type': 'application/json'})
+        repo = self.post(uritemplate.expand(Repository.uri, slug=slug, workspace=self.nickname), data=json.dumps(data), headers={'content-type': 'application/json'})
         repo['is_fork'] = False
         return Repository(self.bb, mode=None, **repo)
 
@@ -129,12 +128,12 @@ class User(BBobject):
         return [Repository(self.bb, mode=None, **entry) for entry in data]
 
     def snippets(self):
-        url = uritemplate.expand('https://bitbucket.org/api/2.0/snippets/{owner}', owner=self.account_id)
+        url = 'https://bitbucket.org/api/2.0/snippets/'
         data = self.get(url)['values']
         return [Snippet(self.bb, mode=None, **snippet) for snippet in data]
 
     def create_snippet(self, description, files):
-        url = uritemplate.expand('https://bitbucket.org/api/2.0/snippets/{owner}', owner=self.account_id)
+        url = 'https://bitbucket.org/api/2.0/snippets/'
         data = {'scm': 'git', 'is_private': 'false', 'title': description}
         files = [('file', (filename, content)) for (filename, content) in files.items()]
         snippet = self.post(url, data=data, files=files)
@@ -171,19 +170,16 @@ class Repository(BBobject):
 
 
     def fork(self):
-        self.post(self.url[0] + '/fork', data={'name': self.name})
+        self.post(self.url + '/forks', data={'name': self.name})
         for _ in range(5):
             try:
-                return self.bb.repository(self.bb.username, self.name)
+                return self.bb.workspace(self.bb.username).repository(self.name)
             except BitBucketError:
                 print("Waiting for repository to be forked...")
 
-    def main_branch(self):
-        return self.get(self.url[0] + '/main-branch')['name']
-
     def branches(self):
-        branches = self.get(self.url[0] + '/branches')
-        return dict([(key, Branch(self.bb, mode=None, repository=self, **val)) for (key, val) in branches.items()])
+        branches = self.get(self.url + '/refs')['values']
+        return dict([(branch['name'], Branch(self.bb, mode=None, repository=self, **branch)) for branch in branches if branch['type'] == 'branch'])
 
     def pull_requests(self, **params):
         url = 'https://bitbucket.org/api/2.0/repositories/%s/pullrequests?state=OPEN' % self.full_name
@@ -196,13 +192,13 @@ class Repository(BBobject):
 
     def create_pull_request(self, src, dst, title, body):
         data = {'title': title, 'description': body}
-        data['source'] = {'branch': {'name': src.branch}, 'repository': {'full_name': src.repository.full_name}}
-        data['destination'] = {'branch': {'name': dst.branch}}
-        pr = self.post(self.url[1] + '/pullrequests', data=json.dumps(data), headers={'content-type': 'application/json'})
+        data['source'] = {'branch': {'name': src.name}, 'repository': {'full_name': src.repository.full_name}}
+        data['destination'] = {'branch': {'name': dst.name}}
+        pr = self.post(self.url + '/pullrequests', data=json.dumps(data), headers={'content-type': 'application/json'})
         return PullRequest(self.bb, mode=None, **pr)
 
     def forks(self):
-        data = self.get(self.links['forks']['href'])['values']
+        data = self.get(self.links['forks']['href'].replace('!api', 'api'))['values']
         return [Repository(self.bb, mode=None, **repo) for repo in data]
 
     def issues(self, **params):
@@ -211,13 +207,13 @@ class Repository(BBobject):
         return [Issue(self.bb, mode=None, **issue) for issue in data]
 
     def issue(self, id):
-        return Issue(self.bb, owner=self.owner['username'], slug=self.slug, id=id, repo=self)
+        return Issue(self.bb, owner=self.owner['nickname'], slug=self.slug, id=id, repo=self)
 
     def create_issue(self, title, body):
         data = {'title': title, 'content': body}
-        issue = self.post(self.url[0] + '/issues', data=data)
+        issue = self.post(self.url + '/issues', data=json.dumps(data))
         issue['repo'] = self
-        return Issue(self.bb, owner=self.owner['username'], slug=self.slug, id=issue['local_id'], repo=self)
+        return Issue(self.bb, owner=self.owner['nickname'], slug=self.slug, id=issue['local_id'], repo=self)
 
     def src(self, revision, path):
         uri = 'https://bitbucket.org/api/2.0/repositories/{workspace}/{slug}/src/{node}/{path}'
@@ -239,21 +235,16 @@ class Repository(BBobject):
         return self.get(url)['values']
 
     def add_deploy_key(self, key, label):
-        url = self.url[0] + '/deploy-keys'
+        url = self.url + '/deploy-keys'
         return self.post(url, {'key': key, 'label': label})
 
     def remove_deploy_key(self, key):
-        url = self.url[0] + '/deploy-keys/' + key
+        url = self.url + '/deploy-keys/' + key
         return self.delete_(url)
 
     def deploy_keys(self):
-        url = self.url[0] + '/deploy-keys'
-        return self.get(url)
-
-    def invite(self, email, priv):
-        data = {'owner': self.owner['username'], 'slug': self.name, 'email': email}
-        url = uritemplate.expand('https://bitbucket.org/api/1.0/invitations/{owner}/{slug}/{+email}', data)
-        return self.post(url, {'permission': priv})
+        url = self.url + '/deploy-keys'
+        return self.get(url)['values']
 
 class Branch(BBobject):
     pass
