@@ -29,6 +29,7 @@ erase_line = esc + '[K'
 erase_display = esc + '[2J'
 save_cursor = esc + '[s'
 restore_cursor = esc + '[u'
+cursor_up = lambda n: esc + '[%dA' % n
 
 del sys
 del Attr

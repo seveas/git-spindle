@@ -85,13 +85,16 @@ class GitSpindlePluginLoader(type):
             return super(GitSpindlePluginLoader, cls).__new__(cls, name, parents, attrs)
         if GitSpindlePlugin in parents:
             for attr in attrs:
-                if getattr(attrs[attr], 'is_command', False) :
+                if not attr.startswith('__'):
                     if attr in GitSpindlePluginLoader.currently_loading:
                         print("%s is trying to override %s, ignoring" % (GitSpindlePluginLoader.current_plugin, attr))
                     else:
                         GitSpindlePluginLoader.currently_loading[attr] = attrs[attr]
+                elif attr == '__init__':
+                    GitSpindlePluginLoader.currently_loading['__plugin_init__'].append(attrs[attr])
         else:
             GitSpindlePluginLoader.currently_loading = attrs
+            GitSpindlePluginLoader.currently_loading['__plugin_init__'] = []
             path = os.path.join(PLUGIN_PATH, name.lower())
             if os.path.exists(path):
                 for file in os.listdir(path):
@@ -170,6 +173,8 @@ Options:
   --account=<account>    Use another account than the default\n"""
         self.usage += tail
         DocoptExit.help += tail
+        for m in self.__plugin_init__:
+            m(self)
 
     def gitm(self, *args, **kwargs):
         """A git command that must be successful"""
