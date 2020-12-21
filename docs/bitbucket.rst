@@ -155,16 +155,12 @@ Browse a repository (or its parent) on BitBucket. By default the repository's
 homepage is opened, but you can specify a different section, such as src,
 src, commits, branches, pull-requests, downloads, admin, issues or wiki.
 
-.. describe:: git bb mirror [--ssh|--http] [--goblet] [<repo>]
+.. describe:: git bb mirror [--ssh|--http] [<repo>]
 
 Mirror a repository from BitBucket. This is similar to clone, but clones into a
 bare repository and maps all remote refs to local refs. When run without
 argument, the current repository will be updated. You can also specify
 :option:`user/*` as repository to mirror all repositories of a user.
-
-When you use the :option:`--goblet` option, the resulting mirror will be
-configured for the goblet web interface, using description, owner and clone
-information from BitBucket.
 
 Administering repositories
 --------------------------

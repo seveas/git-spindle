@@ -702,7 +702,7 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
 
     @command
     def mirror(self, opts):
-        """[--ssh|--http] [--goblet] [<repo>]
+        """[--ssh|--http] [<repo>]
            Mirror a repository, or all your repositories"""
         if opts['<repo>'] and opts['<repo>'] == '*':
             for repo in self.gl.Project():
@@ -729,13 +729,6 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
                 fd.write(repo.description or "")
             else:
                 fd.write((repo.description or "").encode('utf-8'))
-        if opts['--goblet']:
-            self.gitm('--git-dir', git_dir, 'config', 'goblet.owner', repo.owner.name.encode('utf-8') or repo.owner.login)
-            self.gitm('--git-dir', git_dir, 'config', 'goblet.cloneurlhttp', repo.http_url_to_repo)
-            goblet_dir = os.path.join(git_dir, 'goblet')
-            if not os.path.exists(goblet_dir):
-                os.mkdir(goblet_dir, 0o777)
-                os.chmod(goblet_dir, 0o777)
 
     @command
     def protect(self, opts):

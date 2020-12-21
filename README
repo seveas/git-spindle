@@ -98,7 +98,7 @@ Display github log for yourself or other users. Or for an organisation or a repo
 Display the contents of a directory on GitHub:
   git hub ls [<dir>...]
 Mirror a repository, or all repositories for a user:
-  git hub mirror [--ssh|--http|--git] [--goblet] [<repo>]
+  git hub mirror [--ssh|--http|--git] [<repo>]
 Create a graphviz graph of followers and forks:
   git hub network [<level>]
 Protect a branch against deletions, force-pushes and failed status checks:
@@ -129,8 +129,6 @@ Let the octocat speak to you:
   git hub say [<msg>]
 Set the remote 'origin' to github.:
   git hub set-origin [--ssh|--http|--git] [--triangular [--upstream-branch=<branch>]]
-Set up goblet config based on GitHub config:
-  git hub setup-goblet
 Display current and historical GitHub service status:
   git hub status
 Remove branch protections from a branch:
@@ -179,7 +177,7 @@ List repo memberships:
 Opens a merge request to merge your branch to an upstream branch:
   git lab merge-request [--yes] [<yours:theirs>]
 Mirror a repository, or all your repositories:
-  git lab mirror [--ssh|--http] [--goblet] [<repo>]
+  git lab mirror [--ssh|--http] [<repo>]
 Protect a branch against force-pushes:
   git lab protect <branch>
 List protected branches:
@@ -238,7 +236,7 @@ List issues in a repository:
 Display the contents of a directory on BitBucket:
   git bb ls [<dir>...]
 Mirror a repository, or all repositories for a user:
-  git bb mirror [--ssh|--http] [--goblet] [<repo>]
+  git bb mirror [--ssh|--http] [<repo>]
 List repo privileges:
   git bb privileges [<repo>]
 Lists all keys for a user:

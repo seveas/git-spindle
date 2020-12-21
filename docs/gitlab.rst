@@ -179,16 +179,12 @@ Browse a repository (or its parent) on GitLab. By default the repository's
 homepage is opened, but you can specify a different section, such as issues,
 merge_requests, wiki, files, commits, branches, graphs or settings.
 
-.. describe:: git lab mirror [--ssh|--http] [--goblet] [<repo>]
+.. describe:: git lab mirror [--ssh|--http] [<repo>]
 
 Mirror a repository from GitLab. This is similar to clone, but clones into a
 bare repository and maps all remote refs to local refs. When run without
 argument, the current repository will be updated. You can also specify
 :option:`*` as repository to mirror all your repositories.
-
-When you use the :option:`--goblet` option, the resulting mirror will be
-configured for the goblet web interface, using description, owner and clone
-information from GitLab.
 
 Administering repositories
 --------------------------

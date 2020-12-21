@@ -228,16 +228,12 @@ Browse a repository (or its parent) on GitHub. By default the repository's
 homepage is opened, but you can specify a different section, such as issues,
 pulls, wiki, branches, releases, contributors, graphs or settings.
 
-.. describe:: git hub mirror [--ssh|--http|--git] [--goblet] [<repo>]
+.. describe:: git hub mirror [--ssh|--http|--git] [<repo>]
 
 Mirror a repository from GitHub. This is similar to clone, but clones into a
 bare repository and maps all remote refs to local refs. When run without
 argument, the current repository will be updated. You can also specify
 :option:`user/*` as repository to mirror all repositories of a user.
-
-When you use the :option:`--goblet` option, the resulting mirror will be
-configured for the goblet web interface, using description, owner and clone
-information from GitHub.
 
 Administering repositories
 --------------------------
@@ -427,7 +423,3 @@ Here's mine:
 .. describe:: git hub say [<msg>]
 
 This lets the octocat speak to you.
-
-.. describe:: git hub setup-goblet
-
-Set up a configuration for the goblet web interface based on data in GitHub.

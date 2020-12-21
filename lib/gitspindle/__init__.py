@@ -169,7 +169,6 @@ Options:
   --http                 Use https:// urls for cloning 3rd party repos
   --ssh                  Use ssh:// urls for cloning 3rd party repos
   --git                  Use git:// urls for cloning 3rd party repos
-  --goblet               When mirroring, set up goblet configuration
   --account=<account>    Use another account than the default\n"""
         self.usage += tail
         DocoptExit.help += tail

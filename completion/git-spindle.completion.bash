@@ -373,7 +373,6 @@ _git_spindle_ls() {
 
 _git_spindle_mirror() {
     __git_spindle_protocols $1
-    __git_spindle_options "--goblet" append
 }
 
 _git_spindle_protect() {

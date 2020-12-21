@@ -376,7 +376,7 @@ be ignored, the first line will be used as title for the issue.""" % repo.full_n
 
     @command
     def mirror(self, opts):
-        """[--ssh|--http] [--goblet] [<repo>]
+        """[--ssh|--http] [<repo>]
            Mirror a repository, or all repositories for a user"""
         if opts['<repo>'] and opts['<repo>'].endswith('/*'):
             user = opts['<repo>'].rsplit('/', 2)[-2]
@@ -404,18 +404,6 @@ be ignored, the first line will be used as title for the issue.""" % repo.full_n
                 fd.write(repo.description or "")
             else:
                 fd.write((repo.description or "").encode('utf-8'))
-        if opts['--goblet']:
-            if repo.parent:
-                owner = self.parent_repo(repo).owner
-                owner = owner['display_name'] or owner['username']
-            else:
-                owner = repo.owner['display_name'] or repo.owner['username']
-            self.gitm('--git-dir', git_dir, 'config', 'goblet.owner', owner.encode('utf-8'))
-            self.gitm('--git-dir', git_dir, 'config', 'goblet.cloneurlhttp', repo.links['clone']['https'])
-            goblet_dir = os.path.join(git_dir, 'goblet')
-            if not os.path.exists(goblet_dir):
-                os.mkdir(goblet_dir, 0o777)
-                os.chmod(goblet_dir, 0o777)
 
     @command
     def permissions(self, opts):
