@@ -1543,3 +1543,31 @@ will be ignored""" % (name, tag)
                 print('Members:')
                 for member in self.gh.organization(user.login).members():
                     print(" - %s" % member.login)
+
+    def graphql_method(self, name, query):
+        def method(**args):
+            url = self.gh._build_url('graphql')
+            args = {'query': query, 'variables': args}
+            resp = self.gh._post(url, data=args)
+            data = self.gh._json(resp, 200)
+            if data.get('errors', []):
+                raise GraphqlError(data['errors'])
+            return graphql_fixup(data['data'])
+        setattr(self, name, method)
+
+class GraphqlError(Exception):
+    pass
+
+class GraphqlObject:
+    def __init__(self, attrs):
+        for k, v in attrs.items():
+            setattr(self, k, graphql_fixup(v))
+
+def graphql_fixup(data):
+    if isinstance(data, dict):
+        if 'nodes' in data and len(data.keys()) == 1:
+            return graphql_fixup(data['nodes'])
+        return GraphqlObject(data)
+    if isinstance(data, list):
+        data = [graphql_fixup(x) for x in data]
+    return data
