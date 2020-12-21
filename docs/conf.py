@@ -4,9 +4,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 source_suffix = '.rst'
 master_doc = 'index'
 project = u'git-spindle'
-copyright = u'2012-2018, Dennis Kaarsemaker'
-version = '3.4'
-release = '3.4.4'
+copyright = u'2012-2020, Dennis Kaarsemaker'
+version = '4.0'
+release = '4.0.0'
 exclude_patterns = ['_build']
 pygments_style = 'sphinx'
 html_theme = 'sphinx_rtd_theme'

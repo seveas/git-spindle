@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='git-spindle',
-    version="3.4.4",
+    version="4.0.0",
     description='Git subcommands for integrating with central services like github, gitlab and bitbucket',
     author='Dennis Kaarsemaker',
     author_email='dennis@kaarsemaker.net',
@@ -24,5 +24,5 @@ setup(name='git-spindle',
         "Topic :: Software Development",
         "Topic :: Software Development :: Version Control"
     ],
-    install_requires=["github3.py>=1.1.0", "python-gitlab>=1.3.0", "whelk>=2.6", "docopt>=0.5.0"],
+    install_requires=["github3.py>=1.3.0", "python-gitlab>=2.5.0", "whelk>=3.0", "docopt>=0.6.2"],
 )
