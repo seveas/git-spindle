@@ -3,32 +3,16 @@ import docopt
 import os
 import re
 import shlex
-import six
 import sys
 import tempfile
 import time
 import whelk
-try:
-    import importlib.util
-except ImportError:
-    # No plugins for you...
-    importlib = None
+import importlib.util
+import urllib.parse
 
 __all__ = ['GitSpindle', 'Credential', 'command', 'wants_parent']
 NO_VALUE_SENTINEL = 'NO_VALUE_SENTINEL'
 PLUGIN_PATH = os.path.join(os.path.expanduser('~'), '.local', 'lib', 'git-spindle')
-
-__builtins__['PY3'] = sys.version_info[0] > 2
-if PY3:
-    import urllib.parse as urlparse
-    # On python 3, shell decodes into utf-8 as above
-    __builtins__['try_decode'] = lambda x: x
-    # On python 3, raw_input has become input
-    __builtins__['raw_input'] = input
-else:
-    import urlparse
-    # Try decoding as utf-8 only
-    __builtins__['try_decode'] = lambda x: x.decode('utf-8')
 
 def err(msg):
     sys.stderr.write(msg + "\n")
@@ -109,13 +93,10 @@ class GitSpindlePluginLoader(type):
 
             return super(GitSpindlePluginLoader, cls).__new__(cls, name, parents, attrs)
 
-@six.add_metaclass(GitSpindlePluginLoader)
-class GitSpindlePlugin(object):
+class GitSpindlePlugin(metaclass=GitSpindlePluginLoader):
      pass
 
-@six.add_metaclass(GitSpindlePluginLoader)
-class GitSpindle(object):
-
+class GitSpindle(metaclass=GitSpindlePluginLoader):
     def __init__(self):
         self.shell = whelk.Shell(encoding='utf-8')
         self.git = self.shell.git
@@ -207,7 +188,7 @@ Options:
                 os.umask(umask)
 
     def config_secret(self, key, value=NO_VALUE_SENTINEL):
-        url = urlparse.urlparse(self.api_root())
+        url = urllib.parse.urlparse(self.api_root())
         credential = Credential(protocol=url.scheme, host=url.hostname, path=url.path, username=self.my_login or self.config('user'), password=value)
         if value == NO_VALUE_SENTINEL:
             credential.password = ''
@@ -222,7 +203,7 @@ Options:
         if '://' not in url and ':' in url:
             # SSH url, transform to ssh:// syntax
             url = 'ssh://' + url.replace(':', '/')
-        url = urlparse.urlparse(url)
+        url = urllib.parse.urlparse(url)
         if url.hostname and url.hostname not in self.hosts:
             return [None, None, None]
         return [url.hostname] + self.parse_url(url)
@@ -326,7 +307,7 @@ Options:
         if self.assume_yes:
             print("%s [%s] Y" % (question, yn))
             return True
-        answer = raw_input("%s [%s] " % (question, yn))
+        answer = input("%s [%s] " % (question, yn))
         if not answer:
             return default
         return answer.lower() == 'y'
@@ -351,7 +332,7 @@ Options:
         editor = shlex.split(self.gitm('var', 'GIT_EDITOR').stdout) + [temp_file]
         self.shell[editor[0]](*editor[1:], redirect=False)
         with open(temp_file) as fd:
-            msg = try_decode(fd.read())
+            msg = fd.read()
         os.unlink(temp_file)
         msg = re.compile('^' + re.escape(comment) + '.*(:?\n|$)', re.MULTILINE).sub('', msg).strip()
         if not split_title:
@@ -433,7 +414,7 @@ Options:
         for (account, host) in [x.split() for x in hosts.splitlines()]:
             account = account.split('.')
             if host.startswith(('http://', 'https://')):
-                host = urlparse.urlparse(host).hostname
+                host = urllib.parse.urlparse(host).hostname
             self.accounts[host] = account[1]
             self.hosts.append(host)
 
@@ -462,7 +443,7 @@ Options:
             if '://' not in host and ':' in host:
                 # SSH host, transform to ssh:// syntax
                 host = 'ssh://' + host.replace(':', '/')
-            self.hosts = [urlparse.urlparse(host).hostname]
+            self.hosts = [urllib.parse.urlparse(host).hostname]
 
         for command, func in self.commands.items():
             if opts[command]:

@@ -19,7 +19,7 @@ class BitBucket(GitSpindle):
     def login(self):
         user = self.config('user')
         if not user:
-            user = raw_input("BitBucket user: ").strip()
+            user = input("BitBucket user: ").strip()
             self.config('user', user)
 
         password = self.config('password')
@@ -400,10 +400,7 @@ be ignored, the first line will be used as title for the issue.""" % repo.full_n
             self.gitm('--git-dir', git_dir, 'fetch', '-q', '--prune', 'origin', redirect=False)
 
         with open(os.path.join(git_dir, 'description'), 'w') as fd:
-            if PY3:
-                fd.write(repo.description or "")
-            else:
-                fd.write((repo.description or "").encode('utf-8'))
+            fd.write(repo.description or "")
 
     @command
     def permissions(self, opts):
@@ -498,7 +495,7 @@ be ignored, the first line will be used as title for the issue.""" % repo.full_n
 
         # How many commits?
         accept_empty_body = False
-        commits = try_decode(self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout).strip().split()
+        commits = self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout.strip().split()
         commits.reverse()
         if not commits:
             err("Your branch has no commits yet")
@@ -522,8 +519,8 @@ be ignored, the first line will be used as title for the issue.""" % repo.full_n
 
 Please enter a message to accompany your pull request. Lines starting
 with '#' will be ignored, and an empty message aborts the request.""" % (repo.owner['nickname'], src, parent.owner['nickname'], dst)
-        extra += "\n\n" + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip()
-        extra += "\n\n" + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip()
+        extra += "\n\n" + self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout.strip()
+        extra += "\n\n" + self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout.strip()
         title, body = self.edit_msg(title, body, extra, 'PULL_REQUEST_EDIT_MSG')
         if not body and not accept_empty_body:
             err("No pull request message specified")

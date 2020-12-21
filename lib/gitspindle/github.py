@@ -59,7 +59,7 @@ class GitHub(GitSpindle):
 
         user = self.config('user')
         if not user:
-            user = raw_input("GitHub user: ").strip()
+            user = input("GitHub user: ").strip()
             self.config('user', user)
 
         token = self.config('token')
@@ -370,13 +370,9 @@ class GitHub(GitSpindle):
                     color = fgcolor.xterm(237)
                 if day == 1:
                     msg = wrap(blob2, attr.underline, color)
-                    if not PY3:
-                        msg = msg.encode('utf-8')
                     sys.stdout.write(msg)
                 else:
                     msg = wrap(blob1, color)
-                    if not PY3:
-                        msg = msg.encode('utf-8')
                     sys.stdout.write(msg)
                 sys.stdout.write(' ')
             print("")
@@ -1000,10 +996,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
             self.gitm('--git-dir', git_dir, 'fetch', '-q', '--prune', 'origin', redirect=False)
 
         with open(os.path.join(git_dir, 'description'), 'w') as fd:
-            if PY3:
-                fd.write(repo.description or "")
-            else:
-                fd.write((repo.description or "").encode('utf-8'))
+            fd.write(repo.description or "")
 
     @command
     def network(self, opts):
@@ -1171,7 +1164,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
 
         # How many commits?
         accept_empty_body = False
-        commits = try_decode(self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout).strip().split()
+        commits = self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout.strip().split()
         commits.reverse()
         if not commits:
             err("Your branch has no commits yet")
@@ -1207,8 +1200,8 @@ be ignored, the first line will be used as title for the issue.""" % (repo.owner
 
 Please enter a message to accompany your pull request. Lines starting
 with '#' will be ignored, and an empty message aborts the request.""" % (repo.owner.login, src, parent.owner.login, dst)
-        extra += "\n\n " + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip()
-        extra += "\n\n " + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip()
+        extra += "\n\n " + self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout.strip()
+        extra += "\n\n " + self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout.strip()
         title, body = self.edit_msg(title, body, extra, 'PULL_REQUEST_EDIT_MSG' + ext)
         if not body and not accept_empty_body:
             err("No pull request message specified")
@@ -1371,8 +1364,6 @@ will be ignored""" % (name, tag)
             if opts['<user>'][0] != repo.owner.login:
                 name = '%s/%s' % (repo.owner.login, name)
             msg = wrap(fmt % (name, repo.stargazers_count, repo.forks_count, repo.description), *color)
-            if not PY3:
-                msg = msg.encode('utf-8')
             print(msg)
 
     @command

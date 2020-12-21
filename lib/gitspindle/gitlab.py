@@ -42,7 +42,7 @@ class GitLab(GitSpindle):
 
         user = self.config('user')
         if not user:
-            user = raw_input("GitLab user: ").strip()
+            user = input("GitLab user: ").strip()
             self.config('user', user)
 
         token = self.config('token')
@@ -305,13 +305,9 @@ class GitLab(GitSpindle):
                     color = fgcolor.xterm(237)
                 if day == 1:
                     msg = wrap(blob2, attr.underline, color)
-                    if not PY3:
-                        msg = msg.encode('utf-8')
                     sys.stdout.write(msg)
                 else:
                     msg = wrap(blob1, color)
-                    if not PY3:
-                        msg = msg.encode('utf-8')
                     sys.stdout.write(msg)
                 sys.stdout.write(' ')
             print("")
@@ -662,7 +658,7 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
 
         # How many commits?
         accept_empty_body = False
-        commits = try_decode(self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout).strip().split()
+        commits = self.gitm('log', '--pretty=%H', '%s/%s..%s' % (remote, dst, src)).stdout.strip().split()
         commits.reverse()
         if not commits:
             err("Your branch has no commits yet")
@@ -686,8 +682,8 @@ be ignored, the first line will be used as title for the issue.""" % (repo.names
 
 Please enter a message to accompany your merge request. Lines starting
 with '#' will be ignored, and an empty message aborts the request.""" % (repo.namespace['full_path'], src, parent.namespace['full_path'], dst)
-        body += "\n\n" + try_decode(self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout).strip()
-        body += "\n\n" + try_decode(self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout).strip()
+        body += "\n\n" + self.gitm('shortlog', '%s/%s..%s' % (remote, dst, src)).stdout.strip()
+        body += "\n\n" + self.gitm('diff', '--stat', '%s^..%s' % (commits[0], commits[-1])).stdout.strip()
         title, body = self.edit_msg(title, body, extra, 'MERGE_REQUEST_EDIT_MSG')
         if not body and not accept_empty_body:
             err("No merge request message specified")
@@ -725,10 +721,7 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
             self.gitm('--git-dir', git_dir, 'fetch', '-q', '--prune', 'origin', redirect=False)
 
         with open(os.path.join(git_dir, 'description'), 'w') as fd:
-            if PY3:
-                fd.write(repo.description or "")
-            else:
-                fd.write((repo.description or "").encode('utf-8'))
+            fd.write(repo.description or "")
 
     @command
     def protect(self, opts):
@@ -798,8 +791,6 @@ with '#' will be ignored, and an empty message aborts the request.""" % (repo.na
                 name = '%s/%s' % (repo.namespace['full_path'], name)
             desc = ' '.join((repo.description or '').splitlines())
             msg = wrap(fmt % (name, desc), *color)
-            if not PY3:
-                msg = msg.encode('utf-8')
             print(msg)
 
     @command
