@@ -5,7 +5,6 @@ import getpass
 import github3
 import github3.gists
 import github3.session
-import github3.users
 import glob
 import os
 import re
@@ -107,7 +106,6 @@ class GitHub(GitSpindle):
             err("No user or token specified")
         self.gh.login(username=user, token=token)
         try:
-            github3.users.AuthenticatedUser._update_attributes = github3.users.User._update_attributes
             self.me = self.gh.me()
             self.my_login = self.me.login
         except github3.GitHubError:

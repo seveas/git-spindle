@@ -35,6 +35,11 @@ def _gist_contents(self, path, ref):
             return Content(f)
 github3.gists.Gist.file_contents = _gist_contents
 
+# This is needed when working with the device authentication flow, as we're
+# getting fewer attributes back
+import github3.users
+github3.users.AuthenticatedUser._update_attributes = github3.users.User._update_attributes
+
 # Monkeypatch docopt to support our git-clone-options-hack
 import docopt
 known_options = {
