@@ -586,8 +586,11 @@ class GitHub(GitSpindle):
             dest = self.gh
             ns = self.my_login
 
-        if name in [x.name for x in dest.repositories() if x.owner.login == ns]:
+        try:
+            self.gh.repository(ns, name)
             err("Repository already exists")
+        except github3.exceptions.NotFoundError:
+            pass
         repo = dest.create_repository(name=name, description=opts['--description'] or "", private=opts['--private'])
 
         if 'origin' in self.remotes():
