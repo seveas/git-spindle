@@ -330,7 +330,10 @@ Options:
         with open(temp_file, 'w') as fd:
             fd.write(msg)
         editor = shlex.split(self.gitm('var', 'GIT_EDITOR').stdout) + [temp_file]
-        self.shell[editor[0]](*editor[1:], redirect=False)
+        try:
+            self.shell[editor[0]](*editor[1:], redirect=False, raise_on_error=True)
+        except whelk.CommandFailed as e:
+            err("Editor '%s' exited with code %d" % (editor[0], e.result.returncode))
         with open(temp_file) as fd:
             msg = fd.read()
         os.unlink(temp_file)
