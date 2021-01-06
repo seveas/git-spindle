@@ -162,8 +162,6 @@ class GitHub(GitSpindle):
             try:
                 files = repo.directory_contents(dir)
             except github3.exceptions.NotFoundError:
-                files = None
-            if not files or not hasattr(files, 'items'):
                 continue
             files = dict([(k.lower(), v) for k, v in files])
 
