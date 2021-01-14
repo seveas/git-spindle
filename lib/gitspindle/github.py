@@ -654,8 +654,11 @@ class GitHub(GitSpindle):
                 if fork.owner.login == self.my_login:
                     err("You already forked this gist as %s" % fork.html_url)
         else:
-            if repo.name in [x.name for x in self.gh.repositories() if x.owner.login == self.my_login]:
+            try:
+                self.gh.repository(self.my_login, repo.name)
                 err("Repository already exists")
+            except github3.exceptions.NotFoundError:
+                pass
 
         my_clone = repo.create_fork()
         self.wait_for_repo(my_clone.owner.login, my_clone.name, opts)
