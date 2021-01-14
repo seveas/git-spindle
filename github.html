@@ -1,0 +1,727 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Git spindle for GitHub &mdash; git-spindle 4.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Git spindle for GitLab" href="gitlab.html" />
+    <link rel="prev" title="Git subcommands for interacting with central services" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> git-spindle
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Git spindle for GitHub</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-multiple-accounts">Using multiple accounts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interacting-with-repositories">Interacting with repositories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#administering-repositories">Administering repositories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#issues-and-pull-requests">Issues and pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gists">Gists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other">Other</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gitlab.html">Git spindle for GitLab</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bitbucket.html">Git spindle for BitBucket</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins for spindles</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">git-spindle</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Git spindle for GitHub</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="git-spindle-for-github">
+<h1>Git spindle for GitHub<a class="headerlink" href="#git-spindle-for-github" title="Permalink to this headline">¶</a></h1>
+<p><strong class="command">git hub</strong> lets you use your GitHub account from the command line.
+Among other things, it lets you create and fork repositories, or file pull
+requests.</p>
+<div class="section" id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
+<p>The first time you use <strong class="command">git hub</strong>, it will ask you for your GitHub
+username and password. It then requests (and stores) an API authentication
+token, so you can always revoke access from your <a class="reference external" href="https://github.com/settings/applications">profile page</a>.</p>
+<p>The authentication token is stored in <code class="file docutils literal notranslate"><span class="pre">~/.gitspindle</span></code>. Never share this
+token with anyone as it gives full access to your GitHub account.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub whoami</code></dt>
+<dd></dd></dl>
+
+<p>A simple command to try out is <strong class="command">git hub whoami</strong>, which tells you what
+GitHub thinks about who you are. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dennis@lightning:~$ git hub whoami
+GitHub user: seveas
+GitHub password:
+<span style="font-weight: bold; text-decoration: underline">Dennis Kaarsemaker</span>
+Profile   https://github.com/seveas
+Email     dennis@kaarsemaker.net
+Blog      http://www.kaarsemaker.net
+Location  Amsterdam
+Company   Booking.com
+Repos     36 public, 0 private
+Gists     4 public, 0 private
+RSA key   ...N0nFw3oW5l (Dennis)
+</pre></div>
+</div>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub whois &lt;user&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>If you want to see this information about other users, use <strong class="command">git hub whois</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dennis@lightning:~$ git hub whois sigmavirus24
+<span style="font-weight: bold; text-decoration: underline">Ian Cordasco</span>
+Profile   https://github.com/sigmavirus24
+Email     graffatcolmingov@gmail.com
+Blog      http://www.coglib.com/~icordasc/blog
+Repos     21 public, 0 private
+Gists     9 public, 0 private
+</pre></div>
+</div>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub status</code></dt>
+<dd></dd></dl>
+
+<p>Shows the last few GitHub status messages:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dennis@lightning:~$ git hub status
+<span style="">2014-04-01 23:06</span> <span style="color: yellow">minor</span> Pages builds are paused while we investigate an increase in failed builds
+<span style="">2014-04-01 23:22</span> <span style="color: green">good </span> Everything operating normally.
+<span style="">2014-04-02 00:05</span> <span style="color: yellow">minor</span> We&#39;re investigating reports of git operation failures.
+<span style="">2014-04-02 00:29</span> <span style="color: red">major</span> We&#39;re experiencing problems with repo operations and are working to restore functionality.
+<span style="">2014-04-02 01:00</span> <span style="color: red">major</span> Git and HTTPS repo operations are intermittently unavailable while we repair the source of the problem.
+<span style="">2014-04-02 01:22</span> <span style="color: red">major</span> SSH git operations have been restored and we&#39;re working to fix HTTPS functionality.
+<span style="">2014-04-02 01:40</span> <span style="color: yellow">minor</span> We have implemented a fix for the issue and git operations are recovering.
+<span style="">2014-04-02 01:47</span> <span style="color: green">good </span> Everything operating normally.
+<span style="">2014-04-03 09:55</span> <span style="color: yellow">minor</span> We&#39;re currently investigating issues with operations against a small percentage of repositories.
+<span style="">2014-04-03 10:14</span> <span style="color: green">good </span> Everything operating normally.
+</pre></div>
+</div>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub repos [--no-forks] [&lt;user&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>List all repositories owned by a user, by default you. Specify <code class="xref std std-option docutils literal notranslate"><span class="pre">--no-forks</span></code>
+to exclude forked repositories.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub add-public-keys [&lt;key&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>Add SSH public keys (default: <code class="file docutils literal notranslate"><span class="pre">~/.ssh/*.pub</span></code>) to your account.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub public-keys [&lt;user&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Display all public keys of a user, in a format that can be added to
+<code class="file docutils literal notranslate"><span class="pre">~/.authorized_keys</span></code>.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub log [--type=&lt;type&gt;] [--count=&lt;count&gt;] [--verbose] [&lt;what&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Displays a log of your GitHub actions, such as pushes and issue comments. You
+can also specify a user or repository and the relevant log will be shown
+instead of yours.</p>
+<p>If you are only interested in events of a specific type, you can filter for it,
+e.g. <code class="xref std std-option docutils literal notranslate"><span class="pre">--type=push</span></code>. You can also get more (or less) than the default 30
+items in the log by specifying a count. Finally, <code class="xref std std-option docutils literal notranslate"><span class="pre">--verbose</span></code> will give
+slightly more verbose output for some log items.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub create-token [--store]</code></dt>
+<dd></dd></dl>
+
+<p>Create a personal access token that can be used for git operations (clone,
+fetch, push) over http. Especially useful if you use two-factor authentication,
+as these tokens can be used instead of your password and don’t require the
+second factor.</p>
+<p>The token is shown in the output of the command. If you specify
+<code class="xref std std-option docutils literal notranslate"><span class="pre">--store</span></code>, the token will also be stored using the git credential
+helpers.</p>
+</div>
+<div class="section" id="using-multiple-accounts">
+<h2>Using multiple accounts<a class="headerlink" href="#using-multiple-accounts" title="Permalink to this headline">¶</a></h2>
+<p><strong class="command">git hub</strong> supports using more than one account, and using local
+installs of GitHub enterprise. To use a non-default account outside a
+repository, for example when cloning, you have to tell <strong class="command">git hub</strong> which
+account to use using <code class="xref std std-option docutils literal notranslate"><span class="pre">--account</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git hub --account test-account clone seveas/whelk
+</pre></div>
+</div>
+<p>If the account is on a GitHub enterprise installation, you don’t need to use
+–account all the time. git-spindle will recognize the account from the url in
+your repository configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git hub --account work clone dev/website
+$ cd website
+$ git hub issues
+</pre></div>
+</div>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub add-account [--host=&lt;host&gt;] &lt;alias&gt;</code></dt>
+<dd></dd></dl>
+
+<p>To add a new account, use the <strong class="command">add-account</strong> command. If the account
+lives on a GitHub Enterprise instance, you can specify its hostname.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub config [--unset] &lt;key&gt; [&lt;value&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Set, get or unset a configuration variable in <code class="file docutils literal notranslate"><span class="pre">~/.gitspindle</span></code>. Similar to
+<strong class="command">git config</strong>, but only single-level keys are allowed, and the section
+is hardcoded to be the current account.</p>
+<p>To change the hostname of any account, including the default one, you can use
+the <strong class="command">config</strong> command as follows: <strong class="command">git hub config host
+https://github.example.com</strong>.</p>
+</div>
+<div class="section" id="interacting-with-repositories">
+<h2>Interacting with repositories<a class="headerlink" href="#interacting-with-repositories" title="Permalink to this headline">¶</a></h2>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub create [--private] [--org=&lt;org&gt;] [--description=&lt;description&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Create a (possibly private) repository on GitHub for your current repository. An
+optional description can be given too. After running this command, a repository
+will be created on GitHub and your local repository will have GitHub as remote
+“origin”, so <strong class="command">git push origin master</strong> will work.</p>
+<p>By default the repository is created under your account, but you can specify an
+organization to create the repository for.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub set-origin [--ssh|--http|--git] [--triangular [--upstream-branch=&lt;branch&gt;]]</code></dt>
+<dd></dd></dl>
+
+<p>Fix the configuration of your repository’s remotes. The remote “origin” will be
+set to your GitHub repository. If “origin” is a fork, an “upstream” remote will
+be set to the repository you forked from. If “origin” is not a fork, a fetch
+refspec is added to fetch the pull requests for “origin” as
+<cite>refs/pull/&lt;id&gt;/head</cite>.</p>
+<p>All non-tracking branches with a matching counterpart in “origin” will be set to
+track “origin” (push and pull to it). Use <code class="xref std std-option docutils literal notranslate"><span class="pre">--triangular</span></code> to set remotes
+in a triangular fashion where <strong class="command">git pull</strong> pulls from “upstream” and
+<strong class="command">git push</strong> pushes to “origin”. This also sets the configuration option
+<code class="xref std std-option docutils literal notranslate"><span class="pre">remote.pushDefault</span></code>, so that new branches are pushed to “origin” even
+if they track a branch in “upstream”. All non-tracking branches are set up to
+track a matching counterpart in “upstream” except if <code class="xref std std-option docutils literal notranslate"><span class="pre">--upstream-branch</span></code>
+explicitly specifies a branch like “master” in “upstream” that all branches should
+track.</p>
+<p>For “origin”, an SSH url is used. For “upstream”, set-origin defaults to adding
+a git url, but this can be overridden. For private repos, SSH is used.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub clone [--ssh|--http|--git] [--triangular [--upstream-branch=&lt;branch&gt;]] [--parent] [git-clone-options] &lt;repo&gt; [&lt;dir&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Clone a GitHub repository by name (e.g. seveas/hacks) or URL. The “origin”
+remote will be set and, like with set-origin, if “origin” is a fork an
+“upstream” remote will be set too. The option <code class="xref std std-option docutils literal notranslate"><span class="pre">--triangular</span></code> can be used
+for a triangular setup.</p>
+<p>Defaults to cloning from a git url, but this can be overridden. For private
+repos, SSH is used.</p>
+<p>This command accepts all options git clone accepts and will forward those to
+<strong class="command">git clone</strong>.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub cat &lt;file&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>Display the contents of a file on GitHub. File can start with repository names
+and refs. For example: <cite>master:bin/git-hub</cite>, <cite>git-spindle:master:bin/git-hub</cite>
+or <cite>seveas/git-spindle:master:bin/git-hub</cite>.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub ls [&lt;dir&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>Display the contents of a directory on GitHub. Directory can start with
+repository names and refs. For example: <cite>master:bin/git-hub</cite>,
+<cite>git-spindle:master:bin/git-hub</cite> or <cite>seveas/git-spindle:master:bin/git-hub</cite>.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub readme [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Download and display a repository’s README file, whatever its actual name is.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub fork [--ssh|--http|--git] [--triangular [--upstream-branch=&lt;branch&gt;]] [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Fork another person’s git repository on GitHub and clone that repository
+locally. The repository can be specified as a (git) url or simply username/repo.
+Like with set-origin, the “origin” and “upstream” remotes will be set up too.
+The option <code class="xref std std-option docutils literal notranslate"><span class="pre">--triangular</span></code> can be used for a triangular setup.</p>
+<p>Defaults to cloning from a git url, but this can be overridden. For private
+repos, SSH is used.</p>
+<p>Calling fork in a previously cloned-but-not-forked repository will create a
+fork of that repository and set up your remotes.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub forks [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>List all forks of this repository, highlighting the original repository.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub add-remote [--ssh|--http|--git] &lt;user&gt; [&lt;name&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Add a users fork as a remote using the specified name or the user’s login as
+name for the remote. Defaults to adding an http url, but this can be
+overridden. For private repos SSH is used.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub fetch [--ssh|--http|--git] &lt;user&gt; [&lt;refspec&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>If you don’t want to add a user’s fork as a remote, but to want to fetch some
+refs from it, you can use the <strong class="command">fetch</strong> command. You can tell it which
+refs to fetch, and if you don’t give a refspec, it will fetch all branches.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub browse [--parent] [&lt;repo&gt;] [&lt;section&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Browse a repository (or its parent) on GitHub. By default the repository’s
+homepage is opened, but you can specify a different section, such as issues,
+pulls, wiki, branches, releases, contributors, graphs or settings.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub mirror [--ssh|--http|--git] [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Mirror a repository from GitHub. This is similar to clone, but clones into a
+bare repository and maps all remote refs to local refs. When run without
+argument, the current repository will be updated. You can also specify
+<code class="xref std std-option docutils literal notranslate"><span class="pre">user/*</span></code> as repository to mirror all repositories of a user.</p>
+</div>
+<div class="section" id="administering-repositories">
+<h2>Administering repositories<a class="headerlink" href="#administering-repositories" title="Permalink to this headline">¶</a></h2>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub release [--draft] [--prerelease] &lt;tag&gt; [&lt;releasename&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Create a release on GitHub based on an existing tag.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub releases [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>List all releases for this repository.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub collaborators [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>List all people with push access to this repository.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub add-collaborator &lt;user&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>Grant people push access to this repository.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub remove-collaborator &lt;user&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>Revoke access to this repository.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub protected</code></dt>
+<dd></dd></dl>
+
+<p>List all protected branches. Protected branches cannot be force-pushed or
+deleted, and can potentially have required status checks.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub protect [--enforcement=&lt;level&gt;] [--status_checks=&lt;contexts&gt;] &lt;branch&gt;</code></dt>
+<dd></dd></dl>
+
+<p>Protect a branch against force-pushes and deletion. Optionally require status
+checks to succeed by specifying their context (e.g.
+continuous-integration/travis-ci) and for whom this is required (everyone or
+non_admins).</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub unprotect &lt;branch&gt;</code></dt>
+<dd></dd></dl>
+
+<p>Remove a branch’s protection.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub deploy-keys [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>List all deploy keys for this repository</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub add-deploy-key [--read-only] &lt;key&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>Add a deploy key to a repository, which can be used to fetch and push data via
+ssh. Read-only keys can only fetch.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub remove-deploy-key &lt;key&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>Remove a deploy key by id. Use the <strong class="command">git hub deploy-keys</strong> command to
+see the id’s of your deploy keys.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub hooks</code></dt>
+<dd></dd></dl>
+
+<p>Show all service hooks for this repository.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub add-hook &lt;name&gt; [&lt;setting&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>Add a hook to this repository with the appropriate settings. Settings can be
+found in the hooks page on GitHub. One setting all hooks accept is
+<code class="xref py py-data docutils literal notranslate"><span class="pre">events</span></code>, a comma-separated list of events this hook will be triggered
+for. A list of all events can be found on the <a class="reference external" href="http://developer.github.com/v3/repos/hooks/">GitHub API page</a></p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub edit-hook &lt;name&gt; [&lt;setting&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>Edit one or more settings for a hook.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub remove-hook &lt;name&gt;</code></dt>
+<dd></dd></dl>
+
+<p>Remove a service hook.</p>
+</div>
+<div class="section" id="issues-and-pull-requests">
+<h2>Issues and pull requests<a class="headerlink" href="#issues-and-pull-requests" title="Permalink to this headline">¶</a></h2>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub issues [&lt;repo&gt;] [--parent] [&lt;filter&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>List all open issues for the current repository, or the one specified in the
+<cite>&lt;repo&gt;</cite> argument. If you run this outside a repository, or with <cite>–</cite> as
+<cite>&lt;repo&gt;</cite>, it will list issues in all your repositories.  When you
+specify <code class="xref std std-option docutils literal notranslate"><span class="pre">--parent</span></code>, this will operate on the parent repositoryD.</p>
+<p>You can specify filters in the form <cite>filter=value</cite> to filter issues. Supported
+filters are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>state, accepted values: all, open, closed</p></li>
+<li><p>assignee, accepted values: none, <a href="#id1"><span class="problematic" id="id2">*</span></a>, or a loginname</p></li>
+<li><p>mentioned, accepted values: a loginname</p></li>
+<li><p>labels, accepted values: comma-separated list of labels, e.g. bug,ui,&#64;high</p></li>
+<li><p>since, accepted values: an ISO8601 formatted date string, e.g., 2017-05-20T23:10:27Z</p></li>
+<li><p>sort, accepted values: created, updated, comments</p></li>
+<li><p>direction, accepted values: asc, desc</p></li>
+</ul>
+</div></blockquote>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub issue [&lt;repo&gt;] [--parent] [&lt;issue&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>Shows details about the mentioned issue numbers. As with <code class="xref std std-option docutils literal notranslate"><span class="pre">issues</span></code>, you
+can use the <code class="xref std std-option docutils literal notranslate"><span class="pre">--parent</span></code> option to use the parent repository. If you do
+not specify an issue number, you will be prompted for a message that will be
+used to create a new issue.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub pull-request [--issue=&lt;issue&gt;] [--yes] [&lt;yours:theirs&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Files a pull request to merge branch “yours” (default: the current branch) into
+the upstream branch “theirs” (default: the tracked branch of “yours” if it is in
+the upstream repository, otherwise the default branch of the upstream
+repository, usually “master”). Like for a commit message, your
+editor will be opened to write a pull request message. The comments of said
+message contain the shortlog and diffstat of the commits that you’re asking to
+be merged. Note that if you use any characterset in your logs and filenames
+that is not ascii or utf-8, git hub will misbehave.</p>
+<p>If you specify an issue number, that issue will be turned into a pull request
+and you will not be asked to write a pull request message.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub apply-pr &lt;pr-number&gt;</code></dt>
+<dd></dd></dl>
+
+<p>GitHub makes it easy for you to merge pull requests, but if you want to keep
+your history linear, this one is for you. It applies a pull request using
+<strong class="command">git cherry-pick</strong> instead of merging.</p>
+</div>
+<div class="section" id="gists">
+<h2>Gists<a class="headerlink" href="#gists" title="Permalink to this headline">¶</a></h2>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub gist [--description=&lt;description&gt;] &lt;file&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>Creates a gist (with optional description) from the named files. If you specify
+<code class="file docutils literal notranslate"><span class="pre">-</span></code> as filename, <code class="file docutils literal notranslate"><span class="pre">stdin</span></code> will be used, making it easy to pipe
+command output to GitHub, for example: <strong class="command">fortune | git hub gist -</strong></p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub gists [&lt;user&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>List your gists, or those created by another user.</p>
+</div>
+<div class="section" id="other">
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub calendar [&lt;user&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Show a timeline of a your activity, or that of another user. The timeline will
+look like that on your GitHub profile page:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>  Sep Oct     Nov     Dec       Jan     Feb     Mar       Apr     May     Jun       Jul     Aug     Sep
+    <span style="">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #008700">■ </span><span style="color: #005f00">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #008700">■ </span><span style="color: #5f8700">■ </span><span style="color: #008700">■ </span><span style="color: #5f8700">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span>
+M   <span style="">■ </span><span style="color: #005f00">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #008700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #008700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #005f00">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span>
+    <span style="">■ </span><span style="color: #005f00">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span>
+W   <span style="">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #008700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f8700">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f8700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #008700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span>
+  <span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span>
+F <span style="color: #3a3a3a">■ </span><span style="color: #008700">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span>
+  <span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f8700">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f8700">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #3a3a3a">■ </span><span style="color: #5f875f">■ </span><span style="color: #3a3a3a">■ </span>
+</pre></div>
+</div>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub check-pages [&lt;repo&gt;] [--parent]</code></dt>
+<dd></dd></dl>
+
+<p>Check your repository for common misconfigurations in the usage of GitHub
+pages, including DNS checks and content checks. You can use the
+<code class="xref std std-option docutils literal notranslate"><span class="pre">--parent</span></code> option to check the parent repository instead.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub render [--save=&lt;outfile&gt;] &lt;file&gt;</code></dt>
+<dd></dd></dl>
+
+<p>Lets GitHub render a markdown page and displays the result in your browser or
+save it to a file.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub ignore [&lt;language&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>GitHub provides <code class="file docutils literal notranslate"><span class="pre">.gitignore</span></code> templates for various languages and
+environments. This command will let you quickly grab them and add them to your
+<code class="file docutils literal notranslate"><span class="pre">.gitignore</span></code>. For example: <strong class="command">git hub ignore Python C</strong></p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub ip-addresses [--git] [--hooks] [--importer] [--pages]</code></dt>
+<dd></dd></dl>
+
+<p>This tells you which ip addresses belong to certain github.com services. Very
+useful to keep firewalls and access control lists up-to-date.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub network [&lt;level&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Generates a graphviz graph of people following you, people you follow or people
+who’s repositories you’ve forked. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">hub</span> <span class="n">network</span> <span class="o">|</span> <span class="n">dot</span> <span class="o">-</span><span class="n">T</span> <span class="n">png</span> <span class="o">-</span><span class="n">Grankdir</span><span class="o">=</span><span class="n">LR</span> <span class="o">&gt;</span> <span class="n">network</span><span class="o">.</span><span class="n">png</span>
+</pre></div>
+</div>
+<p>Here’s mine:</p>
+<img alt="_images/network.png" src="_images/network.png" />
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git hub say [&lt;msg&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>This lets the octocat speak to you.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="gitlab.html" class="btn btn-neutral float-right" title="Git spindle for GitLab" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Git subcommands for interacting with central services" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2012-2020, Dennis Kaarsemaker.
+
+    </p>
+  </div> 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

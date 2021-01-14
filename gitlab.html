@@ -1,0 +1,534 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Git spindle for GitLab &mdash; git-spindle 4.0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Git spindle for BitBucket" href="bitbucket.html" />
+    <link rel="prev" title="Git spindle for GitHub" href="github.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> git-spindle
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="github.html">Git spindle for GitHub</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Git spindle for GitLab</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-multiple-accounts">Using multiple accounts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interacting-with-repositories">Interacting with repositories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#administering-repositories">Administering repositories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#issues-and-pull-requests">Issues and pull requests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other">Other</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bitbucket.html">Git spindle for BitBucket</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins for spindles</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">git-spindle</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Git spindle for GitLab</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="git-spindle-for-gitlab">
+<h1>Git spindle for GitLab<a class="headerlink" href="#git-spindle-for-gitlab" title="Permalink to this headline">¶</a></h1>
+<p><strong class="command">git lab</strong> lets you use your GitLab instance from the command line.
+Among other things, it lets you create and fork repositories, or file merge
+requests.</p>
+<div class="section" id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h2>
+<p>The first time you use <strong class="command">git lab</strong>, it will ask you for your GitLab
+username and password. It then requests (and stores) your API authentication.</p>
+<p>The authentication token is stored in <code class="file docutils literal notranslate"><span class="pre">~/.gitspindle</span></code>. Never share this
+token with anyone as it gives full access to your GitLab account.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab whoami</code></dt>
+<dd></dd></dl>
+
+<p>A simple command to try out is <strong class="command">git lab whoami</strong>, which tells you what
+GitLab thinks about who you are. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dennis@lightning:~$ git lab whoami
+GitLab user: seveas
+GitLab password:
+<span style="font-weight: bold; text-decoration: underline">Dennis Kaarsemaker (id 57597)</span>
+Profile   https://gitlab.com/u/seveas
+Email     dennis@kaarsemaker.net
+Website   http://www.kaarsemaker.net
+Twitter   seveas
+LinkedIn  http://nl.linkedin.com/in/denniskaarsemaker
+Bio       Python developer, linux admin, solving scalability issues at booking.com
+RSA key   ...N0nFw3oW5l (Dennis Kaarsemaker (git))
+</pre></div>
+</div>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab whois &lt;user&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>If you want to see some information about other users, use <strong class="command">git lab whois</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>dennis@lightning:~$ git lab whois sigmavirus24
+<span style="font-weight: bold; text-decoration: underline">Ian Cordasco (id 6325)</span>
+Profile   https://gitlab.com/u/sigmavirus24
+</pre></div>
+</div>
+<p>Sadly, GitLab does not give a lot of information about other users.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab repos [--no-forks]</code></dt>
+<dd></dd></dl>
+
+<p>List all your repositories. Specify <code class="xref std std-option docutils literal notranslate"><span class="pre">--no-forks</span></code> to exclude forked
+repositories.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab add-public-keys [&lt;key&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>Add SSH public keys (default: <code class="file docutils literal notranslate"><span class="pre">~/.ssh/*.pub</span></code>) to your account.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab public-keys [&lt;user&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Display all public keys of a user, in a format that can be added to
+<code class="file docutils literal notranslate"><span class="pre">~/.authorized_keys</span></code>. Note that only admins can see this information for
+other users.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab log [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Displays a log of actions done to a repository, such as pushes and issue
+comments.</p>
+</div>
+<div class="section" id="using-multiple-accounts">
+<h2>Using multiple accounts<a class="headerlink" href="#using-multiple-accounts" title="Permalink to this headline">¶</a></h2>
+<p><strong class="command">git lab</strong> supports using more than one account, and using local
+installs of GitLab CE and EE. To use a non-default account outside a
+repository, for example when cloning, you have to tell <strong class="command">git lab</strong> which
+account to use using <code class="xref std std-option docutils literal notranslate"><span class="pre">--account</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git lab --account test-account clone seveas/whelk
+</pre></div>
+</div>
+<p>If the account is on a Gitlab enterprise installation, you don’t need to use
+–account all the time. git-spindle will recognize the account from the url in
+your repository configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git lab --account work clone dev/website
+$ cd website
+$ git lab issues
+</pre></div>
+</div>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab add-account [--host=&lt;host&gt;] &lt;alias&gt;</code></dt>
+<dd></dd></dl>
+
+<p>To add a new account, use the <strong class="command">add-account</strong> command. If the account
+lives on a GitLab EE or CE instance other than gitlab.com, you can specify its
+hostname.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab config [--unset] &lt;key&gt; [&lt;value&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Set, get or unset a configuration variable in <code class="file docutils literal notranslate"><span class="pre">~/.gitspindle</span></code>. Similar to
+<strong class="command">git config</strong>, but only single-level keys are allowed, and the section
+is hardcoded to be the current account.</p>
+<p>To change the hostname of any account, including the default one, you can use
+the <strong class="command">config</strong> command as follows: <strong class="command">git lab config host
+https://gitlab.example.com</strong>.</p>
+</div>
+<div class="section" id="interacting-with-repositories">
+<h2>Interacting with repositories<a class="headerlink" href="#interacting-with-repositories" title="Permalink to this headline">¶</a></h2>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab create [--private|--internal] [--group=&lt;group&gt;] [--description=&lt;description&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Create a (possibly private/internal) repository on GitLab for your current
+repository. An optional description can be given too. After running this
+command, a repository will be created on GitLab and your local repository will
+have GitLab as remote “origin”, so <strong class="command">git push origin master</strong> will work.</p>
+<p>By default the repository is created under your account, but you can specify a
+group to create the repository for.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab set-origin [--ssh|--http] [--triangular [--upstream-branch=&lt;branch&gt;]]</code></dt>
+<dd></dd></dl>
+
+<p>Fix the configuration of your repository’s remotes. The remote “origin” will be
+set to your GitLab repository. If “origin” is a fork, an “upstream” remote will
+be set to the repository you forked from.</p>
+<p>All non-tracking branches with a matching counterpart in “origin” will be set to
+track “origin” (push and pull to it). Use <code class="xref std std-option docutils literal notranslate"><span class="pre">--triangular</span></code> to set remotes
+in a triangular fashion where <strong class="command">git pull</strong> pulls from “upstream” and
+<strong class="command">git push</strong> pushes to “origin”. This also sets the configuration option
+<code class="xref std std-option docutils literal notranslate"><span class="pre">remote.pushDefault</span></code>, so that new branches are pushed to “origin” even
+if they track a branch in “upstream”. All non-tracking branches are set up to
+track a matching counterpart in “upstream” except if <code class="xref std std-option docutils literal notranslate"><span class="pre">--upstream-branch</span></code>
+explicitly specifies a branch like “master” in “upstream” that all branches should
+track.</p>
+<p>For “origin”, an SSH url is used. For “upstream”, set-origin defaults to adding
+a git url, but this can be overridden. For private repos, SSH is used.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab clone [--ssh|--http] [--triangular [--upstream-branch=&lt;branch&gt;]] [--parent] [git-clone-options] &lt;repo&gt; [&lt;dir&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Clone a GitLab repository by name (e.g. seveas/hacks) or URL. The “origin”
+remote will be set and, like with set-origin, if “origin” is a fork t
+“upstream” remote will be set too. The option <code class="xref std std-option docutils literal notranslate"><span class="pre">--triangular</span></code> can be used
+for a triangular setup.</p>
+<p>Defaults to cloning from an http url, but this can be overridden. For private
+repos, SSH is used.</p>
+<p>This command accepts all options git clone accepts and will forward those to
+<strong class="command">git clone</strong>.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab cat &lt;file&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>Display the contents of a file on GitLab. File can start with repository names
+and refs. For example: <cite>master:bin/git-lab</cite>, <cite>git-spindle:master:bin/git-lab</cite>
+or <cite>seveas/git-spindle:master:bin/git-lab</cite>.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab ls [&lt;dir&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>Display the contents of a directory on GitLab. Directory can start with
+repository names and refs. For example: <cite>master:bin/git-lab</cite>,
+<cite>git-spindle:master:bin/git-lab</cite> or <cite>seveas/git-spindle:master:bin/git-lab</cite>.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab fork [--ssh|--http] [--triangular [--upstream-branch=&lt;branch&gt;]] [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Fork another person’s git repository on GitLab and clones that repository
+locally. Repo can be specified as a (git) url or simply username/repo. Like with
+set-origin, the “origin” and “upstream” remotes will be set up too. The option
+<code class="xref std std-option docutils literal notranslate"><span class="pre">--triangular</span></code> can be used for a triangular setup.</p>
+<p>Defaults to cloning from a git url, but this can be overridden.</p>
+<p>Calling fork in a previously cloned-but-not-forked repository will create a
+fork of that repository and set up your remotes.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab add-remote [--ssh|--http] &lt;user&gt; [&lt;name&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Add a users fork as a remote using the specified name or the user’s login as
+name for the remote. Defaults to adding an http url, but this can be
+overridden. For private repos SSH is used.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab fetch [--ssh|--http] &lt;user&gt; [&lt;refspec&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>If you don’t want to add a user’s fork as a remote, but to want to fetch some
+refs from it, you can use the <strong class="command">fetch</strong> command. You can tell it which
+refs to fetch, and if you don’t give a refspec, it will fetch all branches.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab browse [--parent] [&lt;repo&gt;] [&lt;section&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Browse a repository (or its parent) on GitLab. By default the repository’s
+homepage is opened, but you can specify a different section, such as issues,
+merge_requests, wiki, files, commits, branches, graphs or settings.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab mirror [--ssh|--http] [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Mirror a repository from GitLab. This is similar to clone, but clones into a
+bare repository and maps all remote refs to local refs. When run without
+argument, the current repository will be updated. You can also specify
+<code class="xref std std-option docutils literal notranslate"><span class="pre">*</span></code> as repository to mirror all your repositories.</p>
+</div>
+<div class="section" id="administering-repositories">
+<h2>Administering repositories<a class="headerlink" href="#administering-repositories" title="Permalink to this headline">¶</a></h2>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab members [&lt;repo&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>List all people with push access to this repository.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab add-member [--access-level=guest|reporter|developer|master|owner] &lt;user&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>Grant people access to this repository.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab remove-member &lt;user&gt;...</code></dt>
+<dd></dd></dl>
+
+<p>Revoke access to this repository.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab protected</code></dt>
+<dd></dd></dl>
+
+<p>List all protected branches. Protected branches cannot be force-pushed or
+deleted, and can only be pushed to by people with the master or owner access
+level.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab protect &lt;branch&gt;</code></dt>
+<dd></dd></dl>
+
+<p>Mark a branch as protected.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab unprotect &lt;branch&gt;</code></dt>
+<dd></dd></dl>
+
+<p>Remove a branch’s protection.</p>
+</div>
+<div class="section" id="issues-and-pull-requests">
+<h2>Issues and pull requests<a class="headerlink" href="#issues-and-pull-requests" title="Permalink to this headline">¶</a></h2>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab issues [&lt;repo&gt;] [--parent] [&lt;filter&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>List all open issues for the current repository, or the one specified in the
+<cite>&lt;repo&gt;</cite> argument. If you run this outside a repository, or with <cite>–</cite> as
+<cite>&lt;repo&gt;</cite>, it will list issues in all your repositories.  When you
+specify <code class="xref std std-option docutils literal notranslate"><span class="pre">--parent</span></code>, this will operate on the parent repositoryD.</p>
+<p>You can specify filters in the form <cite>filter=value</cite> to filter issues. Supported
+filters are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>state, accepted values: opened, closed</p></li>
+<li><p>labels, accepted values: comma-separated list of labels, e.g. bug,ui,&#64;high</p></li>
+<li><p>scope, accepted values: all, created-by-me, assigned-to-me</p></li>
+<li><p>order_by, accepted values: created_at, updated_at</p></li>
+<li><p>sort, accepted values: asc, desc</p></li>
+</ul>
+</div></blockquote>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab issue [&lt;repo&gt;] [--parent] [&lt;issue&gt;...]</code></dt>
+<dd></dd></dl>
+
+<p>Shows details about the mentioned issue numbers. As with <code class="xref std std-option docutils literal notranslate"><span class="pre">issues</span></code>, you
+can use the <code class="xref std std-option docutils literal notranslate"><span class="pre">--parent</span></code> option to use the parent repository. If you do
+not specify an issue number, you will be prompted for a message that will be
+used to create a new issue.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab merge-request [--yes] [&lt;yours:theirs&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Files a pull request to merge branch “yours” (default: the current branch) into
+the upstream branch “theirs” (default: the tracked branch of “yours” if it is in
+the upstream repository, otherwise the default branch of the upstream
+repository, usually “master”). Like for a commit message, your
+editor will be opened to write a pull request message. The comments of said
+message contain the shortlog and diffstat of the commits that you’re asking to
+be merged. Note that if you use any characterset in your logs and filenames
+that is not ascii or utf-8, git lab will misbehave.</p>
+<p>If you specify an issue number, that issue will be turned into a pull request
+and you will not be asked to write a pull request message.</p>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab apply-merge &lt;merge-request-number&gt;</code></dt>
+<dd></dd></dl>
+
+<p>GitLab makes it easy for you to merge merge requests, but if you want to keep
+your history linear, this one is for you. It applies a merge request using
+<strong class="command">git cherry-pick</strong> instead of merging.</p>
+</div>
+<div class="section" id="other">
+<h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
+<dl class="describe">
+<dt>
+<code class="sig-name descname">git lab calendar [&lt;user&gt;]</code></dt>
+<dd></dd></dl>
+
+<p>Show a timeline of a your activity, or that of another user. The timeline will
+look like that on your GitLab profile page.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="bitbucket.html" class="btn btn-neutral float-right" title="Git spindle for BitBucket" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="github.html" class="btn btn-neutral float-left" title="Git spindle for GitHub" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2012-2020, Dennis Kaarsemaker.
+
+    </p>
+  </div> 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
