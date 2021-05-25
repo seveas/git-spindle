@@ -222,7 +222,7 @@ Issues and pull requests
 List all open issues for the current repository, or the one specified in the
 `<repo>` argument. If you run this outside a repository, or with `--` as
 `<repo>`, it will list issues in all your repositories.  When you
-specify :option:`--parent`, this will operate on the parent repositoryD.
+specify :option:`--parent`, this will operate on the parent repository.
 
 You can specify filters in the form `filter=value` to filter issues. Supported
 filters are:
@@ -254,11 +254,15 @@ that is not ascii or utf-8, git lab will misbehave.
 If you specify an issue number, that issue will be turned into a pull request
 and you will not be asked to write a pull request message.
 
-.. describe:: git lab apply-merge <merge-request-number>
+.. describe:: git lab apply-merge [--ssh|--http] <merge-request-number>
 
 GitLab makes it easy for you to merge merge requests, but if you want to keep
 your history linear, this one is for you. It applies a merge request using
 :command:`git cherry-pick` instead of merging.
+
+For own and private repos, by default an SSH url is used to fetch the changes.
+For foreign public repos, by default an HTTP url is used.
+This can be overridden using the command options.
 
 .. _`filters`: https://github.com/gitlabhq/gitlabhq/blob/master/doc/api/issues.md
 

@@ -85,17 +85,6 @@ e.g. :option:`--type=push`. You can also get more (or less) than the default 30
 items in the log by specifying a count. Finally, :option:`--verbose` will give
 slightly more verbose output for some log items.
 
-.. describe:: git hub create-token [--store]
-
-Create a personal access token that can be used for git operations (clone,
-fetch, push) over http. Especially useful if you use two-factor authentication,
-as these tokens can be used instead of your password and don't require the
-second factor.
-
-The token is shown in the output of the command. If you specify
-:option:`--store`, the token will also be stored using the git credential
-helpers.
-
 .. _`profile page`: https://github.com/settings/applications
 
 Using multiple accounts
@@ -262,7 +251,7 @@ Revoke access to this repository.
 List all protected branches. Protected branches cannot be force-pushed or
 deleted, and can potentially have required status checks.
 
-.. describe:: git hub protect [--enforcement=<level>] [--status_checks=<contexts>] <branch>
+.. describe:: git hub protect [--enforcement=<level>] [--status-checks=<contexts>] <branch>
 
 Protect a branch against force-pushes and deletion. Optionally require status
 checks to succeed by specifying their context (e.g.
@@ -316,7 +305,7 @@ Issues and pull requests
 List all open issues for the current repository, or the one specified in the
 `<repo>` argument. If you run this outside a repository, or with `--` as
 `<repo>`, it will list issues in all your repositories.  When you
-specify :option:`--parent`, this will operate on the parent repositoryD.
+specify :option:`--parent`, this will operate on the parent repository.
 
 You can specify filters in the form `filter=value` to filter issues. Supported
 filters are:
@@ -350,11 +339,15 @@ that is not ascii or utf-8, git hub will misbehave.
 If you specify an issue number, that issue will be turned into a pull request
 and you will not be asked to write a pull request message.
 
-.. describe:: git hub apply-pr <pr-number>
+.. describe:: git hub apply-pr [--ssh|--http|--git] <pr-number>
 
 GitHub makes it easy for you to merge pull requests, but if you want to keep
 your history linear, this one is for you. It applies a pull request using
 :command:`git cherry-pick` instead of merging.
+
+For own and private repos, by default an SSH url is used to fetch the changes.
+For foreign public repos, by default an HTTP url is used.
+This can be overridden using the command options.
 
 .. _`filters`: http://github3py.readthedocs.org/en/latest/repos.html#github3.repos.Repository.list_issues
 

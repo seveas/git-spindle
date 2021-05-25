@@ -32,7 +32,7 @@ If you want to see this information about other users, use :command:`git bb whoi
   [1;4mBill Blough[0m
   Profile:  https://bitbucket.org/bblough
 
-.. describe:: git bb repos [--no-forks] [<user>]
+.. describe:: git bb repos [--no-forks] [<workspace>]
 
 List all repositories owned by a user, by default you. Specify :option:`--no-forks`
 to exclude forked repositories.
@@ -164,24 +164,12 @@ argument, the current repository will be updated. You can also specify
 
 Administering repositories
 --------------------------
-.. describe:: git bb privileges [<repo>]
+.. describe:: git bb permissions [<repo>]
 
 List all people with access to this repository. Beware that BitBucket
 aggressively caches permissions and it can take up to a minute for a change in
 permissions to be reflected in the output of this command. The owner of the
 repository is also not listed in the output.
-
-.. describe:: git bb add-privilege [--admin|--read|--write] <user>...
-
-Grant people read, write or admin access to this repository.
-
-.. describe:: git bb remove-privilege <user>...
-
-Revoke access to this repository.
-
-.. describe:: git bb invite [--read|--write|--admin] <email>...
-
-Invite users by e-mail to collaborate on this repository.
 
 .. describe:: git bb deploy-keys [<repo>]
 
@@ -205,7 +193,7 @@ Issues and pull requests
 List all open issues for the current repository, or the one specified in the
 `<repo>` argument. If you run this outside a repository, or with `--` as
 `<repo>`, it will list issues in all your repositories.  When you
-specify :option:`--parent`, this will operate on the parent repositoryD.
+specify :option:`--parent`, this will operate on the parent repository.
 
 You can specify filters in the form `filter=value` to filter issues. Supported
 filters are:
@@ -236,11 +224,15 @@ message contain the shortlog and diffstat of the commits that you're asking to
 be merged. Note that if you use any characterset in your logs and filenames
 that is not ascii or utf-8, git bb will misbehave.
 
-.. describe:: git bb apply-pr <pr-number>
+.. describe:: git bb apply-pr [--ssh|--http] <pr-number>
 
 BitBucket makes it easy for you to merge pull requests, but if you want to keep
 your history linear, this one is for you. It applies a pull request using
 :command:`git cherry-pick` instead of merging.
+
+For own and private repos, by default an SSH url is used to fetch the changes.
+For foreign public repos, by default an HTTP url is used.
+This can be overridden using the command options.
 
 Snippets
 --------

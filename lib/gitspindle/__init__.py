@@ -1,6 +1,7 @@
 import gitspindle.monkey
 import docopt
 import os
+import pkg_resources
 import re
 import shlex
 import sys
@@ -45,7 +46,7 @@ class DocoptExit(SystemExit):
     commands = {}
     def __init__(self, message='', command=None):
         if command and command in self.commands:
-            SystemExit.__init__(self, self.commands[command])
+            SystemExit.__init__(self, self.commands.get(command, self.help))
         elif message:
             SystemExit.__init__(self, message)
         else:
@@ -53,13 +54,16 @@ class DocoptExit(SystemExit):
 docopt.DocoptExit = DocoptExit
 
 def extras(help, version, options, doc):
-    if not help or not any((o.name in ('-h', '--help')) and o.value for o in options):
-        return
-    for opt in options[1:]:
-        if isinstance(opt, docopt.Argument):
-            raise(DocoptExit(command=opt.value))
-    raise DocoptExit()
-
+    if help and any((o.name in ('-h', '--help')) and o.value for o in options):
+        for opt in options[1:]:
+            if isinstance(opt, docopt.Argument):
+                print(DocoptExit.commands.get(opt.value, DocoptExit.help))
+                sys.exit()
+        print(DocoptExit.help)
+        sys.exit()
+    if version and any(o.name == '--version' and o.value for o in options):
+        print(version)
+        sys.exit()
 docopt.extras = extras
 
 GitSpindlePlugin = None
@@ -138,11 +142,14 @@ Usage:\n""" % (self.prog, self.what)
                 doc[0] = ' ' + doc[0]
             help = '%s:\n  %s %s %s%s\n' % (doc[1], self.prog, '[options]', name, doc[0])
             self.usage += help
-            DocoptExit.commands[name] = help
+            DocoptExit.commands[name] = help.strip('\n')
             DocoptExit.help += '  %-25s%s\n' % (name, doc[1])
         tail = """
 Options:
-  -h --help              Show this help message and exit
+  -h --help              Show this help message and exit,
+                         if also a valid command is given show detail
+                         help for that command instead and exit
+  --version              Show the version and exit
   --desc=<description>   Description for the new gist/repo
   --parent               Use the parent of a forked repo
   --yes                  Automatically answer yes to questions
@@ -152,7 +159,7 @@ Options:
   --git                  Use git:// urls for cloning 3rd party repos
   --account=<account>    Use another account than the default\n"""
         self.usage += tail
-        DocoptExit.help += tail
+        DocoptExit.help += tail.strip('\n')
         for m in self.__plugin_init__:
             m(self)
 
@@ -410,7 +417,7 @@ Options:
 
     def main(self):
         argv = self.prog.split()[1:] + sys.argv[1:]
-        opts = docopt.docopt(self.usage, argv)
+        opts = docopt.docopt(self.usage, argv, version="git-spindle %s" % pkg_resources.require('git-spindle')[0].version)
         self.assume_yes = opts['--yes']
         hosts = self.git('config', '--file', self.config_file, '--get-regexp', '%s\..*\.host' % self.spindle).stdout.strip()
 
