@@ -119,7 +119,7 @@ class GitSpindle(metaclass=GitSpindlePluginLoader):
         self.use_credential_helper = helper not in (None, 'cache', 'netrc')
 
         self.usage = DocoptExit.help = """%s - %s integration for git
-A full manual can be found on http://seveas.github.com/git-spindle/
+A full manual can be found on https://git-spindle.seveas.net/
 
 Usage:\n""" % (self.prog, self.what)
         DocoptExit.help += "  %s [options] <command> [command-options]\n\nCommands:\n" % (self.prog)

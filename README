@@ -35,7 +35,7 @@ pip are installed:
 
 Usage:
 
-(For detailed information, go to http://seveas.github.com/git-spindle)
+(For detailed information, go to https://git-spindle.seveas.net)
 
 Add an account to the configuration:
   git hub add-account [--host=<host>] <alias>
