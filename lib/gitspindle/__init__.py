@@ -610,6 +610,8 @@ class Credential(object):
     def fill_noninteractive(self):
         env = os.environ.copy()
         env['GIT_TERMINAL_PROMPT'] = '0'
+        env['GCM_INTERACTIVE'] = 'never'
+        env['GCM_MODAL_PROMPT'] = 'false'
         env.pop('GIT_ASKPASS', None)
         env.pop('SSH_ASKPASS', None)
         self.communicate('fill', env=env)
@@ -628,7 +630,7 @@ class Credential(object):
     def communicate(self, action, env=os.environ):
         data = self.format() + '\n\n'
         if env.get('GIT_TERMINAL_PROMPT', None) == '0':
-            ret = self.shell.git('-c', 'core.askpass=', 'credential', action, env=env, input=data)
+            ret = self.shell.git('-c', 'core.askpass=', '-c', 'credential.interactive=never', '-c', 'credential.modalPrompt=false', 'credential', action, env=env, input=data)
         else:
             ret = self.shell.git('credential', action, env=env, input=data)
         if not ret:
