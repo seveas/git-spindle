@@ -1,3 +1,15 @@
+Archived, abandoned
+===================
+
+git-spindle was once born because GitLab and BitBucket didn't have usable CLI's, and GitHub's cli
+left much to be desired. These days GitHub's `gh` beats git-spindle by a mile, and for GitLab
+there's `glab`. Even atlassian now ships a cli for bitbucket, though personally I don't care about
+bitbucket at all anymore.
+
+So it's time for git-spindle to retire. It was fun while it lasted, and if there's some code in here
+you find useful, feel free to steal it as you see fit.
+
+
 Integrating git with central services
 =====================================
 
